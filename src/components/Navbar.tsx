@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogOut, Dumbbell, ChevronDown } from 'lucide-react';
+import { Menu, X, User, LogOut, Dumbbell, ChevronDown, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../context/UserContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, isLoggedIn, logout } = useUser();
+  const { theme, toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const profileDropdownRef = useRef<HTMLDivElement>(null);
@@ -55,13 +57,21 @@ export default function Navbar() {
     };
   }, []);
 
+  // Define navigation items for reuse
+  const navItems = [
+    { path: '/', label: 'Home' },
+    { path: '/features', label: 'Features' },
+    { path: '/about', label: 'About Us' },
+    { path: '/contact', label: 'Contact' }
+  ];
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-black/90 backdrop-blur-md border-b border-[#1A202C]' : 'bg-transparent'}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-black/90 backdrop-blur-md border-b border-[#1A202C] light-theme:bg-white/90 light-theme:border-gray-200' : 'bg-transparent'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <div className="h-10 w-10 rounded-full bg-purple-600 flex items-center justify-center mr-2">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mr-2">
                 <Dumbbell size={20} className="text-white" />
               </div>
               <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
@@ -71,93 +81,124 @@ export default function Navbar() {
           </div>
 
           {/* Desktop menu */}
-          <div className="hidden md:block">
+          <div className="hidden md:flex md:items-center md:space-x-6">
+            {/* Navigation Links */}
             <div className="flex items-center space-x-6">
-              <Link 
-                to="/" 
-                className={`px-3 py-2 text-sm font-medium transition-colors relative group ${
-                  location.pathname === '/' 
-                    ? 'text-purple-400' 
-                    : 'text-gray-300 hover:text-white'
-                }`}
-              >
-                Home
-                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ${
-                  location.pathname === '/' ? 'scale-x-100' : ''
-                }`}></span>
-              </Link>
-              
-              {isLoggedIn ? (
-                <>
-                  <Link 
-                    to="/trainer" 
-                    className={`px-3 py-2 text-sm font-medium transition-colors relative group ${
-                      location.pathname === '/trainer' 
-                        ? 'text-purple-400' 
-                        : 'text-gray-300 hover:text-white'
-                    }`}
+              {navItems.map((item) => (
+                <Link 
+                  key={item.path}
+                  to={item.path} 
+                  className={`px-3 py-2 text-sm font-medium transition-colors relative group ${
+                    location.pathname === item.path 
+                      ? 'text-purple-400 light-theme:text-purple-600' 
+                      : 'text-gray-300 hover:text-white light-theme:text-gray-700 light-theme:hover:text-purple-600'
+                  }`}
+                >
+                  {item.label}
+                  <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ${
+                    location.pathname === item.path ? 'scale-x-100' : ''
+                  }`}></span>
+                </Link>
+              ))}
+            </div>
+            
+            {/* Theme Toggle */}
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-full bg-black/30 hover:bg-black/50 light-theme:bg-gray-200 light-theme:hover:bg-gray-300 transition-colors"
+              aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+            >
+              {isDark ? (
+                <Sun size={20} className="text-yellow-400" />
+              ) : (
+                <Moon size={20} className="text-purple-600" />
+              )}
+            </button>
+            
+            {/* Auth Buttons */}
+            {isLoggedIn ? (
+              <>
+                <Link 
+                  to="/trainer" 
+                  className={`px-3 py-2 text-sm font-medium transition-colors relative group ${
+                    location.pathname === '/trainer' 
+                      ? 'text-purple-400 light-theme:text-purple-600' 
+                      : 'text-gray-300 hover:text-white light-theme:text-gray-700 light-theme:hover:text-purple-600'
+                  }`}
+                >
+                  Workout Trainer
+                  <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ${
+                    location.pathname === '/trainer' ? 'scale-x-100' : ''
+                  }`}></span>
+                </Link>
+                <div className="relative ml-3" ref={profileDropdownRef}>
+                  <button 
+                    onClick={toggleProfileDropdown}
+                    className="flex items-center text-sm rounded-full focus:outline-none py-1"
                   >
-                    Workout Trainer
-                    <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ${
-                      location.pathname === '/trainer' ? 'scale-x-100' : ''
-                    }`}></span>
-                  </Link>
-                  <div className="relative ml-3" ref={profileDropdownRef}>
-                    <button 
-                      onClick={toggleProfileDropdown}
-                      className="flex items-center text-sm rounded-full focus:outline-none py-1"
-                    >
-                      <span className="sr-only">Open user menu</span>
-                      {user?.profileImage ? (
-                        <img
-                          className="h-9 w-9 rounded-full object-cover border-2 border-purple-500"
-                          src={user.profileImage}
-                          alt={user.name}
-                        />
-                      ) : (
-                        <div className="h-9 w-9 rounded-full bg-purple-600 flex items-center justify-center text-white">
-                          {user?.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                      <ChevronDown size={16} className={`ml-1 text-gray-400 transition-transform duration-200 ${isProfileOpen ? 'transform rotate-180' : ''}`} />
-                    </button>
-                    {isProfileOpen && (
-                      <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-black ring-1 ring-purple-500 border border-purple-500/30 backdrop-blur-md z-50">
-                        <Link 
-                          to="/profile" 
-                          className="block px-4 py-2 text-sm text-gray-300 hover:bg-purple-500/10 hover:text-white transition-colors"
-                          onClick={() => setIsProfileOpen(false)}
-                        >
-                          Your Profile
-                        </Link>
-                        <button
-                          onClick={handleLogout}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-purple-500/10 hover:text-white transition-colors"
-                        >
-                          Sign out
-                        </button>
+                    <span className="sr-only">Open user menu</span>
+                    {user?.profileImage ? (
+                      <img
+                        className="h-9 w-9 rounded-full object-cover border-2 border-purple-500"
+                        src={user.profileImage}
+                        alt={user.name}
+                      />
+                    ) : (
+                      <div className="h-9 w-9 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center text-white">
+                        {user?.name.charAt(0).toUpperCase()}
                       </div>
                     )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Link to="/signin" className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium relative group">
-                    Sign In
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
-                  </Link>
-                  <Link to="/signup" className="bg-purple-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-purple-700 transition-colors">
-                    Sign Up
-                  </Link>
-                </>
-              )}
-            </div>
+                    <ChevronDown size={16} className={`ml-1 text-gray-400 transition-transform duration-200 ${isProfileOpen ? 'transform rotate-180' : ''}`} />
+                  </button>
+                  {isProfileOpen && (
+                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-black ring-1 ring-purple-500 border border-purple-500/30 backdrop-blur-md z-50 light-theme:bg-white light-theme:border-gray-200 light-theme:shadow-lg">
+                      <Link 
+                        to="/profile" 
+                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-purple-500/10 hover:text-white transition-colors light-theme:text-gray-700 light-theme:hover:bg-purple-100 light-theme:hover:text-purple-600"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        Your Profile
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-purple-500/10 hover:text-white transition-colors light-theme:text-gray-700 light-theme:hover:bg-purple-100 light-theme:hover:text-purple-600"
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <Link to="/signin" className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium relative group light-theme:text-gray-700 light-theme:hover:text-purple-600">
+                  Sign In
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+                </Link>
+                <Link to="/signup" className="bg-gradient-to-r from-purple-600 to-blue-500 text-white px-5 py-2 rounded-md text-sm font-medium hover:from-purple-700 hover:to-blue-600 transition-colors">
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center space-x-3">
+            {/* Theme Toggle - Mobile */}
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-full bg-black/30 hover:bg-black/50 light-theme:bg-gray-200 light-theme:hover:bg-gray-300 transition-colors"
+              aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+            >
+              {isDark ? (
+                <Sun size={18} className="text-yellow-400" />
+              ) : (
+                <Moon size={18} className="text-purple-600" />
+              )}
+            </button>
+            
             {isLoggedIn && (
-              <Link to="/profile" className="mr-4">
+              <Link to="/profile" className="mr-1">
                 {user?.profileImage ? (
                   <img
                     className="h-8 w-8 rounded-full object-cover border-2 border-purple-500"
@@ -165,7 +206,7 @@ export default function Navbar() {
                     alt={user.name}
                   />
                 ) : (
-                  <div className="h-8 w-8 rounded-full bg-purple-600 flex items-center justify-center text-white">
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center text-white">
                     {user?.name.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -173,7 +214,7 @@ export default function Navbar() {
             )}
             <button
               onClick={toggleMenu}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-purple-500/10 focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-purple-500/10 focus:outline-none light-theme:text-gray-700 light-theme:hover:text-purple-600"
             >
               <span className="sr-only">Open main menu</span>
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -192,18 +233,21 @@ export default function Navbar() {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-black border-t border-purple-500/20 backdrop-blur-md">
-              <Link
-                to="/"
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  location.pathname === '/' 
-                    ? 'text-purple-400' 
-                    : 'text-gray-300 hover:text-white hover:bg-purple-500/10'
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </Link>
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-black border-t border-purple-500/20 backdrop-blur-md light-theme:bg-white light-theme:border-gray-200">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                    location.pathname === item.path 
+                      ? 'text-purple-400 light-theme:text-purple-600' 
+                      : 'text-gray-300 hover:text-white hover:bg-purple-500/10 light-theme:text-gray-700 light-theme:hover:text-purple-600 light-theme:hover:bg-purple-100'
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
               
               {isLoggedIn ? (
                 <>
@@ -211,8 +255,8 @@ export default function Navbar() {
                     to="/trainer"
                     className={`block px-3 py-2 rounded-md text-base font-medium ${
                       location.pathname === '/trainer' 
-                        ? 'text-purple-400' 
-                        : 'text-gray-300 hover:text-white hover:bg-purple-500/10'
+                        ? 'text-purple-400 light-theme:text-purple-600' 
+                        : 'text-gray-300 hover:text-white hover:bg-purple-500/10 light-theme:text-gray-700 light-theme:hover:text-purple-600 light-theme:hover:bg-purple-100'
                     }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -220,7 +264,7 @@ export default function Navbar() {
                   </Link>
                   <Link
                     to="/profile"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-purple-500/10"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-purple-500/10 light-theme:text-gray-700 light-theme:hover:text-purple-600 light-theme:hover:bg-purple-100"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <div className="flex items-center">
@@ -230,7 +274,7 @@ export default function Navbar() {
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-purple-500/10"
+                    className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-purple-500/10 light-theme:text-gray-700 light-theme:hover:text-purple-600 light-theme:hover:bg-purple-100"
                   >
                     <div className="flex items-center">
                       <LogOut size={16} className="mr-2 text-purple-400" />
@@ -242,14 +286,14 @@ export default function Navbar() {
                 <>
                   <Link
                     to="/signin"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-purple-500/10"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-purple-500/10 light-theme:text-gray-700 light-theme:hover:text-purple-600 light-theme:hover:bg-purple-100"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Sign In
                   </Link>
                   <Link
                     to="/signup"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-white bg-purple-600 hover:bg-purple-700 my-2 mx-3"
+                    className="block px-3 py-2 rounded-md text-base font-medium bg-gradient-to-r from-purple-600 to-blue-500 text-white hover:from-purple-700 hover:to-blue-600 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Sign Up

@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { Edit2, Award, Activity, Dumbbell, BarChart2, Calendar, Save, X, Trophy, Target, Flame } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import Chatbot from '../components/Chatbot';
 import { useUser } from '../context/UserContext';
 
 export default function Profile() {
@@ -488,7 +487,6 @@ export default function Profile() {
       </div>
       
       <Footer />
-      <Chatbot />
     </div>
   );
 }

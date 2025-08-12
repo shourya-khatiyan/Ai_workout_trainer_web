@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Brain, Activity, Zap, Users, Code, CheckCircle, Dumbbell, Cpu, ExternalLink } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import Chatbot from '../components/Chatbot';
 import { useUser } from '../context/UserContext';
 import { navigateToTrainerWithoutLoading } from '../utils/navigationUtils';
 
@@ -61,7 +60,6 @@ export default function LandingPage() {
           >
             INTRODUCING
           </motion.p>
-          
           <motion.h1 
             className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-blue-500 to-blue-400 bg-clip-text text-transparent"
             initial={{ opacity: 0, y: 20 }}
@@ -101,6 +99,7 @@ export default function LandingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, y: [0, 10, 0] }}
             transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+            
           >
             <div className="flex flex-col items-center">
               <p className="text-gray-400 mb-2">Scroll to learn more</p>
@@ -414,7 +413,6 @@ export default function LandingPage() {
       </section>
       
       <Footer />
-      {isLoggedIn && <Chatbot />}
     </div>
   );
 }

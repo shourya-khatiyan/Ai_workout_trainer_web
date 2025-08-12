@@ -39,6 +39,38 @@
   --text-secondary: #A0AEC0;
 }
 
+/* Light theme variables */
+.light-theme {
+  --primary: #8B5CF6;
+  --primary-dark: #6D28D9;
+  --primary-light: #A78BFA;
+  --secondary: #38B2AC;
+  --secondary-dark: #2C7A7B;
+  --secondary-light: #4FD1C5;
+  --background: #F7FAFC;
+  --card-bg: #FFFFFF;
+  --card-dark: #F1F5F9;
+  --border: #E2E8F0;
+  --text: #1A202C;
+  --text-secondary: #ffffff;
+}
+
+/* Dark theme is the default */
+.dark-theme {
+  --primary: #8B5CF6;
+  --primary-dark: #6D28D9;
+  --primary-light: #A78BFA;
+  --secondary: #38B2AC;
+  --secondary-dark: #2C7A7B;
+  --secondary-light: #4FD1C5;
+  --background: #121826;
+  --card-bg: #1A202C;
+  --card-dark: #0D1117;
+  --border: #2D3748;
+  --text: #F7FAFC;
+  --text-secondary: #A0AEC0;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -48,6 +80,29 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--background);
   color: var(--text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Theme-specific styles */
+.light-theme .hero-gradient {
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+}
+
+.light-theme .hero-gradient::before {
+  background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.1), transparent 50%),
+              radial-gradient(circle at bottom left, rgba(56, 178, 172, 0.1), transparent 50%);
+}
+
+.light-theme .grid-pattern {
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+}
+
+.light-theme .neon-panel {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 /* New theme styles */

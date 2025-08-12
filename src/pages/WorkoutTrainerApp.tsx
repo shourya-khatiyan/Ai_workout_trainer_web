@@ -3,12 +3,12 @@ import Webcam from 'react-webcam';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
-import { Play, Pause, SkipBack, SkipForward, Upload, RefreshCw, Plus, ChevronDown, X, FolderOpen, Dumbbell, Trash2 } from 'lucide-react';
-import { calculateAngles, calculateAccuracy, generateFeedback } from '../utils/poseUtils';
+import { Play, Upload, Pause, SkipBack, SkipForward, RotateCcw, Camera, Download,Settings,Minimize2,Maximize2,LogOut,User, RefreshCw, Plus, ChevronDown,Menu, X, FolderOpen, Trash2 } from 'lucide-react';
+import { calculateAngles, calculateAccuracy, generateFeedback, initializeDetector } from '../utils';
 import './WorkoutTrainerApp.css';
 import { createPortal } from 'react-dom';
 
-function App() {
+export default function WorkoutTrainerApp() {
   // State for webcam and pose detection
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -121,32 +121,19 @@ function App() {
   
   // Initialize TensorFlow.js and pose detector
   useEffect(() => {
-    const initTF = async () => {
+    const initDetector = async () => {
       try {
-        await tf.setBackend('webgl');
-        await tf.ready();
-        console.log('TensorFlow.js initialized with WebGL backend');
-        
-        const model = poseDetection.SupportedModels.MoveNet;
-        const detectorConfig = {
-          modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
-          enableSmoothing: true,
-          modelUrl: undefined
-        };
-        
-        const detector = await poseDetection.createDetector(model, detectorConfig);
-        setDetector(detector);
-        console.log('Pose detector initialized');
+        const initializedDetector = await initializeDetector();
+        setDetector(initializedDetector);
         setCameraActive(true);
       } catch (error) {
         console.error('Error initializing pose detector:', error);
       }
     };
     
-    initTF();
+    initDetector();
     
     return () => {
-      // Cleanup
       if (detector) {
         detector.dispose?.();
       }
@@ -263,7 +250,7 @@ function App() {
   }, [trainerVideoUrl, detector, isPlaying]);
   
   // Helper function to draw joint lines only on canvas with black background
-  const drawJointLinesOnCanvas = (pose: poseDetection.Pose, canvas: HTMLCanvasElement, isTrainer: boolean = false) => {
+  const drawJointLinesOnCanvas = (pose: poseDetection.Pose, canvas: HTMLCanvasElement, isTrainer: boolean = false, accuracyData: any = null) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
@@ -316,6 +303,14 @@ function App() {
       ['left_knee', 'left_ankle'], ['right_knee', 'right_ankle']
     ];
     
+    // Map body parts to joint names for coloring (used only for trainee)
+    const bodyPartToJoint: {[key: string]: string} = {
+      'left_shoulder': 'Shoulder', 'right_shoulder': 'Shoulder',
+      'left_elbow': 'Elbow', 'right_elbow': 'Elbow',
+      'left_hip': 'Hip', 'right_hip': 'Hip',
+      'left_knee': 'Knee', 'right_knee': 'Knee'
+    };
+
     // Draw connections
     connections.forEach(([from, to]) => {
       const fromKeypoint = pose.keypoints.find(kp => kp.name === from);
@@ -345,8 +340,27 @@ function App() {
         
         ctx.moveTo(fromX, fromY);
         ctx.lineTo(toX, toY);
-        ctx.lineWidth = isTrainer ? 6 : 5; // Thicker lines for better visibility
-        ctx.strokeStyle = isTrainer ? '#FF0000' : '#38B2AC'; // Red for trainer, teal for trainee
+        ctx.lineWidth = isTrainer ? 3 : 2; // Thinner lines
+        
+        // Determine line color based on accuracy if available for trainee
+        if (!isTrainer && accuracyData && (from in bodyPartToJoint || to in bodyPartToJoint)) {
+          const jointName = bodyPartToJoint[from] || bodyPartToJoint[to];
+          const accuracy = accuracyData[jointName] || 0;
+          
+          if (accuracy >= 85) {
+            ctx.strokeStyle = '#48BB78'; // Green for good
+          }
+            else if (accuracy >= 50) {
+              ctx.strokeStyle = '#ECC94B'; // Yellow for warning
+    
+          } else {
+            ctx.strokeStyle = '#F56565'; // Red for error
+          }
+        } else {
+          // Default color for trainer or when accuracy is not available
+          ctx.strokeStyle = isTrainer ? '#FF0000' : '#38B2AC'; // Red for trainer, teal for trainee
+        }
+
         ctx.stroke();
       }
     });
@@ -451,7 +465,7 @@ function App() {
         
         ctx.moveTo(fromX, fromKeypoint.y);
         ctx.lineTo(toX, toKeypoint.y);
-        ctx.lineWidth = isTrainer ? 6 : 5; // Thicker lines for better visibility
+        ctx.lineWidth = isTrainer ? 3 : 2; // Thinner lines
         
         // Determine line color based on accuracy if available
         if (!isTrainer && accuracyData && (from in bodyPartToJoint || to in bodyPartToJoint)) {
@@ -581,9 +595,9 @@ function App() {
             // Draw pose on canvas with colored lines based on accuracy
             drawPoseOnCanvas(pose, canvas, false, accuracy);
             
-            // Update trainee joint lines canvas
+            // Update trainee joint lines canvas with accuracy data
             if (traineeJointCanvasRef.current) {
-              drawJointLinesOnCanvas(pose, traineeJointCanvasRef.current, false);
+              drawJointLinesOnCanvas(pose, traineeJointCanvasRef.current, false, accuracy);
             }
             
             // Only update UI if training is active
@@ -922,7 +936,7 @@ function App() {
   }, [showVideoDropdown, showCategoryDropdown]);
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-white text-black flex flex-col">
       {/* Header */}
       <header ref={headerRef} className="navbar-container">
         {/* Header glow effects */}
@@ -932,10 +946,10 @@ function App() {
         <div className="container mx-auto py-3 px-4 sm:px-6">
           <div className="flex items-center justify-between relative z-[100]">
             {/* Logo and title */}
-            <div className="navbar-logo">
+            {/* <div className="navbar-logo">
               <Dumbbell size={24} className="navbar-logo-icon" />
               <h1 className="navbar-logo-text text-xl">AI Workout Trainer</h1>
-            </div>
+            </div> */}
             
             {/* Controls */}
             <div className="navbar-controls">
@@ -1278,7 +1292,7 @@ function App() {
                     .filter(item => item.status === 'warning' || item.status === 'error')
                     .map((item, index) => (
                       <li key={index} className={`flex items-start p-2 rounded-md border ${
-                        item.status === 'warning' ? 'bg-black/40 border-yellow-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]' : 'bg-black/40 border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]'
+                        item.status === 'warning' ? 'bg-black/40 border-yellow-500/20 shadow-[0_0_10px_rgba(245,245,245)]' : 'bg-white border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]'
                       }`}>
                         <span className={`inline-block w-2 h-2 rounded-full mr-2 mt-1.5 ${
                           item.status === 'warning' ? 'bg-yellow-500 shadow-[0_0_5px_rgba(245,158,11,0.7)]' : 'bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.7)]'
@@ -1367,5 +1381,3 @@ function App() {
     </div>
   );
 }
-
-export default App;

@@ -7,7 +7,11 @@ import SignUp from './pages/SignUp';
 import BodyCalibration from './pages/BodyCalibration';
 import Profile from './pages/Profile';
 import WorkoutTrainer from './pages/WorkoutTrainer';
+import FeaturesPage from './pages/FeaturesPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
 import { UserProvider } from './context/UserContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Dumbbell } from 'lucide-react';
 
 function App() {
@@ -48,165 +52,60 @@ function App() {
   if (isLoading && !skipLoading) {
     return (
       <motion.div 
-        className="fixed inset-0 bg-black flex items-center justify-center z-50 overflow-hidden"
+        className="fixed inset-0 bg-black flex items-center justify-center z-50"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
       >
-        {/* Background grid pattern */}
-        <div className="absolute inset-0 grid-pattern opacity-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
         
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20 animate-gradient-shift"></div>
-        
-        {/* Animated neon circles */}
-        <div className="absolute inset-0">
-          {[...Array(5)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full"
-              style={{
-                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, rgba(16, 185, 129, 0) 70%)',
-                width: `${Math.random() * 30 + 10}vw`,
-                height: `${Math.random() * 30 + 10}vw`,
-                left: `${Math.random() * 80}%`,
-                top: `${Math.random() * 80}%`,
-              }}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ 
-                scale: [0, 1.2, 1],
-                opacity: [0, 0.6, 0.3],
-                x: [0, Math.random() * 40 - 20],
-                y: [0, Math.random() * 40 - 20],
-              }}
-              transition={{ 
-                duration: 3 + Math.random() * 2,
-                repeat: Infinity,
-                repeatType: "reverse",
-                delay: i * 0.3
-              }}
-            />
-          ))}
-        </div>
-        
-        <motion.div 
-          className="relative z-10 flex flex-col items-center"
-          initial={{ y: 20 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Logo animation */}
+        <motion.div className="relative z-10 flex flex-col items-center">
           <motion.div 
-            className="mb-8 relative"
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.5 }}
+            className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mb-6"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
           >
-            <motion.div
-              className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center"
-              animate={{ 
-                boxShadow: [
-                  "0 0 0 rgba(139, 92, 246, 0.4)",
-                  "0 0 20px rgba(139, 92, 246, 0.6)",
-                  "0 0 0 rgba(139, 92, 246, 0.4)"
-                ]
-              }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                repeatType: "reverse"
-              }}
-            >
-              <motion.div
-                animate={{ 
-                  rotate: 360,
-                  transition: { duration: 3, repeat: Infinity, ease: "linear" }
-                }}
-              >
-                <Dumbbell size={48} className="text-white" />
-              </motion.div>
-            </motion.div>
-            
-            {/* Orbiting elements */}
-            <motion.div
-              className="absolute w-full h-full top-0 left-0"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-            >
-              <motion.div 
-                className="absolute w-4 h-4 rounded-full bg-blue-500"
-                style={{ top: '0%', left: '50%', marginLeft: '-8px', marginTop: '-8px' }}
-                animate={{ scale: [1, 1.3, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-            </motion.div>
-            
-            <motion.div
-              className="absolute w-full h-full top-0 left-0"
-              animate={{ rotate: -360 }}
-              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-            >
-              <motion.div 
-                className="absolute w-3 h-3 rounded-full bg-purple-500"
-                style={{ bottom: '10%', right: '0%', marginRight: '-6px', marginBottom: '-6px' }}
-                animate={{ scale: [1, 1.5, 1] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
-            </motion.div>
+            <Dumbbell size={40} className="text-white" />
           </motion.div>
           
-          {/* Text animation */}
-          <motion.h1 
-            className="text-4xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-          >
+          <h1 className="text-3xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
             AI Workout Trainer
-          </motion.h1>
+          </h1>
           
-          <motion.p
-            className="text-gray-400 mb-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-          >
-            Your personal AI fitness coach
-          </motion.p>
+          <p className="text-gray-400 mb-6">Your personal AI fitness coach</p>
           
-          {/* Loading indicator */}
-          <motion.div 
-            className="w-40 h-1 bg-gray-800 rounded-full overflow-hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7, duration: 0.5 }}
-          >
+          <div className="w-32 h-1 bg-gray-800 rounded-full overflow-hidden">
             <motion.div 
               className="h-full bg-gradient-to-r from-purple-500 to-blue-500"
               initial={{ width: 0 }}
               animate={{ width: "100%" }}
               transition={{ duration: 2, ease: "easeInOut" }}
             />
-          </motion.div>
+          </div>
         </motion.div>
       </motion.div>
     );
   }
 
   return (
-    <UserProvider>
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/calibration" element={<BodyCalibration />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/trainer" element={<WorkoutTrainer />} />
-        </Routes>
-      </AnimatePresence>
-    </UserProvider>
+    <ThemeProvider>
+      <UserProvider>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/calibration" element={<BodyCalibration />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/trainer" element={<WorkoutTrainer />} />
+            {/* <Route path="/features" element={<FeaturesPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} /> */}
+          </Routes>
+        </AnimatePresence>
+      </UserProvider>
+    </ThemeProvider>
   );
 }
 

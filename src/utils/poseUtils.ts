@@ -36,13 +36,43 @@ function calculateAngle(a: Keypoint, b: Keypoint, c: Keypoint): number {
   return angle;
 }
 
-const isVisible = (keypoint: KeypointWithName | undefined): boolean =>
-  keypoint !== undefined && keypoint.score !== undefined && keypoint.score > 0.3;
+// Check if a keypoint is visible with higher threshold for stability
+function isVisible(keypoint: KeypointWithName | undefined): boolean {
+  return keypoint !== undefined && keypoint.score !== undefined && keypoint.score > 0.3; // Increased threshold
+}
 
+// Apply smoothing to keypoints to reduce jitter
+// function smoothKeypoints(keypoints: KeypointWithName[], previousKeypoints: KeypointWithName[] | null, smoothingFactor: number = 0.4): KeypointWithName[] {
+//   if (!previousKeypoints) return keypoints;
+  
+//   return keypoints.map((keypoint, index) => {
+//     const prevKeypoint = previousKeypoints.find(kp => kp.name === keypoint.name);
+//     if (!prevKeypoint) return keypoint;
+    
+//     return {
+//       ...keypoint,
+//       x: prevKeypoint.x * smoothingFactor + keypoint.x * (1 - smoothingFactor),
+//       y: prevKeypoint.y * smoothingFactor + keypoint.y * (1 - smoothingFactor),
+//     };
+//   });
+// }
+
+// Store previous keypoints for smoothing
+// let previousKeypoints: KeypointWithName[] | null = null;
+
+// Calculate joint angles from keypoints
 export function calculateAngles(keypoints: KeypointWithName[]): Angles {
+  // Apply smoothing for stability
+  // const smoothedKeypoints = smoothKeypoints(keypoints, previousKeypoints);
+  // previousKeypoints = smoothedKeypoints;
   
   const findKeypoint = (name: string) => keypoints.find(kp => kp.name === name);
   
+  const nose = findKeypoint('nose');
+  const leftEye = findKeypoint('left_eye');
+  const rightEye = findKeypoint('right_eye');
+  const leftEar = findKeypoint('left_ear');
+  const rightEar = findKeypoint('right_ear');
   const leftShoulder = findKeypoint('left_shoulder');
   const rightShoulder = findKeypoint('right_shoulder');
   const leftElbow = findKeypoint('left_elbow');

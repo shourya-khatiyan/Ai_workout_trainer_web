@@ -1,0 +1,40 @@
+[33mcommit 7d1175e552d98807b62604ffa3c5cd5c1c9b2468[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mupdateOld[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m, [m[1;32mdelete[m[33m)[m
+Author: Creep-py <shauryakhatiyan@gmail.com>
+Date:   Tue Aug 12 12:25:22 2025 +0530
+
+            deleted:    backend/package-lock.json
+            modified:   package-lock.json
+            modified:   package.json
+            modified:   src/App.tsx
+            deleted:    src/components/Chatbot.tsx
+            new file:   src/components/ModelPreloader.tsx
+            modified:   src/components/Navbar.tsx
+            deleted:    src/components/VoiceAssistant.tsx
+            new file:   src/context/ThemeContext.tsx
+            modified:   src/index.css
+            new file:   src/pages/AboutPage.tsx
+            new file:   src/pages/ContactPage.tsx
+            new file:   src/pages/FeaturesPage.tsx
+            modified:   src/pages/LandingPage.tsx
+            modified:   src/pages/Profile.tsx
+            modified:   src/pages/SignIn.tsx
+            modified:   src/pages/SignUp.tsx
+            modified:   src/pages/WorkoutTrainer.tsx
+            deleted:    src/pages/WorkoutTrainerApp(old).tsx
+            modified:   src/pages/WorkoutTrainerApp.css
+            modified:   src/pages/WorkoutTrainerApp.tsx
+            deleted:    src/pages/WorkoutTrainerApp_backup.tsx
+            deleted:    src/pages/prompt.txt
+            deleted:    src/python_implementation.py
+            new file:   src/utils/index.ts
+            new file:   src/utils/modelUtils.ts
+            deleted:    src/utils/poseUtils(old).ts
+            modified:   src/utils/poseUtils.ts
+            deleted:    src/workout_trainer.ui.xml
+            deleted:    src/workout_trainer_with_movenet.py
+
+[33mcommit 4ce6d92e62b3b87c30e5c240a1ba89d775e8b9fa[m[33m ([m[1;32moldAI[m[33m)[m
+Author: Creep-py <shauryakhatiyan@gmail.com>
+Date:   Wed Mar 5 14:07:03 2025 +0530
+
+    added a file

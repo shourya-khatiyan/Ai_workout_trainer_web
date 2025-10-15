@@ -1,272 +1,279 @@
-/* WorkoutTrainerApp.css - Light Theme */
+/* WorkoutTrainerApp.css - Professional Light Theme */
 
 /* Custom scrollbar styles */
 .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(217, 234, 253, 0.3);
-    border-radius: 10px;
+  background: rgba(229, 231, 235, 0.3);
+  border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(154, 166, 178, 0.7);
-    border-radius: 10px;
+  background: rgba(156, 163, 175, 0.7);
+  border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(154, 166, 178, 0.9);
+  background: rgba(107, 114, 128, 0.9);
 }
 
 /* Dropdown menu styles */
 .dropdown-container {
-    position: relative;
-    z-index: 9999;
+  position: relative;
+  z-index: 9999;
 }
 
 .dropdown-menu {
-    position: absolute;
-    z-index: 9999;
-    transform: none;
-    will-change: auto;
-    filter: drop-shadow(0 4px 6px rgba(154, 166, 178, 0.3));
-    animation: fadeIn 0.15s ease-out forwards;
-    opacity: 1;
-    background: rgb(248, 250, 252);
-    border: 1px solid rgba(188, 204, 220, 0.5);
+  position: absolute;
+  z-index: 9999;
+  transform: none;
+  will-change: auto;
+  filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.1));
+  animation: fadeIn 0.15s ease-out forwards;
+  opacity: 1;
+  background: rgb(255, 255, 255);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 12px;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Neon text effects - adapted for light theme */
-.neon-text {
-    text-shadow: 0 0 10px rgba(154, 166, 178, 0.5), 0 0 20px rgba(154, 166, 178, 0.3);
+/* Professional card styles */
+.trainer-card {
+  background: white;
+  border: 1px solid rgb(229, 231, 235);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
 }
 
-.neon-blue-text { color: #1a73e8; }
-.neon-purple-text { color: #7c3aed; }
-.neon-green-text { color: #059669; }
-.neon-red-text { color: #dc2626; }
-
-/* Gradient text effects */
-.gradient-text-blue {
-    background: linear-gradient(to right, #1a73e8, #3b82f6);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+.trainer-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
 }
 
-.gradient-text-purple {
-    background: linear-gradient(to right, #7c3aed, #8b5cf6);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+/* Button styles - Light theme */
+.trainer-button {
+  background: linear-gradient(135deg, rgb(59, 130, 246), rgb(99, 102, 241));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
 }
 
-.glow-button-red {
-    transition: all 0.3s ease;
+.trainer-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
 }
 
-.glow-button-red:hover {
-    box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
+.trainer-button:active {
+  transform: translateY(0);
 }
 
-/* Panel styling */
-.neon-panel {
-    background: rgba(248, 250, 252, 0.95);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(188, 204, 220, 0.5);
-    box-shadow: 0 0 15px rgba(154, 166, 178, 0.2);
+.trainer-button-secondary {
+  background: rgb(249, 250, 251);
+  color: rgb(55, 65, 81);
+  border: 1px solid rgb(229, 231, 235);
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
 }
 
-/* Animated pulse effect */
+.trainer-button-secondary:hover {
+  background: rgb(243, 244, 246);
+  border-color: rgb(209, 213, 219);
+}
+
+/* Video container styles */
+.video-container {
+  position: relative;
+  background: rgb(17, 24, 39);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Canvas overlay styles */
+.canvas-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Stat card styles */
+.stat-card {
+  background: linear-gradient(135deg, rgb(239, 246, 255), rgb(224, 242, 254));
+  border: 1px solid rgb(191, 219, 254);
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
+}
+
+/* Feedback item styles */
+.feedback-item {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.feedback-item.good {
+  background: rgb(240, 253, 244);
+  color: rgb(22, 163, 74);
+  border-left: 4px solid rgb(34, 197, 94);
+}
+
+.feedback-item.warning {
+  background: rgb(254, 252, 232);
+  color: rgb(202, 138, 4);
+  border-left: 4px solid rgb(234, 179, 8);
+}
+
+.feedback-item.error {
+  background: rgb(254, 242, 242);
+  color: rgb(220, 38, 38);
+  border-left: 4px solid rgb(239, 68, 68);
+}
+
+/* Progress bar styles */
+.progress-bar {
+  height: 8px;
+  background: rgb(243, 244, 246);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, rgb(59, 130, 246), rgb(99, 102, 241));
+  border-radius: 9999px;
+  transition: width 0.5s ease;
+}
+
+/* Countdown overlay */
+.countdown-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+.countdown-number {
+  font-size: 8rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 0 40px rgba(59, 130, 246, 0.8);
+  animation: pulse 1s ease-in-out;
+}
+
 @keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(154, 166, 178, 0.4);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(154, 166, 178, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(154, 166, 178, 0);
-    }
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
 }
 
-.pulse-animation {
-    animation: pulse 2s infinite;
+/* Accuracy badge styles */
+.accuracy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 1.25rem;
 }
 
-/* Posture metrics styling */
-.posture-accuracy {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.accuracy-badge.excellent {
+  background: linear-gradient(135deg, rgb(134, 239, 172), rgb(74, 222, 128));
+  color: rgb(22, 101, 52);
 }
 
-.posture-accuracy-value {
-    font-size: 3.5rem;
-    font-weight: bold;
-    background: linear-gradient(to right, #1a73e8, #3b82f6);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+.accuracy-badge.good {
+  background: linear-gradient(135deg, rgb(191, 219, 254), rgb(147, 197, 253));
+  color: rgb(30, 64, 175);
 }
 
-.posture-status-correct {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #059669;
+.accuracy-badge.fair {
+  background: linear-gradient(135deg, rgb(254, 240, 138), rgb(253, 224, 71));
+  color: rgb(161, 98, 7);
 }
 
-.posture-status-incorrect {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #dc2626;
+.accuracy-badge.poor {
+  background: linear-gradient(135deg, rgb(254, 202, 202), rgb(252, 165, 165));
+  color: rgb(153, 27, 27);
 }
 
-/* Joint angle progress bars */
-.joint-angle-bar {
-    height: 10px;
-    border-radius: 5px;
-    transition: width 0.5s ease;
+/* Category badge */
+.category-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(135deg, rgb(219, 234, 254), rgb(191, 219, 254));
+  color: rgb(30, 64, 175);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgb(147, 197, 253);
 }
 
-.joint-angle-label {
-    font-size: 1.125rem;
-    color: #154a7a;
-    font-weight: 500;
+/* Animation utilities */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-.joint-angle-value {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #154a7a;
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-.joint-angle-container {
-    margin-bottom: 1rem;
+.slide-in-right {
+  animation: slideInRight 0.3s ease-out;
 }
 
-.joint-angle-progress-container {
-    width: 100%;
-    background-color: rgb(217, 234, 253);
-    border-radius: 9999px;
-    height: 10px;
-    overflow: hidden;
-    margin-top: 0.5rem;
+.slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
 }
 
-.joint-angle-progress-good {
-    background: linear-gradient(to right, #059669, #10b981);
-    height: 100%;
-    border-radius: 9999px;
-    box-shadow: 0 0 10px rgba(5, 150, 105, 0.3);
-}
-
-.joint-angle-progress-warning {
-    background: linear-gradient(to right, #d97706, #f59e0b);
-    height: 100%;
-    border-radius: 9999px;
-    box-shadow: 0 0 10px rgba(217, 119, 6, 0.3);
-}
-
-.joint-angle-progress-error {
-    background: linear-gradient(to right, #dc2626, #ef4444);
-    height: 100%;
-    border-radius: 9999px;
-    box-shadow: 0 0 10px rgba(220, 38, 38, 0.3);
-}
-
-/* Navigation bar styling */
-.navbar-container.scrolled {
-    background: rgba(248, 250, 252, 0.95);
-    box-shadow: 0 4px 20px rgba(154, 166, 178, 0.2);
-}
-
-.navbar-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-@media (max-width: 640px) {
-    .navbar-controls {
-        gap: 0.5rem;
-    }
-}
-
-/* Additional light theme styles for the main container */
-.workout-trainer-container {
-    background: rgb(248, 250, 252);
-    color: #374151;
-}
-
-/* Video preview and comparison panels */
-.video-preview-panel,
-.comparison-panel,
-.camera-panel {
-    background: rgba(217, 234, 253, 0.7);
-    border: 1px solid rgba(188, 204, 220, 0.5);
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(154, 166, 178, 0.1);
-}
-
-/* Feedback panels */
-.feedback-panel {
-    background: rgba(217, 234, 253, 0.5);
-    border: 1px solid rgba(188, 204, 220, 0.3);
-    border-radius: 8px;
-}
-
-/* Button styling for light theme */
-.start-training-btn {
-    background: linear-gradient(to right, #1a73e8, #3b82f6);
-    border: none;
-    color: white;
-    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
-}
-
-.reset-btn {
-    background: rgba(154, 166, 178, 0.2);
-    border: 1px solid rgba(154, 166, 178, 0.5);
-    color: #374151;
-}
-
-/* Text colors for light theme */
-.text-primary {
-    color: #374151;
-}
-
-.text-secondary {
-    color: #6b7280;
-}
-
-.text-accent {
-    color: #1a73e8;
-}
-
-/* Panel headers */
-.panel-header {
-    color: #1f2937;
-    font-weight: 600;
-}
-
-/* Status indicators */
-.status-indicator-good {
-    color: #059669;
-    background: rgba(5, 150, 105, 0.1);
-}
-
-.status-indicator-warning {
-    color: #d97706;
-    background: rgba(217, 119, 6, 0.1);
-}
-
-.status-indicator-error {
-    color: #dc2626;
-    background: rgba(220, 38, 38, 0.1);
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .countdown-number {
+    font-size: 5rem;
+  }
 }

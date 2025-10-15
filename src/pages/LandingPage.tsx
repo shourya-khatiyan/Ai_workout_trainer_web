@@ -1,418 +1,489 @@
-import { useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowRight, Brain, Activity, Zap, Users, Code, CheckCircle, Dumbbell, Cpu, ExternalLink } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import React, { useRef, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import { navigateToTrainerWithoutLoading } from '../utils/navigationUtils';
+import {
+  TrendingUp,
+  Flame,
+  Clock,
+  Target,
+  Trophy,
+  BarChart3,
+  Play,
+  ChevronRight,
+  CalendarDays,
+  Dumbbell,
+  Activity,
+  Zap,
+  ArrowDown,
+  CheckCircle2,
+} from 'lucide-react';
 
-export default function LandingPage() {
-  const { isLoggedIn } = useUser();
-  const navigate = useNavigate();
-  
-  const featuresRef = useRef<HTMLDivElement>(null);
-  const techRef = useRef<HTMLDivElement>(null);
-  const aboutRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    
-    // Initialize AOS
-    import('aos').then(AOS => {
-      import('aos/dist/aos.css');
-      AOS.init({
-        duration: 1000,
-        once: false,
-        mirror: true
-      });
-    });
-  }, []);
+type Maybe<T> = T | undefined | null;
 
-  // Handle direct navigation to trainer without loading
-  const handleStartTraining = (e: React.MouseEvent) => {
-    if (isLoggedIn) {
-      e.preventDefault();
-      const path = navigateToTrainerWithoutLoading();
-      navigate(path);
-    }
-  };
+const Card: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ className = '', children }) => (
+  <div className={`bg-white border border-gray-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ${className}`}>
+    {children}
+  </div>
+);
 
+const Stat: React.FC<{ label: string; value: React.ReactNode; icon?: React.ReactNode; trend?: string }> = ({ 
+  label, 
+  value, 
+  icon,
+  trend 
+}) => (
+  <div className="flex items-center justify-between p-5 bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 transition-all duration-300">
+    <div className="flex-1">
+      <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">{label}</p>
+      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      {trend && (
+        <p className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1">
+          <TrendingUp className="h-3 w-3" /> {trend}
+        </p>
+      )}
+    </div>
+    {icon ? <div className="text-blue-500 opacity-80">{icon}</div> : null}
+  </div>
+);
+
+const DayDot: React.FC<{ active?: boolean; index: number }> = ({ active, index }) => {
+  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   return (
-    <div className="min-h-screen bg-black">
-      <Navbar />
-      
-      {/* Hero Section - Full Screen */}
-      <section className="h-screen flex items-center justify-center relative overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-black to-[#0a0a14]"></div>
-        
-        {/* Subtle background elements */}
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500 rounded-full filter blur-[150px] opacity-10 z-0"></div>
-        <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-blue-500 rounded-full filter blur-[120px] opacity-10 z-0"></div>
-        
-        <div className="container mx-auto px-4 z-10 text-center">
-          <motion.p 
-            className="text-purple-400 mb-4 uppercase tracking-wider font-medium"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            INTRODUCING
-          </motion.p>
-          <motion.h1 
-            className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-blue-500 to-blue-400 bg-clip-text text-transparent"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            AI WORKOUT TRAINER
-          </motion.h1>
-          
-          <motion.p 
-            className="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            Train smarter with real-time pose detection and personalized feedback to
-            improve your workout technique and prevent injuries.
-          </motion.p>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <Link 
-              to={isLoggedIn ? "/trainer" : "/signup"} 
-              onClick={isLoggedIn ? handleStartTraining : undefined}
-              className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white py-3 px-8 rounded-md text-lg font-medium transition-all"
-            >
-              Let's Train <ArrowRight size={18} className="inline ml-2" />
-            </Link>
-          </motion.div>
-          
-          {/* Scroll indicator */}
-          <motion.div 
-            className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1, y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-            
-          >
-            <div className="flex flex-col items-center">
-              <p className="text-gray-400 mb-2">Scroll to learn more</p>
-              <div className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center pt-2">
-                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-      
-      {/* Features Section */}
-      <section id="features" ref={featuresRef} className="py-20 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-16" data-aos="fade-up">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">Key Features</h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Our AI-powered platform offers everything you need to perfect your workout form
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-black/50 border border-gray-800 p-6 rounded-lg hover:border-purple-500/50 transition-all duration-300" data-aos="fade-up" data-aos-delay="100">
-              <div className="h-12 w-12 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mb-6">
-                <Activity size={24} className="text-white" />
-              </div>
-              <h3 className="text-xl font-bold mb-3 text-white">Real-time Pose Estimation</h3>
-              <p className="text-gray-400">
-                Advanced AI algorithms detect and track your body movements with precision to provide instant feedback.
-              </p>
-            </div>
-            
-            <div className="bg-black/50 border border-gray-800 p-6 rounded-lg hover:border-purple-500/50 transition-all duration-300" data-aos="fade-up" data-aos-delay="200">
-              <div className="h-12 w-12 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mb-6">
-                <Brain size={24} className="text-white" />
-              </div>
-              <h3 className="text-xl font-bold mb-3 text-white">Personalized Feedback</h3>
-              <p className="text-gray-400">
-                Get customized recommendations based on your body measurements and fitness goals.
-              </p>
-            </div>
-            
-            <div className="bg-black/50 border border-gray-800 p-6 rounded-lg hover:border-purple-500/50 transition-all duration-300" data-aos="fade-up" data-aos-delay="300">
-              <div className="h-12 w-12 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mb-6">
-                <Zap size={24} className="text-white" />
-              </div>
-              <h3 className="text-xl font-bold mb-3 text-white">Form Correction</h3>
-              <p className="text-gray-400">
-                Immediate alerts when your form needs adjustment to prevent injuries and maximize results.
-              </p>
-            </div>
-          </div>
-          
-          <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div className="order-2 lg:order-1" data-aos="fade-right">
-              <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">Advanced Workout Analysis</h3>
-              <p className="text-gray-300 mb-6">
-                Our AI-powered system analyzes your movements in real-time, providing instant feedback to help you perfect your form and maximize your workout efficiency.
-              </p>
-              
-              <ul className="space-y-3">
-                {[
-                  "Joint angle measurement for precise form analysis",
-                  "Posture correction to prevent injuries",
-                  "Rep counting with proper form validation",
-                  "Personalized workout recommendations"
-                ].map((item, index) => (
-                  <li key={index} className="flex items-start">
-                    <CheckCircle size={20} className="text-purple-400 mt-1 mr-2 flex-shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div className="order-1 lg:order-2" data-aos="fade-left">
-              <div className="relative">
-                <div className="bg-black/50 rounded-lg overflow-hidden border border-gray-800">
-                  <img 
-                    src="https://images.unsplash.com/photo-1549060279-7e168fcee0c2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
-                    alt="Workout Analysis" 
-                    className="w-full h-auto rounded-lg"
-                  />
-                </div>
-                
-                <div className="absolute -bottom-5 -right-5 bg-black/80 p-4 rounded-lg border border-gray-800">
-                  <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center">
-                      <Dumbbell size={20} className="text-white" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-purple-400">92% Accuracy</p>
-                      <p className="text-sm text-gray-400">Perfect form achieved</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Tech Stack Section */}
-      <section id="tech" ref={techRef} className="py-20 px-4 bg-card-dark relative overflow-hidden">
-        <div className="absolute inset-0 grid-pattern opacity-10"></div>
-        
-        {/* Glow effects */}
-        <div className="absolute -top-40 left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-20 right-20 w-60 h-60 bg-blue-500/10 rounded-full blur-3xl"></div>
-        
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-16" data-aos="fade-up">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text neon-glow">Powered By</h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Built with cutting-edge technologies for the best performance
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="flex flex-col items-center" data-aos="zoom-in" data-aos-delay="100">
-              <div className="h-16 w-16 rounded-full bg-card-bg flex items-center justify-center mb-4 border border-border neon-border">
-                <img src="https://www.tensorflow.org/images/tf_logo_social.png" alt="TensorFlow" className="h-10 w-10" />
-              </div>
-              <h3 className="text-lg font-medium neon-purple">TensorFlow.js</h3>
-            </div>
-            
-            <div className="flex flex-col items-center" data-aos="zoom-in" data-aos-delay="200">
-              <div className="h-16 w-16 rounded-full bg-card-bg flex items-center justify-center mb-4 border border-border neon-border">
-                <Cpu size={32} className="text-purple-400" />
-              </div>
-              <h3 className="text-lg font-medium neon-blue">MoveNet</h3>
-            </div>
-            
-            <div className="flex flex-col items-center" data-aos="zoom-in" data-aos-delay="300">
-              <div className="h-16 w-16 rounded-full bg-card-bg flex items-center justify-center mb-4 border border-border neon-border">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png" alt="React" className="h-10 w-10" />
-              </div>
-              <h3 className="text-lg font-medium neon-purple">React</h3>
-            </div>
-            
-            <div className="flex flex-col items-center" data-aos="zoom-in" data-aos-delay="400">
-              <div className="h-16 w-16 rounded-full bg-card-bg flex items-center justify-center mb-4 border border-border neon-border">
-                <img src="https://tailwindcss.com/_next/static/media/tailwindcss-mark.3c5441fc7a190fb1800d4a5c7f07ba4b1345a9c8.svg" alt="Tailwind CSS" className="h-10 w-10" />
-              </div>
-              <h3 className="text-lg font-medium neon-blue">Tailwind CSS</h3>
-            </div>
-          </div>
-          
-          <div className="mt-20" data-aos="fade-up">
-            <div className="bg-card-bg rounded-lg p-8 border border-border neon-border">
-              <div className="flex flex-col md:flex-row items-center">
-                <div className="md:w-1/2 mb-8 md:mb-0">
-                  <h3 className="text-2xl font-bold mb-4 gradient-text neon-glow">How It Works</h3>
-                  <p className="text-gray-300 mb-6">
-                    Our platform uses TensorFlow.js and MoveNet to analyze your movements in real-time through your device's camera. The AI model identifies key body points and calculates joint angles to provide instant feedback on your form.
-                  </p>
-                  <div className="space-y-4">
-                    <div className="flex items-start">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mr-4 mt-1">
-                        <span className="font-bold text-white">1</span>
-                      </div>
-                      <div>
-                        <h4 className="font-bold neon-purple">Pose Detection</h4>
-                        <p className="text-gray-400">AI identifies 17 key points on your body</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mr-4 mt-1">
-                        <span className="font-bold text-white">2</span>
-                      </div>
-                      <div>
-                        <h4 className="font-bold neon-blue">Form Analysis</h4>
-                        <p className="text-gray-400">Calculates joint angles and posture alignment</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mr-4 mt-1">
-                        <span className="font-bold text-white">3</span>
-                      </div>
-                      <div>
-                        <h4 className="font-bold neon-teal">Real-time Feedback</h4>
-                        <p className="text-gray-400">Provides instant guidance to correct your form</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="md:w-1/2 md:pl-8">
-                  <div className="relative">
-                    <div className="bg-card-dark rounded-lg overflow-hidden border border-border neon-border">
-                      <img 
-                        src="https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
-                        alt="AI Technology" 
-                        className="w-full h-auto rounded-lg"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-card-dark to-transparent opacity-60"></div>
-                    </div>
-                    <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center">
-                      <div className="h-16 w-16 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center pulse-animation">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                          <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* About Us Section */}
-      <section id="about" ref={aboutRef} className="py-20 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-16" data-aos="fade-up">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text neon-glow">About Us</h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Our mission is to make professional-level fitness guidance accessible to everyone
-            </p>
-          </div>
-          
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8" data-aos="fade-right">
-              <div className="relative">
-                <div className="bg-card-bg rounded-lg overflow-hidden border border-border neon-border">
-                  <img 
-                    src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
-                    alt="Team" 
-                    className="rounded-lg w-full h-auto"
-                  />
-                </div>
-                <div className="absolute -bottom-5 -left-5 bg-card-bg p-4 rounded-lg border border-border neon-border">
-                  <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center">
-                      <Users size={20} className="text-white" />
-                    </div>
-                    <div>
-                      <p className="font-bold neon-purple">Our Team</p>
-                      <p className="text-sm text-gray-400">Fitness & AI experts</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="md:w-1/2" data-aos="fade-left">
-              <h3 className="text-2xl font-bold mb-4 gradient-text">Our Story</h3>
-              <p className="text-gray-300 mb-6">
-                AI Workout Trainer was born from a simple observation: many people struggle with proper exercise form, leading to injuries and suboptimal results. Our team of fitness experts and AI engineers came together to solve this problem.
-              </p>
-              <p className="text-gray-300 mb-6">
-                Using advanced computer vision and machine learning, we've created a platform that provides real-time feedback on your workout form, just like having a personal trainer by your side.
-              </p>
-              <div className="flex items-center p-4 bg-card-bg rounded-lg border border-border neon-border">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mr-4">
-                  <Users size={24} className="text-white" />
-                </div>
-                <div>
-                  <p className="font-bold neon-blue">Join Our Community</p>
-                  <p className="text-gray-400">Connect with like-minded fitness enthusiasts</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* CTA Section */}
-      <section className="py-20 px-4 relative overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/30 to-blue-900/30"></div>
-        
-        {/* Grid pattern */}
-        <div className="absolute inset-0 grid-pattern opacity-10"></div>
-        
-        {/* Glow effects */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-blue-500"></div>
-        <div className="absolute -top-20 left-1/4 w-60 h-60 bg-purple-500/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-20 right-1/4 w-60 h-60 bg-blue-500/20 rounded-full blur-3xl"></div>
-        
-        <div className="max-w-7xl mx-auto text-center relative z-10" data-aos="zoom-in">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 gradient-text neon-glow">Ready to Transform Your Workouts?</h2>
-          <p className="text-xl text-white opacity-90 mb-8 max-w-2xl mx-auto">
-            Join thousands of users who have improved their form and achieved better results with AI Workout Trainer.
-          </p>
-          {isLoggedIn ? (
-            <Link to="/trainer" className="btn bg-gradient-to-r from-purple-600 to-blue-500 text-white hover:from-purple-700 hover:to-blue-600 shadow-lg hover:shadow-xl hover:shadow-purple-500/20">
-              Start Training Now <ArrowRight size={18} className="ml-2" />
-            </Link>
-          ) : (
-            <Link to="/signup" className="btn bg-gradient-to-r from-purple-600 to-blue-500 text-white hover:from-purple-700 hover:to-blue-600 shadow-lg hover:shadow-xl hover:shadow-purple-500/20">
-              Sign Up for Free <ArrowRight size={18} className="ml-2" />
-            </Link>
-          )}
-          
-          <div className="mt-8 flex justify-center space-x-4">
-            <div className="flex items-center text-gray-400">
-              <CheckCircle size={16} className="mr-2 text-green-400" />
-              <span className="text-sm">Free to start</span>
-            </div>
-            <div className="flex items-center text-gray-400">
-              <CheckCircle size={16} className="mr-2 text-green-400" />
-              <span className="text-sm">No credit card required</span>
-            </div>
-            <div className="flex items-center text-gray-400">
-              <CheckCircle size={16} className="mr-2 text-green-400" />
-              <span className="text-sm">Cancel anytime</span>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      <Footer />
+    <div className="flex flex-col items-center gap-1">
+      <div
+        className={`h-10 w-10 rounded-xl border-2 text-sm font-bold flex items-center justify-center transition-all duration-300
+          ${active 
+            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white border-blue-600 shadow-md scale-110' 
+            : 'bg-white text-gray-400 border-gray-200 hover:border-gray-300'}`}
+        aria-label={active ? 'Workout day' : 'Rest day'}
+        role="img"
+      >
+        {active ? <CheckCircle2 className="h-5 w-5" /> : days[index]}
+      </div>
+      <span className="text-xs text-gray-500 font-medium">{days[index]}</span>
     </div>
   );
-}
+};
+
+// Clean spotlight effect only - no gradient color change
+const SpotlightText: React.FC<{ children: string }> = ({ children }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
+  const [isHovering, setIsHovering] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      setMousePos({
+        x: ((e.clientX - rect.left) / rect.width) * 100,
+        y: ((e.clientY - rect.top) / rect.height) * 100,
+      });
+    };
+
+    const handleMouseEnter = () => setIsHovering(true);
+    const handleMouseLeave = () => setIsHovering(false);
+
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mouseenter', handleMouseEnter);
+    container.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mouseenter', handleMouseEnter);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative inline-block cursor-pointer select-none"
+    >
+      {/* Base text - solid color */}
+      <h1
+        className="font-black text-gray-900"
+        style={{
+          fontSize: 'clamp(3rem, 12vw, 9rem)',
+          lineHeight: '1.1',
+        }}
+      >
+        {children}
+      </h1>
+
+      {/* Spotlight glow effect only */}
+      {isHovering && (
+        <div
+          className="absolute pointer-events-none blur-3xl"
+          style={{
+            top: `${mousePos.y}%`,
+            left: `${mousePos.x}%`,
+            width: '400px',
+            height: '400px',
+            transform: 'translate(-50%, -50%)',
+            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(147, 51, 234, 0.3) 40%, transparent 70%)',
+            transition: 'top 0.15s ease-out, left 0.15s ease-out',
+            opacity: 0.6,
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+const formatCm = (v: Maybe<number>) => (typeof v === 'number' ? `${v} cm` : 'Not set');
+const formatKg = (v: Maybe<number>) => (typeof v === 'number' ? `${v} kg` : 'Not set');
+const safe = <T,>(v: Maybe<T>, fallback: T) => (v ?? fallback);
+
+const LandingPage: React.FC = () => {
+  const { isLoggedIn, user } = useUser?.() ?? { isLoggedIn: false, user: {} as any };
+
+  // Derive values
+  const level = safe<number>(user?.level, 1);
+  const experience = safe<number>(user?.experience, 0);
+  const xpToNext = 100 - (experience % 100);
+  const age = user?.age ?? 'Not set';
+  const gender = user?.gender ?? 'Not set';
+  const height = formatCm(user?.height);
+  const weight = formatKg(user?.weight);
+  const hip = typeof user?.hipSize === 'number' ? `${user.hipSize} cm` : 'N/A';
+  const chest = typeof user?.chestSize === 'number' ? `${user.chestSize} cm` : 'N/A';
+  const neck = typeof user?.neckSize === 'number' ? `${user.neckSize} cm` : 'N/A';
+
+  // Analytics
+  const streak = safe<number>(user?.streak?.current, 3);
+  const totalWorkouts = safe<number>(user?.stats?.totalWorkouts, 12);
+  const avgAccuracy = safe<number>(user?.stats?.averageAccuracy, 87);
+  const totalTimeHours = safe<number>(user?.stats?.totalTimeHours, 3.5);
+  const mostPracticed = safe<string>(user?.stats?.mostPracticed, 'Squats');
+  const mostPracticedSessions = safe<number>(user?.stats?.mostPracticedSessions, 8);
+
+  // 7-day streak visualization
+  const streakDays = Array.from({ length: 7 }, (_, i) => i < streak).reverse();
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900">
+      {/* Full-Screen Hero Section - Lighter, Professional Background */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Lighter professional gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+          {/* Subtle animated mesh gradients */}
+          <div className="absolute inset-0 opacity-40">
+            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
+            <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
+            <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-indigo-100 to-blue-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+          </div>
+
+          {/* Subtle grid pattern overlay */}
+          <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
+          
+          {/* Light radial gradient vignette */}
+          <div className="absolute inset-0 bg-light-vignette"></div>
+        </div>
+
+        {/* Hero content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
+          <div className="mb-12 inline-flex items-center gap-3 px-6 py-3 bg-white/80 backdrop-blur-lg rounded-full border border-gray-200 shadow-lg">
+            <Zap className="h-5 w-5 text-blue-600 animate-pulse" />
+            <span className="text-gray-700 font-semibold text-sm tracking-wide">AI-Powered Form Analysis</span>
+          </div>
+
+          {/* Spotlight text effect - Clean, professional */}
+          <div className="mb-8 space-y-4">
+            <SpotlightText>AI Workout</SpotlightText>
+            <SpotlightText>Trainer</SpotlightText>
+          </div>
+          
+          <p className="text-xl sm:text-2xl lg:text-3xl text-gray-600 mb-16 max-w-3xl mx-auto leading-relaxed font-medium">
+            Real-time pose detection, instant feedback, and personalized coaching—powered by advanced machine learning.
+          </p>
+
+          <div className="mb-20">
+            <Link
+              to={isLoggedIn ? '/trainer' : '/signin'}
+              className="group relative inline-flex items-center gap-3 px-12 py-6 rounded-2xl bg-blue-600 text-white font-bold text-xl hover:bg-blue-700 hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-3xl"
+            >
+              <Play className="h-7 w-7 group-hover:scale-110 transition-transform" />
+              {isLoggedIn ? 'Start Training Now' : 'Get Started Free'}
+            </Link>
+          </div>
+
+          {/* Scroll indicator */}
+          <div className="animate-bounce">
+            <ArrowDown className="h-8 w-8 text-gray-400 mx-auto" />
+            <p className="text-gray-500 text-sm mt-2 font-medium">Scroll to see your progress</p>
+          </div>
+        </div>
+
+        {/* Decorative gradient overlay */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent"></div>
+      </section>
+
+      {/* Analytics Dashboard Section */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+        {/* Section header */}
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            Your Training Dashboard
+          </h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Track your progress, maintain streaks, and achieve your fitness goals with data-driven insights.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Profile Summary */}
+          <section className="lg:col-span-1">
+            <Card>
+              <div className="p-6 border-b border-gray-100 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <div className="flex items-center gap-4">
+                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                    <Dumbbell className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+                      Level {level} Athlete
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+                          style={{ width: `${((100 - xpToNext) / 100) * 100}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs font-semibold text-gray-600">{xpToNext} XP</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 font-bold mb-3 flex items-center gap-2">
+                    <Target className="h-4 w-4" /> Basic Info
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Stat label="Age" value={age} />
+                    <Stat label="Gender" value={gender} />
+                    <Stat label="Height" value={height} />
+                    <Stat label="Weight" value={weight} />
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 font-bold mb-3 flex items-center gap-2">
+                    <Activity className="h-4 w-4" /> Body Measurements
+                  </p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Stat label="Hip" value={hip} />
+                    <Stat label="Chest" value={chest} />
+                    <Stat label="Neck" value={neck} />
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </section>
+
+          {/* Analytics Grid */}
+          <section className="lg:col-span-2 space-y-8">
+            {/* Streak Card */}
+            <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-orange-600 font-bold mb-1">Current Streak</p>
+                    <p className="text-4xl font-black text-gray-900 flex items-center gap-3">
+                      <Flame className="h-10 w-10 text-orange-500" />
+                      {streak} Days
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Keep it up!</p>
+                    <p className="text-xs text-green-600 font-semibold">+15% this week</p>
+                  </div>
+                </div>
+                <div className="flex justify-between gap-2">
+                  {streakDays.map((active, idx) => (
+                    <DayDot key={idx} active={active} index={idx} />
+                  ))}
+                </div>
+              </div>
+            </Card>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <Card>
+                <div className="p-6 space-y-4">
+                  <Stat 
+                    label="Total Workouts" 
+                    value={totalWorkouts} 
+                    icon={<CalendarDays className="h-6 w-6" />}
+                    trend="+3 this week"
+                  />
+                  <Stat 
+                    label="Most Practiced" 
+                    value={
+                      <div>
+                        <p className="text-xl font-bold">{mostPracticed}</p>
+                        <p className="text-xs text-gray-500">{mostPracticedSessions} sessions</p>
+                      </div>
+                    } 
+                    icon={<Activity className="h-6 w-6" />}
+                  />
+                </div>
+              </Card>
+
+              <Card>
+                <div className="p-6 space-y-4">
+                  <Stat 
+                    label="Avg Accuracy" 
+                    value={`${avgAccuracy}%`} 
+                    icon={<Target className="h-6 w-6" />}
+                    trend="+5% improvement"
+                  />
+                  <Stat 
+                    label="Total Time" 
+                    value={`${totalTimeHours}h`} 
+                    icon={<Clock className="h-6 w-6" />}
+                  />
+                </div>
+              </Card>
+            </div>
+
+            {/* Achievements & Insights */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-xs uppercase tracking-wider text-purple-600 font-bold flex items-center gap-2">
+                      <Trophy className="h-4 w-4" /> Achievements
+                    </p>
+                    <Trophy className="h-6 w-6 text-amber-500" />
+                  </div>
+                  <ul className="space-y-3">
+                    {[
+                      { title: 'First Workout', desc: 'Completed your first workout session', color: 'bg-green-500' },
+                      { title: 'Perfect Form', desc: 'Achieved 95% form accuracy', color: 'bg-blue-500' },
+                      { title: '3-Day Streak', desc: 'Work out for 3 days in a row', color: 'bg-purple-500' }
+                    ].map((achievement, idx) => (
+                      <li key={idx} className="flex items-start gap-3 p-3 bg-white/60 rounded-lg backdrop-blur-sm">
+                        <span className={`mt-1 h-3 w-3 rounded-full ${achievement.color} shadow-md`} />
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">{achievement.title}</p>
+                          <p className="text-xs text-gray-600">{achievement.desc}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Card>
+
+              <Card>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-xs uppercase tracking-wider text-gray-600 font-bold flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4" /> Quick Insights
+                    </p>
+                    <BarChart3 className="h-6 w-6 text-blue-500" />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
+                      <p className="text-xs text-gray-600 font-semibold">Last Session</p>
+                      <p className="text-lg font-bold text-gray-900 mt-1">Accuracy • {avgAccuracy}%</p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100">
+                      <p className="text-xs text-gray-600 font-semibold">Current Focus</p>
+                      <p className="text-lg font-bold text-gray-900 mt-1">{mostPracticed}</p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/trainer"
+                    className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 hover:gap-3 transition-all"
+                  >
+                    View detailed analytics <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </Card>
+            </div>
+
+            {/* CTA Card */}
+            <Card className="bg-gradient-to-r from-blue-600 to-indigo-700 border-0">
+              <div className="p-8 text-center">
+                <h3 className="text-2xl font-bold text-white mb-2">Ready to train smarter?</h3>
+                <p className="text-blue-100 mb-6">Start your next session with AI-powered guidance</p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                  <Link
+                    to="/trainer"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-blue-700 font-bold hover:scale-105 transition-transform shadow-xl"
+                  >
+                    <Play className="h-5 w-5" /> Start Training
+                  </Link>
+                  <Link
+                    to="/programs"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 backdrop-blur-md text-white font-semibold border-2 border-white/30 hover:bg-white/20 transition-all"
+                  >
+                    <Activity className="h-5 w-5" /> Browse Programs
+                  </Link>
+                </div>
+              </div>
+            </Card>
+          </section>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-gray-500">
+          <p>© {new Date().getFullYear()} AI Workout Trainer. Powered by TensorFlow.js & MoveNet.</p>
+        </div>
+      </footer>
+
+      {/* Custom animations and styles */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(50px, -80px) scale(1.1); }
+          66% { transform: translate(-40px, 60px) scale(0.95); }
+        }
+        
+        @keyframes float-delayed {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(-60px, 70px) scale(1.05); }
+          66% { transform: translate(50px, -50px) scale(0.9); }
+        }
+        
+        @keyframes float-slow {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(30px, -40px) scale(1.08); }
+        }
+        
+        .animate-float {
+          animation: float 15s ease-in-out infinite;
+        }
+        
+        .animate-float-delayed {
+          animation: float-delayed 18s ease-in-out infinite;
+        }
+        
+        .animate-float-slow {
+          animation: float-slow 20s ease-in-out infinite;
+        }
+
+        .bg-grid-pattern {
+          background-image: 
+            linear-gradient(rgba(100, 100, 100, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(100, 100, 100, 0.03) 1px, transparent 1px);
+          background-size: 50px 50px;
+        }
+
+        .bg-light-vignette {
+          background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default LandingPage;

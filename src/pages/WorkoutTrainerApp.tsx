@@ -84,6 +84,7 @@ export default function WorkoutTrainerApp() {
   useEffect(() => {
     localStorage.setItem('exerciseCategories', JSON.stringify(exerciseCategories));
   }, [exerciseCategories]);
+
   
   const [selectedCategory, setSelectedCategory] = useState<string>(() => {
     // Get the first category name or empty string if no categories

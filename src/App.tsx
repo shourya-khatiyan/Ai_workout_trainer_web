@@ -12,7 +12,7 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import { UserProvider } from './context/UserContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { Dumbbell } from 'lucide-react';
+import { Dumbbell, Activity } from 'lucide-react';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -20,18 +20,15 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    // Check if we should skip loading (from localStorage)
     const shouldSkipLoading = localStorage.getItem('skipLoading') === 'true';
     
-    // Skip loading for trainer page or if skipLoading flag is set
     if (shouldSkipLoading || location.pathname === '/trainer') {
       setSkipLoading(true);
-      localStorage.removeItem('skipLoading'); // Clear the flag after using it
+      localStorage.removeItem('skipLoading');
       setIsLoading(false);
       return;
     }
 
-    // Initialize AOS
     import('aos').then(AOS => {
       import('aos/dist/aos.css');
       AOS.init({
@@ -41,7 +38,6 @@ function App() {
       });
     });
 
-    // Simulate loading resources
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 2500);
@@ -51,40 +47,80 @@ function App() {
 
   if (isLoading && !skipLoading) {
     return (
-      <motion.div 
-        className="fixed inset-0 bg-black flex items-center justify-center z-50"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
-        
-        <motion.div className="relative z-10 flex flex-col items-center">
-          <motion.div 
-            className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mb-6"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center overflow-hidden">
+        {/* Animated background elements matching landing page */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-2000"></div>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative z-10 text-center"
+        >
+          {/* Logo with pulsing animation */}
+          <motion.div
+            animate={{
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, -5, 0]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }}
+            className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl shadow-2xl mb-8"
           >
-            <Dumbbell size={40} className="text-white" />
+            <Dumbbell className="h-12 w-12 text-white" />
           </motion.div>
-          
-          <h1 className="text-3xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
+
+          <h1 className="text-4xl sm:text-5xl font-black text-gray-900 mb-3">
             AI Workout Trainer
           </h1>
           
-          <p className="text-gray-400 mb-6">Your personal AI fitness coach</p>
-          
-          <div className="w-32 h-1 bg-gray-800 rounded-full overflow-hidden">
-            <motion.div 
-              className="h-full bg-gradient-to-r from-purple-500 to-blue-500"
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 2, ease: "easeInOut" }}
-            />
+          <p className="text-lg text-gray-600 mb-8 font-medium">
+            Your personal AI fitness coach
+          </p>
+
+          {/* Loading bar */}
+          <div className="w-64 mx-auto">
+            <div className="h-2 bg-white/50 rounded-full overflow-hidden shadow-inner backdrop-blur-sm border border-gray-200">
+              <motion.div
+                className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
+                initial={{ width: '0%' }}
+                animate={{ width: '100%' }}
+                transition={{ duration: 2.5, ease: 'easeInOut' }}
+              />
+            </div>
+          </div>
+
+          {/* Loading dots */}
+          <div className="flex justify-center space-x-2 mt-6">
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className="w-2.5 h-2.5 bg-blue-500 rounded-full"
+                animate={{
+                  y: [-8, 8, -8],
+                  opacity: [1, 0.5, 1]
+                }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  delay: i * 0.2
+                }}
+              />
+            ))}
           </div>
         </motion.div>
-      </motion.div>
+
+        <style>{`
+          .animation-delay-2000 {
+            animation-delay: 2s;
+          }
+        `}</style>
+      </div>
     );
   }
 
@@ -96,9 +132,10 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/calibration" element={<BodyCalibration />} />
+            <Route path="/body-calibration" element={<BodyCalibration />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/trainer" element={<WorkoutTrainer />} />
+            {/* Uncomment when ready */}
             {/* <Route path="/features" element={<FeaturesPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} /> */}

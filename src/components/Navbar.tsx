@@ -1,29 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogOut, Dumbbell, ChevronDown, Sun, Moon } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, LogOut, Dumbbell, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../context/UserContext';
-import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, isLoggedIn, logout } = useUser();
-  const { theme, toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
-  const location = useLocation();
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
     logout();
     navigate('/');
-    setIsMenuOpen(false);
     setIsProfileOpen(false);
-  };
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
   };
 
   const toggleProfileDropdown = () => {
@@ -32,16 +23,12 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 10);
     };
 
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        profileDropdownRef.current && 
+        profileDropdownRef.current &&
         !profileDropdownRef.current.contains(event.target as Node)
       ) {
         setIsProfileOpen(false);
@@ -50,260 +37,145 @@ export default function Navbar() {
 
     window.addEventListener('scroll', handleScroll);
     document.addEventListener('mousedown', handleClickOutside);
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
-  // Define navigation items for reuse
-  const navItems = [
-    { path: '/', label: 'Home' },
-    { path: '/features', label: 'Features' },
-    { path: '/about', label: 'About Us' },
-    { path: '/contact', label: 'Contact' }
-  ];
-
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-black/90 backdrop-blur-md border-b border-[#1A202C] light-theme:bg-white/90 light-theme:border-gray-200' : 'bg-transparent'}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center mr-2">
-                <Dumbbell size={20} className="text-white" />
-              </div>
-              <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
-                AI Workout Trainer
-              </span>
-            </Link>
-          </div>
-
-          {/* Desktop menu */}
-          <div className="hidden md:flex md:items-center md:space-x-6">
-            {/* Navigation Links */}
-            <div className="flex items-center space-x-6">
-              {navItems.map((item) => (
-                <Link 
-                  key={item.path}
-                  to={item.path} 
-                  className={`px-3 py-2 text-sm font-medium transition-colors relative group ${
-                    location.pathname === item.path 
-                      ? 'text-purple-400 light-theme:text-purple-600' 
-                      : 'text-gray-300 hover:text-white light-theme:text-gray-700 light-theme:hover:text-purple-600'
-                  }`}
-                >
-                  {item.label}
-                  <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ${
-                    location.pathname === item.path ? 'scale-x-100' : ''
-                  }`}></span>
-                </Link>
-              ))}
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? 'bg-white/95 backdrop-blur-lg shadow-lg border-b border-gray-200'
+          : 'bg-white/80 backdrop-blur-md border-b border-gray-100'
+      }`}
+    >
+      {/* Full width container with edge-to-edge spacing */}
+      <div className="w-full px-6 sm:px-8 lg:px-12">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo - Far Left Corner */}
+          <Link
+            to="/"
+            className="flex items-center space-x-3 group"
+          >
+            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+              <Dumbbell className="h-6 w-6 text-white" />
             </div>
-            
-            {/* Theme Toggle */}
-            <button 
-              onClick={toggleTheme}
-              className="p-2 rounded-full bg-black/30 hover:bg-black/50 light-theme:bg-gray-200 light-theme:hover:bg-gray-300 transition-colors"
-              aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-            >
-              {isDark ? (
-                <Sun size={20} className="text-yellow-400" />
-              ) : (
-                <Moon size={20} className="text-purple-600" />
-              )}
-            </button>
-            
-            {/* Auth Buttons */}
+            <span className="text-xl font-bold text-gray-900 hidden sm:block">
+              AI Workout Trainer
+            </span>
+          </Link>
+
+          {/* Auth/Profile - Far Right Corner */}
+          <div className="flex items-center">
             {isLoggedIn ? (
-              <>
-                <Link 
-                  to="/trainer" 
-                  className={`px-3 py-2 text-sm font-medium transition-colors relative group ${
-                    location.pathname === '/trainer' 
-                      ? 'text-purple-400 light-theme:text-purple-600' 
-                      : 'text-gray-300 hover:text-white light-theme:text-gray-700 light-theme:hover:text-purple-600'
-                  }`}
+              <div className="relative" ref={profileDropdownRef}>
+                <button
+                  onClick={toggleProfileDropdown}
+                  className="flex items-center space-x-3 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-200 hover:shadow-md transition-all duration-300"
+                  aria-label="Open user menu"
                 >
-                  Workout Trainer
-                  <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ${
-                    location.pathname === '/trainer' ? 'scale-x-100' : ''
-                  }`}></span>
-                </Link>
-                <div className="relative ml-3" ref={profileDropdownRef}>
-                  <button 
-                    onClick={toggleProfileDropdown}
-                    className="flex items-center text-sm rounded-full focus:outline-none py-1"
-                  >
-                    <span className="sr-only">Open user menu</span>
-                    {user?.profileImage ? (
-                      <img
-                        className="h-9 w-9 rounded-full object-cover border-2 border-purple-500"
-                        src={user.profileImage}
-                        alt={user.name}
-                      />
-                    ) : (
-                      <div className="h-9 w-9 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center text-white">
-                        {user?.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <ChevronDown size={16} className={`ml-1 text-gray-400 transition-transform duration-200 ${isProfileOpen ? 'transform rotate-180' : ''}`} />
-                  </button>
-                  {isProfileOpen && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-black ring-1 ring-purple-500 border border-purple-500/30 backdrop-blur-md z-50 light-theme:bg-white light-theme:border-gray-200 light-theme:shadow-lg">
-                      <Link 
-                        to="/profile" 
-                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-purple-500/10 hover:text-white transition-colors light-theme:text-gray-700 light-theme:hover:bg-purple-100 light-theme:hover:text-purple-600"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        Your Profile
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-purple-500/10 hover:text-white transition-colors light-theme:text-gray-700 light-theme:hover:bg-purple-100 light-theme:hover:text-purple-600"
-                      >
-                        Sign out
-                      </button>
+                  {user?.profileImage ? (
+                    <img
+                      src={user.profileImage}
+                      alt="Profile"
+                      className="h-9 w-9 rounded-lg border-2 border-white shadow-sm object-cover"
+                    />
+                  ) : (
+                    <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                      {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   )}
-                </div>
-              </>
+                  <div className="hidden sm:block text-left">
+                    <p className="text-sm font-bold text-gray-900 leading-tight">
+                      {user?.name || 'User'}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      Level {user?.level || 1}
+                    </p>
+                  </div>
+                  <ChevronDown 
+                    className={`h-4 w-4 text-gray-600 transition-transform duration-300 ${
+                      isProfileOpen ? 'rotate-180' : ''
+                    }`} 
+                  />
+                </button>
+
+                {/* Dropdown Menu */}
+                <AnimatePresence>
+                  {isProfileOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 overflow-hidden"
+                    >
+                      {/* User Info Header */}
+                      <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                        <p className="text-sm font-bold text-gray-900">
+                          {user?.name || 'User'}
+                        </p>
+                        <p className="text-xs text-gray-600 truncate">
+                          {user?.email || 'user@example.com'}
+                        </p>
+                      </div>
+
+                      {/* Menu Items */}
+                      <div className="py-2">
+                        <Link
+                          to="/trainer"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                        >
+                          <Dumbbell className="h-4 w-4 mr-3" />
+                          Workout Trainer
+                        </Link>
+                        <Link
+                          to="/profile"
+                          onClick={() => setIsProfileOpen(false)}
+                          className="flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                        >
+                          <User className="h-4 w-4 mr-3" />
+                          Your Profile
+                        </Link>
+                      </div>
+
+                      {/* Logout */}
+                      <div className="border-t border-gray-100 pt-2 pb-1">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <LogOut className="h-4 w-4 mr-3" />
+                          Sign out
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             ) : (
-              <>
-                <Link to="/signin" className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium relative group light-theme:text-gray-700 light-theme:hover:text-purple-600">
+              <div className="flex items-center space-x-3">
+                <Link
+                  to="/signin"
+                  className="px-5 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+                >
                   Sign In
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
                 </Link>
-                <Link to="/signup" className="bg-gradient-to-r from-purple-600 to-blue-500 text-white px-5 py-2 rounded-md text-sm font-medium hover:from-purple-700 hover:to-blue-600 transition-colors">
+                <Link
+                  to="/signup"
+                  className="px-6 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                >
                   Sign Up
                 </Link>
-              </>
+              </div>
             )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center space-x-3">
-            {/* Theme Toggle - Mobile */}
-            <button 
-              onClick={toggleTheme}
-              className="p-2 rounded-full bg-black/30 hover:bg-black/50 light-theme:bg-gray-200 light-theme:hover:bg-gray-300 transition-colors"
-              aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-            >
-              {isDark ? (
-                <Sun size={18} className="text-yellow-400" />
-              ) : (
-                <Moon size={18} className="text-purple-600" />
-              )}
-            </button>
-            
-            {isLoggedIn && (
-              <Link to="/profile" className="mr-1">
-                {user?.profileImage ? (
-                  <img
-                    className="h-8 w-8 rounded-full object-cover border-2 border-purple-500"
-                    src={user.profileImage}
-                    alt={user.name}
-                  />
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-r from-purple-600 to-blue-500 flex items-center justify-center text-white">
-                    {user?.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </Link>
-            )}
-            <button
-              onClick={toggleMenu}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-purple-500/10 focus:outline-none light-theme:text-gray-700 light-theme:hover:text-purple-600"
-            >
-              <span className="sr-only">Open main menu</span>
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
           </div>
         </div>
       </div>
-
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            className="md:hidden"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-black border-t border-purple-500/20 backdrop-blur-md light-theme:bg-white light-theme:border-gray-200">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
-                    location.pathname === item.path 
-                      ? 'text-purple-400 light-theme:text-purple-600' 
-                      : 'text-gray-300 hover:text-white hover:bg-purple-500/10 light-theme:text-gray-700 light-theme:hover:text-purple-600 light-theme:hover:bg-purple-100'
-                  }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              
-              {isLoggedIn ? (
-                <>
-                  <Link
-                    to="/trainer"
-                    className={`block px-3 py-2 rounded-md text-base font-medium ${
-                      location.pathname === '/trainer' 
-                        ? 'text-purple-400 light-theme:text-purple-600' 
-                        : 'text-gray-300 hover:text-white hover:bg-purple-500/10 light-theme:text-gray-700 light-theme:hover:text-purple-600 light-theme:hover:bg-purple-100'
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Workout Trainer
-                  </Link>
-                  <Link
-                    to="/profile"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-purple-500/10 light-theme:text-gray-700 light-theme:hover:text-purple-600 light-theme:hover:bg-purple-100"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <div className="flex items-center">
-                      <User size={16} className="mr-2 text-purple-400" />
-                      Your Profile
-                    </div>
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-purple-500/10 light-theme:text-gray-700 light-theme:hover:text-purple-600 light-theme:hover:bg-purple-100"
-                  >
-                    <div className="flex items-center">
-                      <LogOut size={16} className="mr-2 text-purple-400" />
-                      Sign out
-                    </div>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/signin"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-purple-500/10 light-theme:text-gray-700 light-theme:hover:text-purple-600 light-theme:hover:bg-purple-100"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/signup"
-                    className="block px-3 py-2 rounded-md text-base font-medium bg-gradient-to-r from-purple-600 to-blue-500 text-white hover:from-purple-700 hover:to-blue-600 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Sign Up
-                  </Link>
-                </>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </nav>
   );
 }

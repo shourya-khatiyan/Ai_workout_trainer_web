@@ -1,492 +1,267 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Edit2, Award, Activity, Dumbbell, BarChart2, Calendar, Save, X, Trophy, Target, Flame } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { useUser } from '../context/UserContext';
+import Navbar from '../components/Navbar';
+import {
+  User,
+  Dumbbell,
+  Trophy,
+  Target,
+  TrendingUp,
+  Calendar,
+  Clock,
+  Activity,
+  Flame,
+  Award,
+  Edit,
+  Camera,
+  ChevronRight,
+  BarChart3,
+  Zap
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 
-export default function Profile() {
-  const { user, isLoggedIn, updateUserData } = useUser();
+const Profile: React.FC = () => {
+  const { user, isLoggedIn } = useUser();
   const navigate = useNavigate();
-  
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    age: '',
-    gender: '',
-    height: '',
-    weight: '',
-    hipSize: '',
-    chestSize: '',
-    neckSize: ''
-  });
-  
-  useEffect(() => {
-    // Redirect if not logged in
-    if (!isLoggedIn) {
-      navigate('/signin');
-      return;
-    }
-    
-    // Initialize form data with user data
-    if (user) {
-      setFormData({
-        name: user.name || '',
-        age: user.age?.toString() || '',
-        gender: user.gender || '',
-        height: user.height?.toString() || '',
-        weight: user.weight?.toString() || '',
-        hipSize: user.hipSize?.toString() || '',
-        chestSize: user.chestSize?.toString() || '',
-        neckSize: user.neckSize?.toString() || ''
-      });
-    }
-    
-    // Initialize AOS
-    import('aos').then(AOS => {
-      import('aos/dist/aos.css');
-      AOS.init({
-        duration: 1000,
-        once: false,
-        mirror: true
-      });
-    });
-  }, [user, isLoggedIn, navigate]);
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Update user data
-    updateUserData({
-      name: formData.name,
-      age: formData.age ? parseInt(formData.age) : undefined,
-      gender: formData.gender,
-      height: formData.height ? parseFloat(formData.height) : undefined,
-      weight: formData.weight ? parseFloat(formData.weight) : undefined,
-      hipSize: formData.hipSize ? parseFloat(formData.hipSize) : undefined,
-      chestSize: formData.chestSize ? parseFloat(formData.chestSize) : undefined,
-      neckSize: formData.neckSize ? parseFloat(formData.neckSize) : undefined
-    });
-    
-    setIsEditing(false);
-  };
-  
-  const cancelEdit = () => {
-    // Reset form data to user data
-    if (user) {
-      setFormData({
-        name: user.name || '',
-        age: user.age?.toString() || '',
-        gender: user.gender || '',
-        height: user.height?.toString() || '',
-        weight: user.weight?.toString() || '',
-        hipSize: user.hipSize?.toString() || '',
-        chestSize: user.chestSize?.toString() || '',
-        neckSize: user.neckSize?.toString() || ''
-      });
-    }
-    
-    setIsEditing(false);
-  };
-  
-  if (!user) return null;
-  
+
+  if (!isLoggedIn) {
+    navigate('/signin');
+    return null;
+  }
+
+  const level = user?.level || 1;
+  const experience = user?.experience || 0;
+  const xpToNext = 100 - (experience % 100);
+  const xpProgress = ((100 - xpToNext) / 100) * 100;
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <Navbar />
       
-      <div className="pt-24 pb-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left column - User info */}
-            <div className="lg:col-span-1">
-              <motion.div 
-                className="bg-card-bg rounded-lg overflow-hidden shadow-lg border border-border"
+      <div className="pt-20 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          {/* Hero Section with Profile Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-3xl shadow-2xl overflow-hidden mb-8 p-8 sm:p-12"
+          >
+            {/* Decorative background elements */}
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-300 rounded-full blur-3xl"></div>
+            </div>
+
+            <div className="relative z-10 flex flex-col sm:flex-row items-center gap-8">
+              {/* Profile Picture */}
+              <div className="relative group">
+                <div className="w-32 h-32 rounded-3xl bg-white/20 backdrop-blur-xl border-4 border-white/30 shadow-2xl flex items-center justify-center overflow-hidden">
+                  {user?.profileImage ? (
+                    <img
+                      src={user.profileImage}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
+                      <User className="h-16 w-16 text-white" />
+                    </div>
+                  )}
+                </div>
+                <button className="absolute bottom-0 right-0 bg-white text-blue-600 p-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105">
+                  <Camera className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* User Info */}
+              <div className="flex-1 text-center sm:text-left">
+                <h1 className="text-4xl font-black text-white mb-2">
+                  {user?.name || 'Fitness Enthusiast'}
+                </h1>
+                <p className="text-blue-100 text-lg mb-4 font-medium">
+                  Level {level} • {user?.email || 'email@example.com'}
+                </p>
+
+                {/* XP Progress */}
+                <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-4 max-w-md">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-bold text-white">Experience</span>
+                    <span className="text-sm font-bold text-white">{xpToNext} XP to Level {level + 1}</span>
+                  </div>
+                  <div className="h-3 bg-white/20 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${xpProgress}%` }}
+                      transition={{ duration: 1, delay: 0.3 }}
+                      className="h-full bg-gradient-to-r from-yellow-300 to-orange-400 rounded-full shadow-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Edit Button */}
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className="bg-white/20 backdrop-blur-lg border border-white/30 text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition-all flex items-center gap-2 shadow-xl"
+              >
+                <Edit className="h-4 w-4" />
+                Edit Profile
+              </button>
+            </div>
+          </motion.div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {[
+              { icon: Flame, label: 'Current Streak', value: '3 days', color: 'from-orange-400 to-red-500', bg: 'from-orange-50 to-red-50' },
+              { icon: Dumbbell, label: 'Total Workouts', value: '12', color: 'from-blue-400 to-indigo-500', bg: 'from-blue-50 to-indigo-50' },
+              { icon: Target, label: 'Avg Accuracy', value: '87%', color: 'from-green-400 to-emerald-500', bg: 'from-green-50 to-emerald-50' },
+              { icon: Clock, label: 'Total Time', value: '3.5h', color: 'from-purple-400 to-pink-500', bg: 'from-purple-50 to-pink-50' }
+            ].map((stat, idx) => (
+              <motion.div
+                key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                data-aos="fade-up"
+                transition={{ delay: idx * 0.1 }}
+                className={`bg-gradient-to-br ${stat.bg} rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all border border-gray-100`}
               >
-                <div className="bg-gradient-to-r from-primary-dark to-primary h-32 relative">
-                  {!isEditing && (
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="absolute top-4 right-4 bg-white bg-opacity-20 p-2 rounded-full hover:bg-opacity-30 transition-all"
-                    >
-                      <Edit2 size={16} className="text-white" />
-                    </button>
-                  )}
+                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} mb-4 shadow-md`}>
+                  <stat.icon className="h-6 w-6 text-white" />
                 </div>
-                
-                <div className="px-6 pb-6">
-                  <div className="flex justify-center -mt-16 mb-6">
-                    {user.profileImage ? (
-                      <img
-                        src={user.profileImage}
-                        alt={user.name}
-                        className="h-32 w-32 rounded-full border-4 border-card-bg object-cover"
-                      />
-                    ) : (
-                      <div className="h-32 w-32 rounded-full border-4 border-card-bg bg-primary flex items-center justify-center text-white text-4xl font-bold">
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {isEditing ? (
-                    <form onSubmit={handleSubmit}>
-                      <div className="space-y-4">
-                        <div>
-                          <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
-                            Name
-                          </label>
-                          <input
-                            type="text"
-                            name="name"
-                            id="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            className="input"
-                            required
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label htmlFor="age" className="block text-sm font-medium text-gray-300 mb-1">
-                              Age
-                            </label>
-                            <input
-                              type="number"
-                              name="age"
-                              id=" age"
-                              value={formData.age}
-                              onChange={handleChange}
-                              className="input"
-                              min="1"
-                              max="120"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label htmlFor="gender" className="block text-sm font-medium text-gray-300 mb-1">
-                              Gender
-                            </label>
-                            <select
-                              name="gender"
-                              id="gender"
-                              value={formData.gender}
-                              onChange={handleChange}
-                              className="input"
-                            >
-                              <option value="" disabled>Select</option>
-                              <option value="male">Male</option>
-                              <option value="female">Female</option>
-                              <option value="other">Other</option>
-                              <option value="prefer-not-to-say">Prefer not to say</option>
-                            </select>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label htmlFor="height" className="block text-sm font-medium text-gray-300 mb-1">
-                              Height (cm)
-                            </label>
-                            <input
-                              type="number"
-                              name="height"
-                              id="height"
-                              value={formData.height}
-                              onChange={handleChange}
-                              className="input"
-                              min="50"
-                              max="250"
-                              step="0.1"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label htmlFor="weight" className="block text-sm font-medium text-gray-300 mb-1">
-                              Weight (kg)
-                            </label>
-                            <input
-                              type="number"
-                              name="weight"
-                              id="weight"
-                              value={formData.weight}
-                              onChange={handleChange}
-                              className="input"
-                              min="20"
-                              max="300"
-                              step="0.1"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">
-                            Body Measurements (cm)
-                          </label>
-                          <div className="grid grid-cols-3 gap-2">
-                            <div>
-                              <input
-                                type="number"
-                                name="hipSize"
-                                placeholder="Hip"
-                                value={formData.hipSize}
-                                onChange={handleChange}
-                                className="input text-sm"
-                                min="50"
-                                max="200"
-                                step="0.1"
-                              />
-                            </div>
-                            <div>
-                              <input
-                                type="number"
-                                name="chestSize"
-                                placeholder="Chest"
-                                value={formData.chestSize}
-                                onChange={handleChange}
-                                className="input text-sm"
-                                min="50"
-                                max="200"
-                                step="0.1"
-                              />
-                            </div>
-                            <div>
-                              <input
-                                type="number"
-                                name="neckSize"
-                                placeholder="Neck"
-                                value={formData.neckSize}
-                                onChange={handleChange}
-                                className="input text-sm"
-                                min="20"
-                                max="100"
-                                step="0.1"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex space-x-3 pt-2">
-                          <button
-                            type="button"
-                            onClick={cancelEdit}
-                            className="flex-1 btn btn-secondary"
-                          >
-                            <X size={18} className="mr-2" /> Cancel
-                          </button>
-                          <button
-                            type="submit"
-                            className="flex-1 btn btn-primary"
-                          >
-                            <Save size={18} className="mr-2" /> Save
-                          </button>
-                        </div>
-                      </div>
-                    </form>
-                  ) : (
-                    <>
-                      <h1 className="text-2xl font-bold text-center mb-2">{user.name}</h1>
-                      <p className="text-primary text-center mb-6">Level {user.level || 1} Fitness Enthusiast</p>
-                      
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-card-dark rounded-lg p-3 border border-border">
-                            <p className="text-gray-400 text-sm">Age</p>
-                            <p className="text-lg font-medium">{user.age || 'Not set'}</p>
-                          </div>
-                          <div className="bg-card-dark rounded-lg p-3 border border-border">
-                            <p className="text-gray-400 text-sm">Gender</p>
-                            <p className="text-lg font-medium capitalize">{user.gender || 'Not set'}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-card-dark rounded-lg p-3 border border-border">
-                            <p className="text-gray-400 text-sm">Height</p>
-                            <p className="text-lg font-medium">{user.height ? `${user.height} cm` : 'Not set'}</p>
-                          </div>
-                          <div className="bg-card-dark rounded-lg p-3 border border-border">
-                            <p className="text-gray-400 text-sm">Weight</p>
-                            <p className="text-lg font-medium">{user.weight ? `${user.weight} kg` : 'Not set'}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-card-dark rounded-lg p-3 border border-border">
-                          <p className="text-gray-400 text-sm mb-2">Body Measurements</p>
-                          <div className="grid grid-cols-3 gap-2">
-                            <div>
-                              <p className="text-xs text-gray-400">Hip</p>
-                              <p className="font-medium">{user.hipSize ? `${user.hipSize} cm` : 'N/A'}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-400">Chest</p>
-                              <p className="font-medium">{user.chestSize ? `${user.chestSize} cm` : 'N/A'}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-400">Neck</p>
-                              <p className="font-medium">{user.neckSize ? `${user.neckSize} cm` : 'N/A'}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
+                <p className="text-sm font-semibold text-gray-600 mb-1">{stat.label}</p>
+                <p className="text-3xl font-black text-gray-900">{stat.value}</p>
               </motion.div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Personal Info */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Basic Info Card */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <User className="h-5 w-5 text-blue-600" />
+                    Personal Info
+                  </h2>
+                </div>
+                <div className="p-6 space-y-4">
+                  {[
+                    { label: 'Age', value: user?.age || 'Not set' },
+                    { label: 'Gender', value: user?.gender || 'Not set' },
+                    { label: 'Height', value: user?.height ? `${user.height} cm` : 'Not set' },
+                    { label: 'Weight', value: user?.weight ? `${user.weight} kg` : 'Not set' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                      <span className="text-sm font-semibold text-gray-600">{item.label}</span>
+                      <span className="text-sm font-bold text-gray-900">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Body Measurements Card */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-100">
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-purple-600" />
+                    Body Measurements
+                  </h2>
+                </div>
+                <div className="p-6 grid grid-cols-3 gap-4">
+                  {[
+                    { label: 'Hip', value: user?.hipSize ? `${user.hipSize} cm` : 'N/A' },
+                    { label: 'Chest', value: user?.chestSize ? `${user.chestSize} cm` : 'N/A' },
+                    { label: 'Neck', value: user?.neckSize ? `${user.neckSize} cm` : 'N/A' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="text-center p-3 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">{item.label}</p>
+                      <p className="text-lg font-bold text-gray-900">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            
-            {/* Right column - Stats and achievements */}
-            <div className="lg:col-span-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Progress card */}
-                <motion.div 
-                  className="bg-card-bg rounded-lg p-6 shadow-lg border border-border"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  data-aos="fade-up"
-                  data-aos-delay="100"
-                >
-                  <div className="flex items-center mb-4">
-                    <Activity size={24} className="text-primary mr-3" />
-                    <h2 className="text-xl font-bold">Your Progress</h2>
+
+            {/* Right Column - Activity & Achievements */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Quick Stats */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider">Most Practiced</h3>
+                    <BarChart3 className="h-5 w-5 text-blue-500" />
                   </div>
-                  
-                  <div className="mb-6">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm text-gray-400">Level {user.level || 1}</span>
-                      <span className="text-sm text-gray-400">Level {(user.level || 1) + 1}</span>
-                    </div>
-                    <div className="h-2 bg-card-dark rounded-full">
-                      <div 
-                        className="h-2 bg-primary rounded-full"
-                        style={{ width: `${((user.experience || 0) % 100)}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-sm text-gray-400 mt-1">
-                      {100 - ((user.experience || 0) % 100)} XP to next level
-                    </p>
+                  <p className="text-2xl font-black text-gray-900 mb-1">Squats</p>
+                  <p className="text-sm text-gray-600">8 sessions this month</p>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider">Best Accuracy</h3>
+                    <Zap className="h-5 w-5 text-yellow-500" />
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-card-dark rounded-lg p-3 border border-border">
-                      <div className="flex items-center mb-1">
-                        <Calendar size={16} className="text-primary mr-2" />
-                        <p className="text-sm font-medium">Workout Streak</p>
+                  <p className="text-2xl font-black text-gray-900 mb-1">95%</p>
+                  <p className="text-sm text-gray-600">Perfect form achieved</p>
+                </div>
+              </div>
+
+              {/* Achievements */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-amber-50 to-yellow-50 px-6 py-4 border-b border-gray-100">
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-amber-500" />
+                    Achievements
+                  </h2>
+                </div>
+                <div className="p-6 space-y-3">
+                  {[
+                    { icon: Award, title: 'First Workout', desc: 'Completed your first workout session', color: 'bg-green-500' },
+                    { icon: Target, title: 'Perfect Form', desc: 'Achieved 95% form accuracy', color: 'bg-blue-500' },
+                    { icon: Flame, title: '3-Day Streak', desc: 'Work out for 3 days in a row', color: 'bg-orange-500' }
+                  ].map((achievement, idx) => (
+                    <div key={idx} className="flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-100 hover:shadow-md transition-all">
+                      <div className={`flex-shrink-0 w-12 h-12 ${achievement.color} rounded-xl flex items-center justify-center shadow-md`}>
+                        <achievement.icon className="h-6 w-6 text-white" />
                       </div>
-                      <p className="text-2xl font-bold">3 days</p>
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900">{achievement.title}</p>
+                        <p className="text-sm text-gray-600">{achievement.desc}</p>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-gray-400" />
                     </div>
-                    <div className="bg-card-dark rounded-lg p-3 border border-border">
-                      <div className="flex items-center mb-1">
-                        <Dumbbell size={16} className="text-primary mr-2" />
-                        <p className="text-sm font-medium">Total Workouts</p>
-                      </div>
-                      <p className="text-2xl font-bold">12</p>
-                    </div>
-                  </div>
-                </motion.div>
-                
-                {/* Achievements card */}
-                <motion.div 
-                  className="bg-card-bg rounded-lg p-6 shadow-lg border border-border"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  data-aos="fade-up"
-                  data-aos-delay="200"
-                >
-                  <div className="flex items-center mb-4">
-                    <Trophy size={24} className="text-primary mr-3" />
-                    <h2 className="text-xl font-bold">Achievements</h2>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center bg-card-dark rounded-lg p-3 border border-border">
-                      <div className="h-12 w-12 rounded-full bg-primary bg-opacity-20 flex items-center justify-center mr-4">
-                        <Award size={24} className="text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">First Workout</p>
-                        <p className="text-sm text-gray-400">Completed your first workout session</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center bg-card-dark rounded-lg p-3 border border-border">
-                      <div className="h-12 w-12 rounded-full bg-primary bg-opacity-20 flex items-center justify-center mr-4">
-                        <Target size={24} className="text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Perfect Form</p>
-                        <p className="text-sm text-gray-400">Achieved 95% form accuracy</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center bg-card-dark bg-opacity-50 rounded-lg p-3 border border-border border-opacity-50">
-                      <div className="h-12 w-12 rounded-full bg-gray-600 bg-opacity-20 flex items-center justify-center mr-4">
-                        <Flame size={24} className="text-gray-500" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-500">3-Day Streak</p>
-                        <p className="text-sm text-gray-500">Work out for 3 days in a row</p>
-                      </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recent Activity */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-100">
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-green-600" />
+                    Recent Activity
+                  </h2>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-center">
+                      <Activity className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500 font-medium">No recent workouts</p>
+                      <button className="mt-4 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-md">
+                        Start Training
+                      </button>
                     </div>
                   </div>
-                </motion.div>
-                
-                {/* Stats card */}
-                <motion.div 
-                  className="bg-card-bg rounded-lg p-6 shadow-lg md:col-span-2 border border-border"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                  data-aos="fade-up"
-                  data-aos-delay="300"
-                >
-                  <div className="flex items-center mb-6">
-                    <BarChart2 size={24} className="text-primary mr-3" />
-                    <h2 className="text-xl font-bold">Workout Statistics</h2>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-card-dark rounded-lg p-4 border border-border">
-                      <p className="text-gray-400 text-sm mb-1">Average Accuracy</p>
-                      <p className="text-3xl font-bold">87%</p>
-                      <div className="h-2 bg-background rounded-full mt-2">
-                        <div className="h-2 bg-primary rounded-full" style={{ width: '87%' }}></div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-card-dark rounded-lg p-4 border border-border">
-                      <p className="text-gray-400 text-sm mb-1">Most Practiced</p>
-                      <p className="text-xl font-bold">Squats</p>
-                      <p className="text-sm text-gray-400 mt-1">8 sessions</p>
-                    </div>
-                    
-                    <div className="bg-card-dark rounded-lg p-4 border border-border">
-                      <p className="text-gray-400 text-sm mb-1">Total Time</p>
-                      <p className="text-3xl font-bold">3.5h</p>
-                      <p className="text-sm text-gray-400 mt-1">This month</p>
-                    </div>
-                  </div>
-                </motion.div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
-      <Footer />
     </div>
   );
-}
+};
+
+export default Profile;

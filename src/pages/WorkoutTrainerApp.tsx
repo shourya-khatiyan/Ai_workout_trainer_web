@@ -26,36 +26,38 @@ export default function WorkoutTrainerApp() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [trainerPose, setTrainerPose] = useState<poseDetection.Pose | null>(null);
   const [trainerAngles, setTrainerAngles] = useState<{
-    Hip: number;
-    Knee: number;
-    Elbow: number;
-    Shoulder: number;
-    UpperBack: number;    // NEW
-    MidBack: number;      // NEW
-    LowerBack: number;    // NEW
-  }>({
-    Hip: 120,
-    Knee: 145,
-    Elbow: 90,
-    Shoulder: 180,
-    UpperBack: 180,       // NEW
-    MidBack: 180,         // NEW
-    LowerBack: 180        // NEW
-  });
+  Hip: number;
+  Knee: number;
+  Elbow: number;
+  Shoulder: number;
+  BackStraightness: number;
+  UpperBack: number;
+  MidBack: number;
+  LowerBack: number;
+}>({
+  Hip: 120,
+  Knee: 145,
+  Elbow: 90,
+  Shoulder: 180,
+  BackStraightness: 180,
+  UpperBack: 180,
+  MidBack: 180,
+  LowerBack: 180
+});
+
   
   // State for pose data with debouncing
   const [postureAccuracy, setPostureAccuracy] = useState(85);
   const [postureStatus, setPostureStatus] = useState('CORRECT');
   // ✅ UPDATED
   const [jointAngles, setJointAngles] = useState([
-    { joint: 'Hip', angle: 120, accuracy: 85 },
-    { joint: 'Knee', angle: 145, accuracy: 45 },
-    { joint: 'Elbow', angle: 90, accuracy: 65 },
-    { joint: 'Shoulder', angle: 180, accuracy: 75 },
-    { joint: 'Upper Back', angle: 180, accuracy: 100 },  // NEW
-    { joint: 'Mid Back', angle: 180, accuracy: 100 },    // NEW
-    { joint: 'Lower Back', angle: 180, accuracy: 100 }   // NEW
-  ]);
+  { joint: 'Hip', angle: 120, accuracy: 85 },
+  { joint: 'Knee', angle: 145, accuracy: 45 },
+  { joint: 'Elbow', angle: 90, accuracy: 65 },
+  { joint: 'Shoulder', angle: 180, accuracy: 75 },
+  { joint: 'Back', angle: 180, accuracy: 100 }
+]);
+
   
   const [feedbackItems, setFeedbackItems] = useState<{text: string, status: 'good' | 'warning' | 'error'}[]>([
     { text: 'Position yourself in front of the camera', status: 'warning' }
@@ -500,43 +502,35 @@ export default function WorkoutTrainerApp() {
   
   // Update UI with debounced data
   const updateUIWithData = useCallback((data: any) => {
-    // ✅ UPDATED
-    setJointAngles([
-      { joint: 'Hip', angle: Math.round(data.angles.Hip), accuracy: data.accuracy.Hip },
-      { joint: 'Knee', angle: Math.round(data.angles.Knee), accuracy: data.accuracy.Knee },
-      { joint: 'Elbow', angle: Math.round(data.angles.Elbow), accuracy: data.accuracy.Elbow },
-      { joint: 'Shoulder', angle: Math.round(data.angles.Shoulder), accuracy: data.accuracy.Shoulder },
-      { joint: 'Upper Back', angle: Math.round(data.angles.UpperBack), accuracy: data.accuracy.UpperBack },
-      { joint: 'Mid Back', angle: Math.round(data.angles.MidBack), accuracy: data.accuracy.MidBack },
-      { joint: 'Lower Back', angle: Math.round(data.angles.LowerBack), accuracy: data.accuracy.LowerBack }
-    ]);
+  setJointAngles([
+    { joint: 'Hip', angle: Math.round(data.angles.Hip), accuracy: data.accuracy.Hip },
+    { joint: 'Knee', angle: Math.round(data.angles.Knee), accuracy: data.accuracy.Knee },
+    { joint: 'Elbow', angle: Math.round(data.angles.Elbow), accuracy: data.accuracy.Elbow },
+    { joint: 'Shoulder', angle: Math.round(data.angles.Shoulder), accuracy: data.accuracy.Shoulder },
+    { joint: 'Back', angle: Math.round(data.angles.BackStraightness), accuracy: data.accuracy.BackStraightness }
+  ]);
 
-    setPostureAccuracy(data.weightedAccuracy); 
+  setPostureAccuracy(data.weightedAccuracy); 
 
-// Update posture status based on weighted accuracy
-if (data.weightedAccuracy >= 85) {
-  setPostureStatus('CORRECT');
-} else {
-  setPostureStatus('INCORRECT');
-}
+  if (data.weightedAccuracy >= 85) {
+    setPostureStatus('CORRECT');
+  } else {
+    setPostureStatus('INCORRECT');
+  }
 
-    
-    
-    // Split feedback into two sections
-    const goodFeedback = data.feedback.filter((item: any) => item.status === 'good');
-    const improvementFeedback = data.feedback.filter((item: any) => item.status === 'warning' || item.status === 'error');
-    
-    // Combine them with section headers
-    const organizedFeedback = [
-      { text: 'Good Form:', status: 'good' as const },
-      ...goodFeedback,
-      { text: 'Needs Improvement:', status: 'warning' as const },
-      ...improvementFeedback
-    ];
-    
-    // Update feedback
-    setFeedbackItems(organizedFeedback);
-  }, []);
+  const goodFeedback = data.feedback.filter((item: any) => item.status === 'good');
+  const improvementFeedback = data.feedback.filter((item: any) => item.status === 'warning' || item.status === 'error');
+  
+  const organizedFeedback = [
+    { text: 'Good Form:', status: 'good' as const },
+    ...goodFeedback,
+    { text: 'Needs Improvement:', status: 'warning' as const },
+    ...improvementFeedback
+  ];
+  
+  setFeedbackItems(organizedFeedback);
+}, []);
+
   
   // Process debounced updates
   useEffect(() => {
@@ -586,29 +580,43 @@ if (data.weightedAccuracy >= 85) {
             
             // Calculate accuracy compared to ideal angles (either from trainer or default)
             // ✅ UPDATED
-          const idealAngles = trainerPose ? trainerAngles : {
+          const idealAngles = trainerPose ? {
+            ...trainerAngles,
+            visibleJoints: {  // ✅ Add visibility for trainer angles
+              Hip: true,
+              Knee: true,
+              Elbow: true,
+              Shoulder: true,
+              Back: true
+            }
+          } : {
             Hip: 120,
             Knee: 145,
             Elbow: 90,
             Shoulder: 180,
-            UpperBack: 180,   
-            MidBack: 180,     
-            LowerBack: 180    
+            BackStraightness: 180,
+            UpperBack: 180,
+            MidBack: 180,
+            LowerBack: 180,
+            visibleJoints: {  // ✅ Add visibility for default angles
+              Hip: true,
+              Knee: true,
+              Elbow: true,
+              Shoulder: true,
+              Back: true
+            }
           };
 
-            
+
             const accuracy = calculateAccuracy(angles, idealAngles);
             
-            // Calculate weighted overall accuracy
-            // ✅ UPDATED
+
               const weights = {
-                Hip: 0.20,
-                Knee: 0.20,
-                Elbow: 0.10,
-                Shoulder: 0.10,
-                UpperBack: 0.15,
-                MidBack: 0.15,      
-                LowerBack: 0.10     
+                Hip: 0.25,
+                Knee: 0.25,
+                Elbow: 0.15,
+                Shoulder: 0.15,
+                BackStraightness: 0.20
               };
 
               const weightedAccuracy = Math.round(
@@ -616,13 +624,10 @@ if (data.weightedAccuracy >= 85) {
                 accuracy.Knee * weights.Knee +
                 accuracy.Elbow * weights.Elbow +
                 accuracy.Shoulder * weights.Shoulder +
-                accuracy.UpperBack * weights.UpperBack +
-                accuracy.MidBack * weights.MidBack +
-                accuracy.LowerBack * weights.LowerBack
+                accuracy.BackStraightness * weights.BackStraightness
               );
 
 
-            
             // Generate feedback
             const feedback = generateFeedback(angles, idealAngles, accuracy, pose.keypoints);
             
@@ -793,10 +798,9 @@ if (data.weightedAccuracy >= 85) {
       { joint: 'Knee', angle: 145, accuracy: 45 },
       { joint: 'Elbow', angle: 90, accuracy: 65 },
       { joint: 'Shoulder', angle: 180, accuracy: 75 },
-      { joint: 'Upper Back', angle: 180, accuracy: 100 },
-      { joint: 'Mid Back', angle: 180, accuracy: 100 },
-      { joint: 'Lower Back', angle: 180, accuracy: 100 }
-]);
+      { joint: 'Back', angle: 180, accuracy: 100 }
+    ]);
+
 
     setFeedbackItems([
       { text: 'Position yourself in front of the camera', status: 'warning' }
@@ -842,8 +846,10 @@ if (data.weightedAccuracy >= 85) {
       { joint: 'Hip', angle: 120, accuracy: 85 },
       { joint: 'Knee', angle: 145, accuracy: 45 },
       { joint: 'Elbow', angle: 90, accuracy: 65 },
-      { joint: 'Shoulder', angle: 180, accuracy: 75 }
+      { joint: 'Shoulder', angle: 180, accuracy: 75 },
+      { joint: 'Back', angle: 180, accuracy: 100 }
     ]);
+
     setFeedbackItems([
       { text: 'Position yourself in front of the camera', status: 'warning' }
     ]);

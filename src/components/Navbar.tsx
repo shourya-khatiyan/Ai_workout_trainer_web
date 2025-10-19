@@ -46,20 +46,16 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
         isScrolled
           ? 'bg-white/95 backdrop-blur-lg shadow-lg border-b border-gray-200'
           : 'bg-white/80 backdrop-blur-md border-b border-gray-100'
       }`}
     >
-      {/* Full width container with edge-to-edge spacing */}
-      <div className="w-full px-6 sm:px-8 lg:px-12">
+      <div className="w-full px-6 sm:px-8 lg:px-12 bg-gradient-to-r from-blue-50 to-purple-50">
         <div className="flex justify-between items-center h-16">
-          {/* Logo - Far Left Corner */}
-          <Link
-            to="/"
-            className="flex items-center space-x-3 group"
-          >
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-3 group">
             <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
               <Dumbbell className="h-6 w-6 text-white" />
             </div>
@@ -68,14 +64,13 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Auth/Profile - Far Right Corner */}
+          {/* Auth/Profile */}
           <div className="flex items-center">
             {isLoggedIn ? (
-              <div className="relative" ref={profileDropdownRef}>
+              <div className="relative z-[9999]" ref={profileDropdownRef}>
                 <button
                   onClick={toggleProfileDropdown}
                   className="flex items-center space-x-3 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-200 hover:shadow-md transition-all duration-300"
-                  aria-label="Open user menu"
                 >
                   {user?.profileImage ? (
                     <img
@@ -111,6 +106,7 @@ export default function Navbar() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
+                      style={{ zIndex: 99999 }}
                       className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 overflow-hidden"
                     >
                       {/* User Info Header */}
@@ -125,14 +121,6 @@ export default function Navbar() {
 
                       {/* Menu Items */}
                       <div className="py-2">
-                        <Link
-                          to="/trainer"
-                          onClick={() => setIsProfileOpen(false)}
-                          className="flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                        >
-                          <Dumbbell className="h-4 w-4 mr-3" />
-                          Workout Trainer
-                        </Link>
                         <Link
                           to="/profile"
                           onClick={() => setIsProfileOpen(false)}

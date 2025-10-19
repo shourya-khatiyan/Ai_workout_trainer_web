@@ -1,148 +1,234 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import LandingPage from './pages/LandingPage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
-import BodyCalibration from './pages/BodyCalibration';
+import ProfileSetup from './pages/ProfileSetup';
 import Profile from './pages/Profile';
 import WorkoutTrainer from './pages/WorkoutTrainer';
-import FeaturesPage from './pages/FeaturesPage';
-import AboutPage from './pages/AboutPage';
-import ContactPage from './pages/ContactPage';
 import { UserProvider } from './context/UserContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { Dumbbell, Activity } from 'lucide-react';
+import { Dumbbell, Zap, Target, TrendingUp, Activity } from 'lucide-react';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [skipLoading, setSkipLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const location = useLocation();
 
   useEffect(() => {
-    const shouldSkipLoading = localStorage.getItem('skipLoading') === 'true';
-    
-    if (shouldSkipLoading || location.pathname === '/trainer') {
-      setSkipLoading(true);
-      localStorage.removeItem('skipLoading');
+    // Skip loading for trainer page
+    if (location.pathname === '/trainer') {
       setIsLoading(false);
       return;
     }
 
-    import('aos').then(AOS => {
-      import('aos/dist/aos.css');
-      AOS.init({
-        duration: 1000,
-        once: false,
-        mirror: true
-      });
-    });
+    // Smooth progress animation
+    const duration = 2500; // 2.5 seconds
+    const steps = 50;
+    const interval = duration / steps;
+    
+    let currentStep = 0;
+    const timer = setInterval(() => {
+      currentStep++;
+      setProgress((currentStep / steps) * 100);
+      
+      if (currentStep >= steps) {
+        clearInterval(timer);
+        setTimeout(() => setIsLoading(false), 300);
+      }
+    }, interval);
 
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2500);
-
-    return () => clearTimeout(timer);
+    return () => clearInterval(timer);
   }, [location.pathname]);
 
-  if (isLoading && !skipLoading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center overflow-hidden">
-        {/* Animated background elements matching landing page */}
-        <div className="absolute inset-0 opacity-40">
-          <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-2000"></div>
+      <motion.div
+        initial={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 overflow-hidden"
+      >
+        {/* Professional gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+          <div className="absolute inset-0 opacity-40">
+            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
+            <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
+            <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-indigo-100 to-blue-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+          </div>
+          <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
+          <div className="absolute inset-0 bg-light-vignette"></div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="relative z-10 text-center"
-        >
-          {/* Logo with pulsing animation */}
+        {/* Content Container */}
+        <div className="relative z-10 h-full flex flex-col items-center justify-center px-6">
+          {/* Logo Section */}
           <motion.div
-            animate={{
-              scale: [1, 1.1, 1],
-              rotate: [0, 5, -5, 0]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
-            className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl shadow-2xl mb-8"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-12"
           >
-            <Dumbbell className="h-12 w-12 text-white" />
+            <motion.div
+              className="inline-flex items-center gap-4 px-8 py-4 bg-white/90 backdrop-blur-xl rounded-2xl border border-gray-200 shadow-2xl mb-6"
+              whileHover={{ scale: 1.02 }}
+            >
+              <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                <Dumbbell className="h-9 w-9 text-white" />
+              </div>
+              <div className="text-left">
+                <h1 className="text-3xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  AI Workout Trainer
+                </h1>
+                <p className="text-sm text-gray-600 font-semibold">Transform Your Fitness Journey</p>
+              </div>
+            </motion.div>
+
+            {/* Tagline */}
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-gray-600 font-medium text-lg"
+            >
+              AI-Powered • Real-Time Analysis • Personalized Coaching
+            </motion.p>
           </motion.div>
 
-          <h1 className="text-4xl sm:text-5xl font-black text-gray-900 mb-3">
-            AI Workout Trainer
-          </h1>
-          
-          <p className="text-lg text-gray-600 mb-8 font-medium">
-            Your personal AI fitness coach
-          </p>
-
-          {/* Loading bar */}
-          <div className="w-64 mx-auto">
-            <div className="h-2 bg-white/50 rounded-full overflow-hidden shadow-inner backdrop-blur-sm border border-gray-200">
+          {/* Features Cards */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12 max-w-4xl w-full"
+          >
+            {[
+              { icon: Zap, title: 'Instant Feedback', desc: 'Real-time pose correction', color: 'from-blue-500 to-cyan-500' },
+              { icon: Target, title: 'Precision Tracking', desc: 'Advanced motion analysis', color: 'from-indigo-500 to-purple-500' },
+              { icon: TrendingUp, title: 'Progress Insights', desc: 'Data-driven improvements', color: 'from-purple-500 to-pink-500' }
+            ].map((feature, idx) => (
               <motion.div
-                className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
-                initial={{ width: '0%' }}
-                animate={{ width: '100%' }}
-                transition={{ duration: 2.5, ease: 'easeInOut' }}
-              />
-            </div>
-          </div>
-
-          {/* Loading dots */}
-          <div className="flex justify-center space-x-2 mt-6">
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                className="w-2.5 h-2.5 bg-blue-500 rounded-full"
-                animate={{
-                  y: [-8, 8, -8],
-                  opacity: [1, 0.5, 1]
-                }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  delay: i * 0.2
-                }}
-              />
+                key={idx}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 + idx * 0.1 }}
+                className="bg-white/80 backdrop-blur-md rounded-xl p-5 border border-gray-200 shadow-lg hover:shadow-xl transition-all"
+              >
+                <div className={`h-12 w-12 rounded-lg bg-gradient-to-br ${feature.color} flex items-center justify-center mb-3 shadow-md`}>
+                  <feature.icon className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="font-bold text-gray-900 mb-1">{feature.title}</h3>
+                <p className="text-sm text-gray-600">{feature.desc}</p>
+              </motion.div>
             ))}
-          </div>
-        </motion.div>
+          </motion.div>
 
+          {/* Progress Section */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="w-full max-w-md"
+          >
+            {/* Progress Bar */}
+            <div className="relative w-full h-2 bg-white/60 backdrop-blur-sm rounded-full overflow-hidden mb-3 shadow-inner">
+              <motion.div
+                className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full"
+                style={{ width: `${progress}%` }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                {/* Shimmer effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-40"
+                  animate={{ x: ['-100%', '200%'] }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                />
+              </motion.div>
+            </div>
+
+            {/* Loading Text */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-blue-600 animate-pulse" />
+                <span className="text-sm font-semibold text-gray-700">
+                  {progress < 30 ? 'Loading AI Models...' : 
+                   progress < 70 ? 'Preparing Workspace...' : 
+                   'Almost Ready...'}
+                </span>
+              </div>
+              <span className="text-sm font-bold text-blue-600">{Math.round(progress)}%</span>
+            </div>
+          </motion.div>
+
+          {/* Bottom Tagline */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="mt-8 text-xs text-gray-500 font-medium"
+          >
+            Powered by TensorFlow.js & MoveNet
+          </motion.p>
+        </div>
+
+        {/* Styles */}
         <style>{`
-          .animation-delay-2000 {
-            animation-delay: 2s;
+          @keyframes float {
+            0%, 100% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(50px, -80px) scale(1.1); }
+            66% { transform: translate(-40px, 60px) scale(0.95); }
+          }
+          
+          @keyframes float-delayed {
+            0%, 100% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(-60px, 70px) scale(1.05); }
+            66% { transform: translate(50px, -50px) scale(0.9); }
+          }
+          
+          @keyframes float-slow {
+            0%, 100% { transform: translate(0px, 0px) scale(1); }
+            50% { transform: translate(30px, -40px) scale(1.08); }
+          }
+          
+          .animate-float {
+            animation: float 15s ease-in-out infinite;
+          }
+          
+          .animate-float-delayed {
+            animation: float-delayed 18s ease-in-out infinite;
+          }
+          
+          .animate-float-slow {
+            animation: float-slow 20s ease-in-out infinite;
+          }
+
+          .bg-grid-pattern {
+            background-image: 
+              linear-gradient(rgba(100, 100, 100, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(100, 100, 100, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+          }
+
+          .bg-light-vignette {
+            background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
           }
         `}</style>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <ThemeProvider>
-      <UserProvider>
-        <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/body-calibration" element={<BodyCalibration />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/trainer" element={<WorkoutTrainer />} />
-            {/* Uncomment when ready */}
-            {/* <Route path="/features" element={<FeaturesPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} /> */}
-          </Routes>
-        </AnimatePresence>
-      </UserProvider>
-    </ThemeProvider>
+    <UserProvider>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/profile-setup" element={<ProfileSetup />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/trainer" element={<WorkoutTrainer />} />
+        </Routes>
+      </AnimatePresence>
+    </UserProvider>
   );
 }
 

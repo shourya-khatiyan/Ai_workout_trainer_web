@@ -30,22 +30,33 @@ export default function WorkoutTrainerApp() {
     Knee: number;
     Elbow: number;
     Shoulder: number;
+    UpperBack: number;    // NEW
+    MidBack: number;      // NEW
+    LowerBack: number;    // NEW
   }>({
     Hip: 120,
     Knee: 145,
     Elbow: 90,
-    Shoulder: 180
+    Shoulder: 180,
+    UpperBack: 180,       // NEW
+    MidBack: 180,         // NEW
+    LowerBack: 180        // NEW
   });
   
   // State for pose data with debouncing
   const [postureAccuracy, setPostureAccuracy] = useState(85);
   const [postureStatus, setPostureStatus] = useState('CORRECT');
+  // ✅ UPDATED
   const [jointAngles, setJointAngles] = useState([
     { joint: 'Hip', angle: 120, accuracy: 85 },
     { joint: 'Knee', angle: 145, accuracy: 45 },
     { joint: 'Elbow', angle: 90, accuracy: 65 },
-    { joint: 'Shoulder', angle: 180, accuracy: 75 }
+    { joint: 'Shoulder', angle: 180, accuracy: 75 },
+    { joint: 'Upper Back', angle: 180, accuracy: 100 },  // NEW
+    { joint: 'Mid Back', angle: 180, accuracy: 100 },    // NEW
+    { joint: 'Lower Back', angle: 180, accuracy: 100 }   // NEW
   ]);
+  
   const [feedbackItems, setFeedbackItems] = useState<{text: string, status: 'good' | 'warning' | 'error'}[]>([
     { text: 'Position yourself in front of the camera', status: 'warning' }
   ]);
@@ -106,9 +117,9 @@ export default function WorkoutTrainerApp() {
   // Refs for debouncing
   const lastUpdateTime = useRef(0);
   const pendingData = useRef<{
-    angles: any,
+    angles: any
     accuracy: any,
-    minAccuracy: number,
+    weightedAccuracy: number,
     feedback: any
   } | null>(null);
   
@@ -489,21 +500,27 @@ export default function WorkoutTrainerApp() {
   
   // Update UI with debounced data
   const updateUIWithData = useCallback((data: any) => {
+    // ✅ UPDATED
     setJointAngles([
       { joint: 'Hip', angle: Math.round(data.angles.Hip), accuracy: data.accuracy.Hip },
       { joint: 'Knee', angle: Math.round(data.angles.Knee), accuracy: data.accuracy.Knee },
       { joint: 'Elbow', angle: Math.round(data.angles.Elbow), accuracy: data.accuracy.Elbow },
-      { joint: 'Shoulder', angle: Math.round(data.angles.Shoulder), accuracy: data.accuracy.Shoulder }
+      { joint: 'Shoulder', angle: Math.round(data.angles.Shoulder), accuracy: data.accuracy.Shoulder },
+      { joint: 'Upper Back', angle: Math.round(data.angles.UpperBack), accuracy: data.accuracy.UpperBack },
+      { joint: 'Mid Back', angle: Math.round(data.angles.MidBack), accuracy: data.accuracy.MidBack },
+      { joint: 'Lower Back', angle: Math.round(data.angles.LowerBack), accuracy: data.accuracy.LowerBack }
     ]);
+
+    setPostureAccuracy(data.weightedAccuracy); 
+
+// Update posture status based on weighted accuracy
+if (data.weightedAccuracy >= 85) {
+  setPostureStatus('CORRECT');
+} else {
+  setPostureStatus('INCORRECT');
+}
+
     
-    setPostureAccuracy(data.minAccuracy);
-    
-    // Update posture status based on minimum accuracy
-    if (data.minAccuracy >= 85) {
-      setPostureStatus('CORRECT');
-    } else {
-      setPostureStatus('INCORRECT');
-    }
     
     // Split feedback into two sections
     const goodFeedback = data.feedback.filter((item: any) => item.status === 'good');
@@ -568,22 +585,43 @@ export default function WorkoutTrainerApp() {
             const angles = calculateAngles(pose.keypoints);
             
             // Calculate accuracy compared to ideal angles (either from trainer or default)
-            const idealAngles = trainerPose ? trainerAngles : {
-              Hip: 120,
-              Knee: 145,
-              Elbow: 90,
-              Shoulder: 180
-            };
+            // ✅ UPDATED
+          const idealAngles = trainerPose ? trainerAngles : {
+            Hip: 120,
+            Knee: 145,
+            Elbow: 90,
+            Shoulder: 180,
+            UpperBack: 180,   
+            MidBack: 180,     
+            LowerBack: 180    
+          };
+
             
             const accuracy = calculateAccuracy(angles, idealAngles);
             
-            // Find minimum accuracy for overall score
-            const minAccuracy = Math.min(
-              accuracy.Hip, 
-              accuracy.Knee, 
-              accuracy.Elbow,
-              // accuracy.Shoulder
-            );
+            // Calculate weighted overall accuracy
+            // ✅ UPDATED
+              const weights = {
+                Hip: 0.20,
+                Knee: 0.20,
+                Elbow: 0.10,
+                Shoulder: 0.10,
+                UpperBack: 0.15,
+                MidBack: 0.15,      
+                LowerBack: 0.10     
+              };
+
+              const weightedAccuracy = Math.round(
+                accuracy.Hip * weights.Hip +
+                accuracy.Knee * weights.Knee +
+                accuracy.Elbow * weights.Elbow +
+                accuracy.Shoulder * weights.Shoulder +
+                accuracy.UpperBack * weights.UpperBack +
+                accuracy.MidBack * weights.MidBack +
+                accuracy.LowerBack * weights.LowerBack
+              );
+
+
             
             // Generate feedback
             const feedback = generateFeedback(angles, idealAngles, accuracy, pose.keypoints);
@@ -602,7 +640,7 @@ export default function WorkoutTrainerApp() {
               pendingData.current = {
                 angles,
                 accuracy,
-                minAccuracy,
+                weightedAccuracy,
                 feedback
               };
             }
@@ -612,7 +650,7 @@ export default function WorkoutTrainerApp() {
               pendingData.current = {
                 angles: { Hip: 0, Knee: 0, Elbow: 0, Shoulder: 0 },
                 accuracy: { Hip: 0, Knee: 0, Elbow: 0, Shoulder: 0 },
-                minAccuracy: 0,
+                weightedAccuracy: 0,
                 feedback: [
                   { text: 'No person detected. Position yourself in front of the camera.', status: 'error' }
                 ]
@@ -625,7 +663,7 @@ export default function WorkoutTrainerApp() {
             pendingData.current = {
               angles: { Hip: 0, Knee: 0, Elbow: 0, Shoulder: 0 },
               accuracy: { Hip: 0, Knee: 0, Elbow: 0, Shoulder: 0 },
-              minAccuracy: 0,
+              weightedAccuracy: 0,
               feedback: [
                 { text: 'Camera not available. Please allow camera access.', status: 'error' }
               ]
@@ -749,12 +787,17 @@ export default function WorkoutTrainerApp() {
     // Reset UI
     setPostureAccuracy(85);
     setPostureStatus('CORRECT');
+    // ✅ UPDATED
     setJointAngles([
       { joint: 'Hip', angle: 120, accuracy: 85 },
       { joint: 'Knee', angle: 145, accuracy: 45 },
       { joint: 'Elbow', angle: 90, accuracy: 65 },
-      { joint: 'Shoulder', angle: 180, accuracy: 75 }
-    ]);
+      { joint: 'Shoulder', angle: 180, accuracy: 75 },
+      { joint: 'Upper Back', angle: 180, accuracy: 100 },
+      { joint: 'Mid Back', angle: 180, accuracy: 100 },
+      { joint: 'Lower Back', angle: 180, accuracy: 100 }
+]);
+
     setFeedbackItems([
       { text: 'Position yourself in front of the camera', status: 'warning' }
     ]);
@@ -934,7 +977,7 @@ export default function WorkoutTrainerApp() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900 flex flex-col">
       {/* Header */}
-      <header ref={headerRef} className="bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-lg sticky top-0 z-50">
+      <header ref={headerRef} className="bg-gradient-to-r from-blue-50 to-purple-50 backdrop-blur-lg border-b border-gray-200 shadow-lg sticky top-0 z-50">
         {/* Subtle background decoration */}
         <div className="absolute -top-20 left-1/3 w-64 h-64 bg-blue-100 rounded-full filter blur-[100px] opacity-20"></div>
         <div className="absolute -top-10 right-1/4 w-40 h-40 bg-purple-100 rounded-full filter blur-[80px] opacity-10"></div>
@@ -1086,13 +1129,59 @@ export default function WorkoutTrainerApp() {
                   </div>
                 )}
               </div>
+              
+              <div className="p-4 flex justify-center space-x-4">
+              <button 
+                className={`${isTraining ? 'bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700' : 'trainer-button'} text-white py-3 px-6 rounded-xl flex items-center justify-center transition-all font-semibold`}
+                onClick={isTraining ? stopTraining : startTraining}
+              >
+                {isTraining ? "Stop Training" : "Start Training"}
+              </button>
+              <button 
+                className="trainer-button-secondary py-3 px-6 rounded-xl flex items-center justify-center transition-all font-semibold"
+                onClick={resetCamera}
+              >
+                <RefreshCw size={16} className="mr-2" />
+                Reset
+              </button>
+            </div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main content */}
+      
       <div className="flex-1 p-4 flex flex-col gap-6 relative">
+        <div style={{
+      position: 'fixed',
+      bottom: 0,
+      left: '15%',
+      width: '550px',
+      height: '550px',
+      background: 'linear-gradient(to bottom right, rgba(170, 186, 244, 1), rgba(231, 209, 244, 1))',
+      borderRadius: '20%',
+      filter: 'blur(70px)',
+      opacity: 0.35,
+      animation: 'float-gradient-3 10s ease-in-out infinite',
+      pointerEvents: 'none',
+      zIndex: 0
+    }}></div>
+    <div style={{
+      position: 'fixed',
+      bottom: 99,
+      left: '55%',
+      width: '350px',
+      height: '350px',
+      background: 'linear-gradient(to bottom right, rgba(170, 186, 244, 1), rgba(231, 209, 244, 1))',
+      borderRadius: '20%',
+      filter: 'blur(70px)',
+      opacity: 0.35,
+      animation: 'float-gradient-3 5s ease-in-out infinite',
+      pointerEvents: 'none',
+      zIndex: 0
+    }}></div>
+    
         {/* Subtle background decoration */}
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-100 rounded-full filter blur-[150px] opacity-20 z-0"></div>
         <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-blue-100 rounded-full filter blur-[120px] opacity-20 z-0"></div>
@@ -1101,7 +1190,7 @@ export default function WorkoutTrainerApp() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
           {/* Left panel - Trainer video */}
           <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-indigo-50">
               <p className="text-sm text-center font-semibold text-gray-700">
                 {selectedVideo ? `Trainer Video: ${selectedVideo.name}` : "Trainer Video Preview"}
               </p>
@@ -1116,9 +1205,15 @@ export default function WorkoutTrainerApp() {
                   <video 
                     ref={trainerVideoRef}
                     src={trainerVideoUrl}
-                    className="max-h-full max-w-full rounded-lg"
+                    className="w-full h-full object-contain bg-black"
                     onEnded={() => setIsPlaying(false)}
                     playsInline
+                    onLoadedData={() => {
+                      // Set slower playback rate for better landmark tracking
+                      if (trainerVideoRef.current) {
+                        trainerVideoRef.current.playbackRate = 0.25; // 75% speed
+    }
+  }}
                   />
                   <canvas
                     ref={trainerCanvasRef}
@@ -1132,7 +1227,7 @@ export default function WorkoutTrainerApp() {
                   
                   {/* Video controls overlay */}
                   {showVideoControls && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 p-3 flex justify-center items-center space-x-4 backdrop-blur-sm rounded-b-xl">
+                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-40 p-3 flex justify-center items-center space-x-4 backdrop-blur-sm rounded-b-xl">
                       <button 
                         className="text-white hover:text-blue-400 transition-colors p-2 rounded-lg hover:bg-white/20"
                         onClick={skipBackward}
@@ -1162,7 +1257,7 @@ export default function WorkoutTrainerApp() {
 
           {/* Middle panel - Joint line comparison */}
           <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
+            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-0">
               <p className="text-sm text-center font-semibold text-gray-700">Joint Line Comparison</p>
             </div>
             <div className="flex-1 grid grid-cols-2 gap-3 m-3">
@@ -1188,7 +1283,7 @@ export default function WorkoutTrainerApp() {
 
           {/* Right panel - Trainee video */}
           <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
+            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-emerald-10">
               <p className="text-sm font-semibold text-gray-700 text-center">Position yourself in front of the camera</p>
             </div>
             <div className="flex-1 bg-gray-900 m-3 rounded-xl flex items-center justify-center relative overflow-hidden">
@@ -1214,21 +1309,7 @@ export default function WorkoutTrainerApp() {
               
               
             </div>
-            <div className="p-4 flex justify-center space-x-4">
-              <button 
-                className={`${isTraining ? 'bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700' : 'trainer-button'} text-white py-3 px-6 rounded-xl flex items-center justify-center transition-all font-semibold`}
-                onClick={isTraining ? stopTraining : startTraining}
-              >
-                {isTraining ? "Stop Training" : "Start Training"}
-              </button>
-              <button 
-                className="trainer-button-secondary py-3 px-6 rounded-xl flex items-center justify-center transition-all font-semibold"
-                onClick={resetCamera}
-              >
-                <RefreshCw size={16} className="mr-2" />
-                Reset
-              </button>
-            </div>
+            
           </div>
         </div>
 

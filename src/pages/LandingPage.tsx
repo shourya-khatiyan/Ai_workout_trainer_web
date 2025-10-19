@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 import { useUser } from '../context/UserContext';
 import {
   TrendingUp,
@@ -164,6 +165,8 @@ const LandingPage: React.FC = () => {
   const streakDays = Array.from({ length: 7 }, (_, i) => i < streak).reverse();
 
   return (
+    <>
+    <Navbar />
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900">
       {/* Full-Screen Hero Section - Lighter, Professional Background */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -483,6 +486,7 @@ const LandingPage: React.FC = () => {
         }
       `}</style>
     </div>
+    </>
   );
 };
 

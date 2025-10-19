@@ -1,5 +1,19 @@
 import { createContext, useState, useContext, ReactNode } from 'react';
 
+interface UserStats {
+  totalWorkouts: number;
+  averageAccuracy: number;
+  totalTimeHours: number;
+  mostPracticed: string;
+  mostPracticedSessions: number;
+}
+
+interface UserStreak {
+  current: number;
+  longest: number;
+  lastWorkoutDate?: string;
+}
+
 interface UserData {
   name: string;
   email: string;
@@ -14,6 +28,11 @@ interface UserData {
   experience?: number;
   badges?: string[];
   profileImage?: string;
+  fitnessLevel?: string;
+  fitnessGoal?: string;
+  bio?: string;
+  streak?: UserStreak;
+  stats?: UserStats;
 }
 
 interface UserContextType {
@@ -21,7 +40,9 @@ interface UserContextType {
   isLoggedIn: boolean;
   login: (userData: UserData) => void;
   logout: () => void;
-  updateUserData: (data: Partial<UserData>) => void;
+  updateUser: (data: Partial<UserData>) => void;
+  updateStats: (stats: Partial<UserStats>) => void;
+  updateStreak: (streak: Partial<UserStreak>) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -29,14 +50,30 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(() => {
     const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    if (savedUser) {
+      return JSON.parse(savedUser);
+    }
+    // Initialize with default stats and streak for new users
+    return null;
   });
 
   const isLoggedIn = !!user;
 
   const login = (userData: UserData) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+    // Initialize default stats and streak if not provided
+    const userWithDefaults = {
+      ...userData,
+      streak: userData.streak || { current: 0, longest: 0 },
+      stats: userData.stats || {
+        totalWorkouts: 0,
+        averageAccuracy: 0,
+        totalTimeHours: 0,
+        mostPracticed: '',
+        mostPracticedSessions: 0
+      }
+    };
+    setUser(userWithDefaults);
+    localStorage.setItem('user', JSON.stringify(userWithDefaults));
   };
 
   const logout = () => {
@@ -44,7 +81,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('user');
   };
 
-  const updateUserData = (data: Partial<UserData>) => {
+  const updateUser = (data: Partial<UserData>) => {
     if (user) {
       const updatedUser = { ...user, ...data };
       setUser(updatedUser);
@@ -52,8 +89,30 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateStats = (newStats: Partial<UserStats>) => {
+    if (user) {
+      const updatedUser = {
+        ...user,
+        stats: { ...user.stats, ...newStats } as UserStats
+      };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
+  const updateStreak = (newStreak: Partial<UserStreak>) => {
+    if (user) {
+      const updatedUser = {
+        ...user,
+        streak: { ...user.streak, ...newStreak } as UserStreak
+      };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
   return (
-    <UserContext.Provider value={{ user, isLoggedIn, login, logout, updateUserData }}>
+    <UserContext.Provider value={{ user, isLoggedIn, login, logout, updateUser, updateStats, updateStreak }}>
       {children}
     </UserContext.Provider>
   );

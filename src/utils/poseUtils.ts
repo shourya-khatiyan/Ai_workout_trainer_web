@@ -52,9 +52,11 @@ function calculateAngle(a: Keypoint, b: Keypoint, c: Keypoint): number {
 }
 
 // Check if a keypoint is visible
-function isVisible(keypoint: KeypointWithName | undefined): boolean {
-  return keypoint !== undefined && keypoint.score !== undefined && keypoint.score > 0.3;
+// FIXED: Adaptive visibility threshold based on joint type
+function isVisible(keypoint: KeypointWithName | undefined, minScore: number = 0.3): boolean {
+  return keypoint !== undefined && keypoint.score !== undefined && keypoint.score > minScore;
 }
+
 
 // Calculate spine angles for three segments
 interface SpineAngles {
@@ -186,17 +188,19 @@ export function calculateAngles(keypoints: KeypointWithName[]): Angles {
   }
 
   // Elbow angle - average both sides
-  let elbowAngles: number[] = [];
-  if (isVisible(leftShoulder) && isVisible(leftElbow) && isVisible(leftWrist)) {
-    elbowAngles.push(calculateAngle(leftShoulder!, leftElbow!, leftWrist!));
-  }
-  if (isVisible(rightShoulder) && isVisible(rightElbow) && isVisible(rightWrist)) {
-    elbowAngles.push(calculateAngle(rightShoulder!, rightElbow!, rightWrist!));
-  }
-  if (elbowAngles.length > 0) {
-    elbowAngle = elbowAngles.reduce((a, b) => a + b) / elbowAngles.length;
-    visibleJoints.Elbow = true;  // ✅ Mark as visible
-  }
+
+// FIXED: Lower threshold for elbow/wrist (harder to detect)
+let elbowAngles: number[] = [];
+if (isVisible(leftShoulder) && isVisible(leftElbow, 0.25) && isVisible(leftWrist, 0.2)) {
+  elbowAngles.push(calculateAngle(leftShoulder!, leftElbow!, leftWrist!));
+}
+if (isVisible(rightShoulder) && isVisible(rightElbow, 0.25) && isVisible(rightWrist, 0.2)) {
+  elbowAngles.push(calculateAngle(rightShoulder!, rightElbow!, rightWrist!));
+}
+if (elbowAngles.length > 0) {
+  elbowAngle = elbowAngles.reduce((a, b) => a + b) / elbowAngles.length;
+  visibleJoints.Elbow = true;
+}
 
   // Shoulder angle - average both sides
   let shoulderAngles: number[] = [];
@@ -306,6 +310,79 @@ export function calculateAccuracy(angles: Angles, idealAngles: Angles): Accuracy
   return accuracy;
 }
 
+// ✅ NEW: Calculate overall accuracy using harmonic mean with critical joint checks
+export function calculateOverallAccuracy(accuracy: Accuracy): number {
+  // Define critical joints that MUST meet minimum threshold
+  const criticalJoints = {
+    Hip: 0.20,        // 20% weight
+    Knee: 0.20,       // 20% weight
+    BackStraightness: 0.40  // 40% weight (most important)
+  };
+  
+  const supportJoints = {
+    Elbow: 0.10,      // 10% weight
+    Shoulder: 0.10    // 10% weight
+  };
+  
+  // Step 1: Check if any critical joint is below 70% (absolute minimum)
+  const criticalThreshold = 65;
+  const failedCriticalJoints = Object.entries(criticalJoints)
+    .filter(([joint]) => accuracy[joint] < criticalThreshold);
+  
+  if (failedCriticalJoints.length > 0) {
+    // At least one critical joint is too low
+    // Cap overall accuracy at lowest critical joint + 5%
+    const minCritical = Math.min(
+      ...Object.keys(criticalJoints).map(joint => accuracy[joint])
+    );
+    return Math.min(minCritical + 5, 69); // Max 69% if critical joint fails
+  }
+  
+  // Step 2: Check if ALL joints are at least 75% (good enough)
+  const allJoints = [...Object.keys(criticalJoints), ...Object.keys(supportJoints)];
+  const allAbove75 = allJoints.every(joint => accuracy[joint] >= 75);
+  
+  if (allAbove75) {
+    // All joints good - use weighted average
+    const weightedSum = 
+      accuracy.Hip * criticalJoints.Hip +
+      accuracy.Knee * criticalJoints.Knee +
+      accuracy.BackStraightness * criticalJoints.BackStraightness +
+      accuracy.Elbow * supportJoints.Elbow +
+      accuracy.Shoulder * supportJoints.Shoulder;
+    
+    return Math.round(weightedSum);
+  }
+  
+  // Step 3: Mixed scenario - use harmonic mean (penalizes low scores)
+  // Harmonic mean = n / (1/x1 + 1/x2 + ... + 1/xn)
+  // This penalizes low values more than arithmetic mean
+  
+  const weights = { ...criticalJoints, ...supportJoints };
+  let harmonicSum = 0;
+  let totalWeight = 0;
+  
+  Object.entries(weights).forEach(([joint, weight]) => {
+    const acc = accuracy[joint];
+    if (acc > 0) { // Avoid division by zero
+      harmonicSum += weight / acc;
+      totalWeight += weight;
+    }
+  });
+  
+  const harmonicMean = totalWeight / harmonicSum;
+  
+  // Apply slight boost if most joints are good (80%+ threshold)
+  const goodJoints = allJoints.filter(joint => accuracy[joint] >= 80).length;
+  const goodRatio = goodJoints / allJoints.length;
+  
+  let finalAccuracy = harmonicMean;
+  if (goodRatio >= 0.6) { // At least 60% joints are good
+    finalAccuracy = harmonicMean * (1 + (goodRatio - 0.6) * 0.1); // Up to 4% boost
+  }
+  
+  return Math.round(Math.min(finalAccuracy, 100));
+}
 
 
 // Check for proper visibility

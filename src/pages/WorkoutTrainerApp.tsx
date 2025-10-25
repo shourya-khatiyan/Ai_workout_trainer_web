@@ -4,7 +4,8 @@ import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
 import { Play, Upload, Pause, SkipBack, SkipForward, RotateCcw, Camera, Download, Settings, Minimize2, Maximize2, LogOut, User, RefreshCw, Plus, ChevronDown, Menu, X, FolderOpen, Trash2 } from 'lucide-react';
-import { calculateAngles, calculateAccuracy, generateFeedback, initializeDetector } from '../utils';
+import { calculateAngles, calculateAccuracy, generateFeedback, calculateOverallAccuracy, initializeDetector } from '../utils';
+
 import './WorkoutTrainerApp.css';
 import { createPortal } from 'react-dom';
 
@@ -121,7 +122,7 @@ export default function WorkoutTrainerApp() {
   const pendingData = useRef<{
     angles: any
     accuracy: any,
-    weightedAccuracy: number,
+    overallAccuracy: number,
     feedback: any
   } | null>(null);
   
@@ -502,34 +503,35 @@ export default function WorkoutTrainerApp() {
   
   // Update UI with debounced data
   const updateUIWithData = useCallback((data: any) => {
-  setJointAngles([
-    { joint: 'Hip', angle: Math.round(data.angles.Hip), accuracy: data.accuracy.Hip },
-    { joint: 'Knee', angle: Math.round(data.angles.Knee), accuracy: data.accuracy.Knee },
-    { joint: 'Elbow', angle: Math.round(data.angles.Elbow), accuracy: data.accuracy.Elbow },
-    { joint: 'Shoulder', angle: Math.round(data.angles.Shoulder), accuracy: data.accuracy.Shoulder },
-    { joint: 'Back', angle: Math.round(data.angles.BackStraightness), accuracy: data.accuracy.BackStraightness }
-  ]);
+    setJointAngles([
+      { joint: 'Hip', angle: Math.round(data.angles.Hip), accuracy: data.accuracy.Hip },
+      { joint: 'Knee', angle: Math.round(data.angles.Knee), accuracy: data.accuracy.Knee },
+      { joint: 'Elbow', angle: Math.round(data.angles.Elbow), accuracy: data.accuracy.Elbow },
+      { joint: 'Shoulder', angle: Math.round(data.angles.Shoulder), accuracy: data.accuracy.Shoulder },
+      { joint: 'Back', angle: Math.round(data.angles.BackStraightness), accuracy: data.accuracy.BackStraightness }
+    ]);
 
-  setPostureAccuracy(data.weightedAccuracy); 
+    setPostureAccuracy(data.overallAccuracy);  // ✅ Changed from weightedAccuracy
 
-  if (data.weightedAccuracy >= 85) {
-    setPostureStatus('CORRECT');
-  } else {
-    setPostureStatus('INCORRECT');
-  }
+    if (data.overallAccuracy >= 85) {  // ✅ Changed from weightedAccuracy
+      setPostureStatus('CORRECT');
+    } else {
+      setPostureStatus('INCORRECT');
+    }
 
-  const goodFeedback = data.feedback.filter((item: any) => item.status === 'good');
-  const improvementFeedback = data.feedback.filter((item: any) => item.status === 'warning' || item.status === 'error');
-  
-  const organizedFeedback = [
-    { text: 'Good Form:', status: 'good' as const },
-    ...goodFeedback,
-    { text: 'Needs Improvement:', status: 'warning' as const },
-    ...improvementFeedback
-  ];
-  
-  setFeedbackItems(organizedFeedback);
-}, []);
+    const goodFeedback = data.feedback.filter((item: any) => item.status === 'good');
+    const improvementFeedback = data.feedback.filter((item: any) => item.status === 'warning' || item.status === 'error');
+    
+    const organizedFeedback = [
+      { text: 'Good Form:', status: 'good' as const },
+      ...goodFeedback,
+      { text: 'Needs Improvement:', status: 'warning' as const },
+      ...improvementFeedback
+    ];
+    
+    setFeedbackItems(organizedFeedback);
+  }, []);
+
 
   
   // Process debounced updates
@@ -609,72 +611,98 @@ export default function WorkoutTrainerApp() {
 
 
             const accuracy = calculateAccuracy(angles, idealAngles);
-            
 
-              const weights = {
-                Hip: 0.25,
-                Knee: 0.25,
-                Elbow: 0.15,
-                Shoulder: 0.15,
-                BackStraightness: 0.20
-              };
-
-              const weightedAccuracy = Math.round(
-                accuracy.Hip * weights.Hip +
-                accuracy.Knee * weights.Knee +
-                accuracy.Elbow * weights.Elbow +
-                accuracy.Shoulder * weights.Shoulder +
-                accuracy.BackStraightness * weights.BackStraightness
-              );
-
+            // ✅ NEW: Use harmonic mean for overall accuracy
+            const overallAccuracy = calculateOverallAccuracy(accuracy);
 
             // Generate feedback
             const feedback = generateFeedback(angles, idealAngles, accuracy, pose.keypoints);
-            
+
             // Draw pose on canvas with colored lines based on accuracy
             drawPoseOnCanvas(pose, canvas, false, accuracy);
-            
+
             // Update trainee joint lines canvas with accuracy data
             if (traineeJointCanvasRef.current) {
               drawJointLinesOnCanvas(pose, traineeJointCanvasRef.current, false, accuracy);
             }
-            
+
             // Only update UI if training is active
             if (isTraining) {
               // Store data for debounced update
               pendingData.current = {
                 angles,
                 accuracy,
-                weightedAccuracy,
+                overallAccuracy,  // ✅ Changed from weightedAccuracy
                 feedback
               };
             }
+
           } else {
-            // No pose detected
+  // No pose detected
             if (isTraining) {
               pendingData.current = {
-                angles: { Hip: 0, Knee: 0, Elbow: 0, Shoulder: 0 },
-                accuracy: { Hip: 0, Knee: 0, Elbow: 0, Shoulder: 0 },
-                weightedAccuracy: 0,
+                angles: { 
+                  Hip: 0, 
+                  Knee: 0, 
+                  Elbow: 0, 
+                  Shoulder: 0,
+                  BackStraightness: 0,
+                  UpperBack: 0,
+                  MidBack: 0,
+                  LowerBack: 0,
+                  visibleJoints: { Hip: false, Knee: false, Elbow: false, Shoulder: false, Back: false }
+                },
+                accuracy: { 
+                  Hip: 0, 
+                  Knee: 0, 
+                  Elbow: 0, 
+                  Shoulder: 0,
+                  BackStraightness: 0,
+                  UpperBack: 0,
+                  MidBack: 0,
+                  LowerBack: 0
+                },
+                overallAccuracy: 0,  // ✅ Changed from weightedAccuracy
                 feedback: [
                   { text: 'No person detected. Position yourself in front of the camera.', status: 'error' }
                 ]
               };
             }
           }
+
         } else if (webcamRef.current && !webcamRef.current.video) {
-          // Camera not available
-          if (isTraining) {
-            pendingData.current = {
-              angles: { Hip: 0, Knee: 0, Elbow: 0, Shoulder: 0 },
-              accuracy: { Hip: 0, Knee: 0, Elbow: 0, Shoulder: 0 },
-              weightedAccuracy: 0,
-              feedback: [
-                { text: 'Camera not available. Please allow camera access.', status: 'error' }
-              ]
-            };
+            // Camera not available
+            if (isTraining) {
+              pendingData.current = {
+                angles: { 
+                  Hip: 0, 
+                  Knee: 0, 
+                  Elbow: 0, 
+                  Shoulder: 0,
+                  BackStraightness: 0,
+                  UpperBack: 0,
+                  MidBack: 0,
+                  LowerBack: 0,
+                  visibleJoints: { Hip: false, Knee: false, Elbow: false, Shoulder: false, Back: false }
+                },
+                accuracy: { 
+                  Hip: 0, 
+                  Knee: 0, 
+                  Elbow: 0, 
+                  Shoulder: 0,
+                  BackStraightness: 0,
+                  UpperBack: 0,
+                  MidBack: 0,
+                  LowerBack: 0
+                },
+                overallAccuracy: 0,  // ✅ Changed from weightedAccuracy
+                feedback: [
+                  { text: 'Camera not available. Please allow camera access.', status: 'error' }
+                ]
+              };
+            }
           }
-        }
+
       } catch (error) {
         console.error('Error in pose detection:', error);
       }
@@ -1382,39 +1410,101 @@ export default function WorkoutTrainerApp() {
                   {postureStatus}
                 </div>
               </div>
-
-              {/* Joint angles */}
+              {/* Joint angles - Circular Progress Grid */}
               <div>
-                <div className="flex justify-between mb-4">
-                  <h2 className="text-lg font-bold text-gray-700">Joint Angles</h2>
-                  <h2 className="text-lg font-bold text-gray-700">Accuracy</h2>
-                </div>
+                <h2 className="text-lg font-bold text-gray-700 mb-4 text-center">Joint Accuracy</h2>
                 
-                <div className="space-y-4">
-                  {jointAngles.map((item, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="font-semibold text-gray-700">{item.joint}: {item.angle}°</span>
-                        <span className={`font-bold ${
-                          item.accuracy >= 85 ? 'text-green-600' :
-                          item.accuracy >= 50 ? 'text-orange-600' : 'text-red-600'
-                        }`}>
-                          {item.accuracy}%
-                        </span>
+                {/* SVG Gradients Definition */}
+                <svg width="0" height="0" style={{ position: 'absolute' }}>
+                  <defs>
+                    <linearGradient id="gradient-excellent" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#10b981" />
+                      <stop offset="100%" stopColor="#059669" />
+                    </linearGradient>
+                    <linearGradient id="gradient-good" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#3b82f6" />
+                      <stop offset="100%" stopColor="#6366f1" />
+                    </linearGradient>
+                    <linearGradient id="gradient-fair" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#f59e0b" />
+                      <stop offset="100%" stopColor="#eab308" />
+                    </linearGradient>
+                    <linearGradient id="gradient-poor" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#ef4444" />
+                      <stop offset="100%" stopColor="#dc2626" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+
+                <div className="circular-progress-grid">
+                  {jointAngles.map((item, index) => {
+                    const radius = 36;
+                    const circumference = 2 * Math.PI * radius;
+                    const offset = circumference - (item.accuracy / 100) * circumference;
+                    
+                    const getColorClass = (accuracy: number) => {
+                      if (accuracy >= 85) return 'excellent';
+                      if (accuracy >= 70) return 'good';
+                      if (accuracy >= 50) return 'fair';
+                      return 'poor';
+                    };
+                    
+                    const colorClass = getColorClass(item.accuracy);
+                    
+                    return (
+                      <div 
+                        key={index} 
+                        className={`circular-progress-item ${colorClass}`}
+                      >
+                        {/* Circular Progress SVG */}
+                        <div style={{ position: 'relative' }}>
+                          <svg 
+                            className="circular-progress-svg" 
+                            width="90" 
+                            height="90"
+                          >
+                            {/* Background circle */}
+                            <circle
+                              className="circular-progress-bg"
+                              cx="45"
+                              cy="45"
+                              r={radius}
+                            />
+                            {/* Progress circle */}
+                            <circle
+                              className={`circular-progress-fill ${colorClass}`}
+                              cx="45"
+                              cy="45"
+                              r={radius}
+                              strokeDasharray={circumference}
+                              strokeDashoffset={offset}
+                            />
+                          </svg>
+                          
+                          {/* Center percentage text */}
+                          <div className="circular-progress-center">
+                            <div className={`circular-progress-percentage ${colorClass}`}>
+                              {item.accuracy}%
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Joint name label */}
+                        <div className="circular-progress-label">
+                          {item.joint}
+                        </div>
+                        
+                        {/* Angle value */}
+                        <div className={`circular-progress-percentage ${colorClass}`}>
+                          {item.angle}°
+                        </div>
                       </div>
-                      <div className="progress-bar">
-                        <div 
-                          className={`progress-fill ${
-                            item.accuracy >= 85 ? 'bg-green-500' : 
-                            item.accuracy >= 50 ? 'bg-orange-500' : 'bg-red-500'
-                          }`}
-                          style={{ width: `${item.accuracy}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
+
+
             </div>
           </div>
         </div>

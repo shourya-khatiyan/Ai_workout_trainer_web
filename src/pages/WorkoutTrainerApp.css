@@ -340,3 +340,189 @@
   position: relative;
   z-index: 1;
 }
+/* ============================
+   CIRCULAR PROGRESS BAR STYLES
+   ============================ */
+
+/* Grid container for circular progress bars */
+.circular-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(1, 1fr);
+  gap: 0.3rem;
+  padding: 0.5rem;
+}
+
+/* Individual circular progress item */
+.circular-progress-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75 rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.98));
+  border-radius: 16px;
+  border: 1.5px solid rgba(229, 231, 235, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.circular-progress-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+  border-color: rgba(191, 219, 254, 0.8);
+}
+
+/* Subtle gradient background for each card */
+.circular-progress-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Circular progress SVG container */
+.circular-progress-svg {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Background circle */
+.circular-progress-bg {
+  fill: none;
+  stroke: rgba(229, 231, 235, 0.5);
+  stroke-width: 8;
+}
+
+/* Progress circle with gradient */
+.circular-progress-fill {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Gradient colors for progress */
+.circular-progress-fill.excellent {
+  stroke: url(#gradient-excellent);
+}
+
+.circular-progress-fill.good {
+  stroke: url(#gradient-good);
+}
+
+.circular-progress-fill.fair {
+  stroke: url(#gradient-fair);
+}
+
+.circular-progress-fill.poor {
+  stroke: url(#gradient-poor);
+}
+
+/* Center text inside circle */
+.circular-progress-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 2;
+}
+
+.circular-progress-percentage {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+
+.circular-progress-percentage.excellent {
+  color: rgb(22, 163, 74);
+}
+
+.circular-progress-percentage.good {
+  color: rgb(59, 130, 246);
+}
+
+.circular-progress-percentage.fair {
+  color: rgb(234, 179, 8);
+}
+
+.circular-progress-percentage.poor {
+  color: rgb(220, 38, 38);
+}
+
+/* Joint name label */
+.circular-progress-label {
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: rgb(90, 104, 127);
+  text-align: center;
+  letter-spacing: 0.025em;
+  position: relative;
+  z-index: 2;
+}
+
+
+/* Angle value below label */
+.circular-progress-angle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* Pulse animation for excellent performance */
+@keyframes pulse-excellent {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.2);
+  }
+}
+
+.circular-progress-item.excellent {
+  animation: pulse-excellent 2s ease-in-out infinite;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .circular-progress-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .circular-progress-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .circular-progress-svg {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .circular-progress-percentage {
+    font-size: 1.25rem;
+  }
+  
+  .circular-progress-label {
+    font-size: 0.75rem;
+  }
+}

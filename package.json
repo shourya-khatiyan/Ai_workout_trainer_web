@@ -45,14 +45,14 @@
   "keywords": [],
   "author": "Shourya Singh Khatiyan",
   "license": "ISC",
-  "description": "This project is solely made by Shourya Singh Khatiyan for the National Science Day ",
+  "description": "This project is solely made by Shourya Singh Khatiyan ",
   "main": "eslint.config.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Creep-py/Ai_workout_trainer_web.git"
+    "url": "git+https://github.com/shourya-khatiyan/Ai_workout_trainer_web.git"
   },
   "bugs": {
-    "url": "https://github.com/Creep-py/Ai_workout_trainer_web/issues"
+    "url": "https://github.com/shourya-khatiyan/Ai_workout_trainer_web/issues"
   },
-  "homepage": "https://github.com/Creep-py/Ai_workout_trainer_web#readme"
+  "homepage": "https://github.com/shourya-khatiyan/Ai_workout_trainer_web#readme"
 }

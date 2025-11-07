@@ -129,9 +129,9 @@
 
 /* Feedback item styles */
 .feedback-item {
-  padding: 0.875rem 1.125rem;
+  padding: 0.3rem 1.125rem;
   border-radius: 0.875rem;
-  font-size: 1.225rem; /* Changed from 0.875rem to 1rem (text-base) */
+  font-size:0.9rem; /* Changed from 0.875rem to 1rem (text-base) */
   line-height: 1.5rem; /* Increased line height */
   font-weight: 600; /* Added medium font weight */
   transition: all 0.2s;
@@ -145,7 +145,7 @@
 
 .feedback-item.warning {
   background: rgb(254, 252, 232);
-  color: rgb(202, 138, 4);
+  color: rgb(202, 126, 4);
   border-left: 4px solid rgb(234, 179, 8);
 }
 
@@ -340,15 +340,12 @@
   position: relative;
   z-index: 1;
 }
-/* ============================
-   CIRCULAR PROGRESS BAR STYLES
-   ============================ */
 
 /* Grid container for circular progress bars */
 .circular-progress-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(1, 1fr);
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: 0.3rem;
   padding: 0.5rem;
 }
@@ -391,8 +388,8 @@
 /* Circular progress SVG container */
 .circular-progress-svg {
   position: relative;
-  width: 90px;
-  height: 90px;
+  width: 100px;
+  height: 100px;
   transform: rotate(-90deg);
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
@@ -440,7 +437,7 @@
 }
 
 .circular-progress-percentage {
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 800;
   line-height: 1;
   margin-bottom: 2px;

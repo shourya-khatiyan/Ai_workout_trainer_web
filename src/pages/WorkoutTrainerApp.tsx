@@ -1224,7 +1224,7 @@ export default function WorkoutTrainerApp() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
           {/* Left panel - Trainer video */}
           <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-indigo-50">
+            <div className="p-4 pading-0.5 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-indigo-50">
               <p className="text-sm text-center font-semibold text-gray-700">
                 {selectedVideo ? `Trainer Video: ${selectedVideo.name}` : "Trainer Video Preview"}
               </p>

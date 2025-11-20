@@ -27,11 +27,11 @@ const Card: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ class
   </div>
 );
 
-const Stat: React.FC<{ label: string; value: React.ReactNode; icon?: React.ReactNode; trend?: string }> = ({ 
-  label, 
-  value, 
+const Stat: React.FC<{ label: string; value: React.ReactNode; icon?: React.ReactNode; trend?: string }> = ({
+  label,
+  value,
   icon,
-  trend 
+  trend
 }) => (
   <div className="flex items-center justify-between p-5 bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 transition-all duration-300">
     <div className="flex-1">
@@ -53,8 +53,8 @@ const DayDot: React.FC<{ active?: boolean; index: number }> = ({ active, index }
     <div className="flex flex-col items-center gap-1">
       <div
         className={`h-10 w-10 rounded-xl border-2 text-sm font-bold flex items-center justify-center transition-all duration-300
-          ${active 
-            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white border-blue-600 shadow-md scale-110' 
+          ${active
+            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white border-blue-600 shadow-md scale-110'
             : 'bg-white text-gray-400 border-gray-200 hover:border-gray-300'}`}
         aria-label={active ? 'Workout day' : 'Rest day'}
         role="img"
@@ -107,7 +107,7 @@ const SpotlightText: React.FC<{ children: string }> = ({ children }) => {
       <h1
         className="font-black text-gray-900"
         style={{
-          fontSize: 'clamp(3rem, 12vw, 9rem)',
+          fontSize: 'clamp(2rem, 8vw, 5rem)',
           lineHeight: '1.1',
         }}
       >
@@ -166,285 +166,286 @@ const LandingPage: React.FC = () => {
 
   return (
     <>
-    <Navbar />
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900">
-      {/* Full-Screen Hero Section - Lighter, Professional Background */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Lighter professional gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-          {/* Subtle animated mesh gradients */}
-          <div className="absolute inset-0 opacity-40">
-            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
-            <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
-            <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-indigo-100 to-blue-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
-          </div>
-
-          {/* Subtle grid pattern overlay */}
-          <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
-          
-          {/* Light radial gradient vignette */}
-          <div className="absolute inset-0 bg-light-vignette"></div>
-        </div>
-
-        {/* Hero content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-          <div className="mb-12 inline-flex items-center gap-3 px-6 py-3 bg-white/80 backdrop-blur-lg rounded-full border border-gray-200 shadow-lg">
-            <Zap className="h-5 w-5 text-blue-600 animate-pulse" />
-            <span className="text-gray-700 font-semibold text-sm tracking-wide">AI-Powered Form Analysis</span>
-          </div>
-
-          {/* Spotlight text effect - Clean, professional */}
-          <div className="mb-8 space-y-4">
-            <SpotlightText>AI Workout</SpotlightText>
-            <SpotlightText>Trainer</SpotlightText>
-          </div>
-          
-          <p className="text-xl sm:text-2xl lg:text-3xl text-gray-600 mb-16 max-w-3xl mx-auto leading-relaxed font-medium">
-            Real-time pose detection, instant feedback, and personalized coaching—powered by advanced machine learning.
-          </p>
-
-          <div className="mb-20">
-            <Link
-              to={isLoggedIn ? '/trainer' : '/signin'}
-              className="group relative inline-flex items-center gap-3 px-12 py-6 rounded-2xl bg-blue-600 text-white font-bold text-xl hover:bg-blue-700 hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-3xl"
-            >
-              <Play className="h-7 w-7 group-hover:scale-110 transition-transform" />
-              {isLoggedIn ? 'Start Training Now' : 'Get Started Free'}
-            </Link>
-          </div>
-
-          {/* Scroll indicator */}
-          <div className="animate-bounce">
-            <ArrowDown className="h-8 w-8 text-gray-400 mx-auto" />
-            <p className="text-gray-500 text-sm mt-2 font-medium">Scroll to see your progress</p>
-          </div>
-        </div>
-
-        {/* Decorative gradient overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent"></div>
-      </section>
-
-      {/* Analytics Dashboard Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
-        {/* Section header */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Your Training Dashboard
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Track your progress, maintain streaks, and achieve your fitness goals with data-driven insights.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Summary */}
-          <section className="lg:col-span-1">
-            <Card>
-              <div className="p-6 border-b border-gray-100 bg-gradient-to-br from-blue-50 to-indigo-50">
-                <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                    <Dumbbell className="h-8 w-8 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-700 uppercase tracking-wider">
-                      Level {level} Athlete
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
-                          style={{ width: `${((100 - xpToNext) / 100) * 100}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-xs font-semibold text-gray-600">{xpToNext} XP</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-6">
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-gray-500 font-bold mb-3 flex items-center gap-2">
-                    <Target className="h-4 w-4" /> Basic Info
-                  </p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Stat label="Age" value={age} />
-                    <Stat label="Gender" value={gender} />
-                    <Stat label="Height" value={height} />
-                    <Stat label="Weight" value={weight} />
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-gray-500 font-bold mb-3 flex items-center gap-2">
-                    <Activity className="h-4 w-4" /> Body Measurements
-                  </p>
-                  <div className="grid grid-cols-3 gap-3">
-                    <Stat label="Hip" value={hip} />
-                    <Stat label="Chest" value={chest} />
-                    <Stat label="Neck" value={neck} />
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </section>
-
-          {/* Analytics Grid */}
-          <section className="lg:col-span-2 space-y-8">
-            {/* Streak Card */}
-            <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-orange-600 font-bold mb-1">Current Streak</p>
-                    <p className="text-4xl font-black text-gray-900 flex items-center gap-3">
-                      <Flame className="h-10 w-10 text-orange-500" />
-                      {streak} Days
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600">Keep it up!</p>
-                    <p className="text-xs text-green-600 font-semibold">+15% this week</p>
-                  </div>
-                </div>
-                <div className="flex justify-between gap-2">
-                  {streakDays.map((active, idx) => (
-                    <DayDot key={idx} active={active} index={idx} />
-                  ))}
-                </div>
-              </div>
-            </Card>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <Card>
-                <div className="p-6 space-y-4">
-                  <Stat 
-                    label="Total Workouts" 
-                    value={totalWorkouts} 
-                    icon={<CalendarDays className="h-6 w-6" />}
-                    trend="+3 this week"
-                  />
-                  <Stat 
-                    label="Most Practiced" 
-                    value={
-                      <div>
-                        <p className="text-xl font-bold">{mostPracticed}</p>
-                        <p className="text-xs text-gray-500">{mostPracticedSessions} sessions</p>
-                      </div>
-                    } 
-                    icon={<Activity className="h-6 w-6" />}
-                  />
-                </div>
-              </Card>
-
-              <Card>
-                <div className="p-6 space-y-4">
-                  <Stat 
-                    label="Avg Accuracy" 
-                    value={`${avgAccuracy}%`} 
-                    icon={<Target className="h-6 w-6" />}
-                    trend="+5% improvement"
-                  />
-                  <Stat 
-                    label="Total Time" 
-                    value={`${totalTimeHours}h`} 
-                    icon={<Clock className="h-6 w-6" />}
-                  />
-                </div>
-              </Card>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900">
+        {/* Full-Screen Hero Section - Lighter, Professional Background */}
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+          {/* Lighter professional gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+            {/* Subtle animated mesh gradients */}
+            <div className="absolute inset-0 opacity-40">
+              <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
+              <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
+              <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-indigo-100 to-blue-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
             </div>
 
-            {/* Achievements & Insights */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-xs uppercase tracking-wider text-purple-600 font-bold flex items-center gap-2">
-                      <Trophy className="h-4 w-4" /> Achievements
-                    </p>
-                    <Trophy className="h-6 w-6 text-amber-500" />
-                  </div>
-                  <ul className="space-y-3">
-                    {[
-                      { title: 'First Workout', desc: 'Completed your first workout session', color: 'bg-green-500' },
-                      { title: 'Perfect Form', desc: 'Achieved 95% form accuracy', color: 'bg-blue-500' },
-                      { title: '3-Day Streak', desc: 'Work out for 3 days in a row', color: 'bg-purple-500' }
-                    ].map((achievement, idx) => (
-                      <li key={idx} className="flex items-start gap-3 p-3 bg-white/60 rounded-lg backdrop-blur-sm">
-                        <span className={`mt-1 h-3 w-3 rounded-full ${achievement.color} shadow-md`} />
-                        <div>
-                          <p className="text-sm font-bold text-gray-900">{achievement.title}</p>
-                          <p className="text-xs text-gray-600">{achievement.desc}</p>
+            {/* Subtle grid pattern overlay */}
+            <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
+
+            {/* Light radial gradient vignette */}
+            <div className="absolute inset-0 bg-light-vignette"></div>
+          </div>
+
+          {/* Hero content */}
+          <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
+            <div className="mb-8 inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-lg rounded-full border border-gray-200 shadow-lg">
+              <Zap className="h-4 w-4 text-blue-600 animate-pulse" />
+              <span className="text-gray-700 font-semibold text-xs tracking-wide">AI-Powered Form Analysis</span>
+            </div>
+
+            {/* Spotlight text effect - Clean, professional */}
+            <div className="mb-6 space-y-2">
+              <SpotlightText>AI Workout</SpotlightText>
+              <SpotlightText>Trainer</SpotlightText>
+            </div>
+
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
+              Real-time pose detection, instant feedback, and personalized coaching—powered by advanced machine learning.
+            </p>
+
+            <div className="mb-12">
+              <Link
+                to={isLoggedIn ? '/trainer' : '/signin'}
+                className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-blue-600 text-white font-bold text-base hover:bg-blue-700 hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl"
+              >
+                <Play className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                {isLoggedIn ? 'Start Training Now' : 'Get Started Free'}
+              </Link>
+            </div>
+
+            {/* Scroll indicator */}
+            <div className="animate-bounce">
+              <ArrowDown className="h-6 w-6 text-gray-400 mx-auto" />
+              <p className="text-gray-500 text-xs mt-1 font-medium">Scroll to see your progress</p>
+            </div>
+          </div>
+
+          {/* Decorative gradient overlay */}
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent"></div>
+        </section>
+
+        {/* Analytics Dashboard Section */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+
+          {/* Section header */}
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Your Training Dashboard
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Track your progress, maintain streaks, and achieve your fitness goals with data-driven insights.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Profile Summary */}
+            <section className="lg:col-span-1">
+              <Card>
+                <div className="p-6 border-b border-gray-100 bg-gradient-to-br from-blue-50 to-indigo-50">
+                  <div className="flex items-center gap-4">
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                      <Dumbbell className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+                        Level {level} Athlete
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+                            style={{ width: `${((100 - xpToNext) / 100) * 100}%` }}
+                          ></div>
                         </div>
-                      </li>
-                    ))}
-                  </ul>
+                        <span className="text-xs font-semibold text-gray-600">{xpToNext} XP</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </Card>
 
-              <Card>
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-xs uppercase tracking-wider text-gray-600 font-bold flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4" /> Quick Insights
+                <div className="p-6 space-y-6">
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-gray-500 font-bold mb-3 flex items-center gap-2">
+                      <Target className="h-4 w-4" /> Basic Info
                     </p>
-                    <BarChart3 className="h-6 w-6 text-blue-500" />
-                  </div>
-                  <div className="space-y-3">
-                    <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
-                      <p className="text-xs text-gray-600 font-semibold">Last Session</p>
-                      <p className="text-lg font-bold text-gray-900 mt-1">Accuracy • {avgAccuracy}%</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100">
-                      <p className="text-xs text-gray-600 font-semibold">Current Focus</p>
-                      <p className="text-lg font-bold text-gray-900 mt-1">{mostPracticed}</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Stat label="Age" value={age} />
+                      <Stat label="Gender" value={gender} />
+                      <Stat label="Height" value={height} />
+                      <Stat label="Weight" value={weight} />
                     </div>
                   </div>
-                  <Link
-                    to="/trainer"
-                    className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 hover:gap-3 transition-all"
-                  >
-                    View detailed analytics <ChevronRight className="h-4 w-4" />
-                  </Link>
+
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-gray-500 font-bold mb-3 flex items-center gap-2">
+                      <Activity className="h-4 w-4" /> Body Measurements
+                    </p>
+                    <div className="grid grid-cols-3 gap-3">
+                      <Stat label="Hip" value={hip} />
+                      <Stat label="Chest" value={chest} />
+                      <Stat label="Neck" value={neck} />
+                    </div>
+                  </div>
                 </div>
               </Card>
-            </div>
+            </section>
 
-            {/* CTA Card */}
-            <Card className="bg-gradient-to-r from-blue-600 to-indigo-700 border-0">
-              <div className="p-8 text-center">
-                <h3 className="text-2xl font-bold text-white mb-2">Ready to train smarter?</h3>
-                <p className="text-blue-100 mb-6">Start your next session with AI-powered guidance</p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Link
-                    to="/trainer"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-blue-700 font-bold hover:scale-105 transition-transform shadow-xl"
-                  >
-                    <Play className="h-5 w-5" /> Start Training
-                  </Link>
-                  <Link
-                    to="/programs"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 backdrop-blur-md text-white font-semibold border-2 border-white/30 hover:bg-white/20 transition-all"
-                  >
-                    <Activity className="h-5 w-5" /> Browse Programs
-                  </Link>
+            {/* Analytics Grid */}
+            <section className="lg:col-span-2 space-y-8">
+              {/* Streak Card */}
+              <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-orange-600 font-bold mb-1">Current Streak</p>
+                      <p className="text-4xl font-black text-gray-900 flex items-center gap-3">
+                        <Flame className="h-10 w-10 text-orange-500" />
+                        {streak} Days
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Keep it up!</p>
+                      <p className="text-xs text-green-600 font-semibold">+15% this week</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    {streakDays.map((active, idx) => (
+                      <DayDot key={idx} active={active} index={idx} />
+                    ))}
+                  </div>
                 </div>
+              </Card>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <Card>
+                  <div className="p-6 space-y-4">
+                    <Stat
+                      label="Total Workouts"
+                      value={totalWorkouts}
+                      icon={<CalendarDays className="h-6 w-6" />}
+                      trend="+3 this week"
+                    />
+                    <Stat
+                      label="Most Practiced"
+                      value={
+                        <div>
+                          <p className="text-xl font-bold">{mostPracticed}</p>
+                          <p className="text-xs text-gray-500">{mostPracticedSessions} sessions</p>
+                        </div>
+                      }
+                      icon={<Activity className="h-6 w-6" />}
+                    />
+                  </div>
+                </Card>
+
+                <Card>
+                  <div className="p-6 space-y-4">
+                    <Stat
+                      label="Avg Accuracy"
+                      value={`${avgAccuracy}%`}
+                      icon={<Target className="h-6 w-6" />}
+                      trend="+5% improvement"
+                    />
+                    <Stat
+                      label="Total Time"
+                      value={`${totalTimeHours}h`}
+                      icon={<Clock className="h-6 w-6" />}
+                    />
+                  </div>
+                </Card>
               </div>
-            </Card>
-          </section>
-        </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} AI Workout Trainer. Powered by TensorFlow.js & MoveNet.</p>
-        </div>
-      </footer>
+              {/* Achievements & Insights */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-xs uppercase tracking-wider text-purple-600 font-bold flex items-center gap-2">
+                        <Trophy className="h-4 w-4" /> Achievements
+                      </p>
+                      <Trophy className="h-6 w-6 text-amber-500" />
+                    </div>
+                    <ul className="space-y-3">
+                      {[
+                        { title: 'First Workout', desc: 'Completed your first workout session', color: 'bg-green-500' },
+                        { title: 'Perfect Form', desc: 'Achieved 95% form accuracy', color: 'bg-blue-500' },
+                        { title: '3-Day Streak', desc: 'Work out for 3 days in a row', color: 'bg-purple-500' }
+                      ].map((achievement, idx) => (
+                        <li key={idx} className="flex items-start gap-3 p-3 bg-white/60 rounded-lg backdrop-blur-sm">
+                          <span className={`mt-1 h-3 w-3 rounded-full ${achievement.color} shadow-md`} />
+                          <div>
+                            <p className="text-sm font-bold text-gray-900">{achievement.title}</p>
+                            <p className="text-xs text-gray-600">{achievement.desc}</p>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </Card>
 
-      {/* Custom animations and styles */}
-      <style>{`
+                <Card>
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-xs uppercase tracking-wider text-gray-600 font-bold flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4" /> Quick Insights
+                      </p>
+                      <BarChart3 className="h-6 w-6 text-blue-500" />
+                    </div>
+                    <div className="space-y-3">
+                      <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
+                        <p className="text-xs text-gray-600 font-semibold">Last Session</p>
+                        <p className="text-lg font-bold text-gray-900 mt-1">Accuracy • {avgAccuracy}%</p>
+                      </div>
+                      <div className="p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100">
+                        <p className="text-xs text-gray-600 font-semibold">Current Focus</p>
+                        <p className="text-lg font-bold text-gray-900 mt-1">{mostPracticed}</p>
+                      </div>
+                    </div>
+                    <Link
+                      to="/trainer"
+                      className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 hover:gap-3 transition-all"
+                    >
+                      View detailed analytics <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </Card>
+              </div>
+
+              {/* CTA Card */}
+              <Card className="bg-gradient-to-r from-blue-600 to-indigo-700 border-0">
+                <div className="p-8 text-center">
+                  <h3 className="text-2xl font-bold text-white mb-2">Ready to train smarter?</h3>
+                  <p className="text-blue-100 mb-6">Start your next session with AI-powered guidance</p>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <Link
+                      to="/trainer"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-blue-700 font-bold hover:scale-105 transition-transform shadow-xl"
+                    >
+                      <Play className="h-5 w-5" /> Start Training
+                    </Link>
+                    <Link
+                      to="/programs"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 backdrop-blur-md text-white font-semibold border-2 border-white/30 hover:bg-white/20 transition-all"
+                    >
+                      <Activity className="h-5 w-5" /> Browse Programs
+                    </Link>
+                  </div>
+                </div>
+              </Card>
+            </section>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-gray-200 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-gray-500">
+            <p>© {new Date().getFullYear()} AI Workout Trainer. Powered by TensorFlow.js & MoveNet.</p>
+          </div>
+        </footer>
+
+        {/* Custom animations and styles */}
+        <style>{`
         @keyframes float {
           0%, 100% { transform: translate(0px, 0px) scale(1); }
           33% { transform: translate(50px, -80px) scale(1.1); }
@@ -485,7 +486,7 @@ const LandingPage: React.FC = () => {
           background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
         }
       `}</style>
-    </div>
+      </div>
     </>
   );
 };

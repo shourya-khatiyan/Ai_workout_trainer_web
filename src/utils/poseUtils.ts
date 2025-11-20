@@ -310,21 +310,21 @@ export function calculateAccuracy(angles: Angles, idealAngles: Angles): Accuracy
   return accuracy;
 }
 
-// ✅ NEW: Calculate overall accuracy using harmonic mean with critical joint checks
+//calculate overall accuracy using harmonic mean with critical joint checks
 export function calculateOverallAccuracy(accuracy: Accuracy): number {
-  // Define critical joints that MUST meet minimum threshold
+  //define critical joints that MUST meet minimum threshold
   const criticalJoints = {
-    Hip: 0.20,        // 20% weight
-    Knee: 0.20,       // 20% weight
-    BackStraightness: 0.40  // 40% weight (most important)
+    Hip: 0.20,        
+    Knee: 0.20,       
+    BackStraightness: 0.40  
   };
   
   const supportJoints = {
-    Elbow: 0.10,      // 10% weight
-    Shoulder: 0.10    // 10% weight
+    Elbow: 0.10,
+    Shoulder: 0.10    
   };
   
-  // Step 1: Check if any critical joint is below 70% (absolute minimum)
+  //Check if any critical joint is below 70% (absolute minimum)
   const criticalThreshold = 65;
   const failedCriticalJoints = Object.entries(criticalJoints)
     .filter(([joint]) => accuracy[joint] < criticalThreshold);

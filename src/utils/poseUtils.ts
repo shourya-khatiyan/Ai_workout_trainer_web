@@ -81,8 +81,8 @@ function calculateSpineAngles(keypoints: KeypointWithName[]): SpineAngles {
 
   // Validate essential keypoints
   if (!leftShoulder || !rightShoulder || !leftHip || !rightHip ||
-      leftShoulder.score! < 0.5 || rightShoulder.score! < 0.5 ||
-      leftHip.score! < 0.5 || rightHip.score! < 0.5) {
+    leftShoulder.score! < 0.5 || rightShoulder.score! < 0.5 ||
+    leftHip.score! < 0.5 || rightHip.score! < 0.5) {
     return { upperBack: 180, midBack: 180, lowerBack: 180 };
   }
 
@@ -95,7 +95,7 @@ function calculateSpineAngles(keypoints: KeypointWithName[]): SpineAngles {
   // Create virtual spine points
   const shoulderMid: Keypoint = { x: shoulderMidX, y: shoulderMidY };
   const hipMid: Keypoint = { x: hipMidX, y: hipMidY };
-  
+
   const midTorsoX = (shoulderMidX + hipMidX) / 2;
   const midTorsoY = (shoulderMidY + hipMidY) / 2;
   const midTorso: Keypoint = { x: midTorsoX, y: midTorsoY };
@@ -113,10 +113,10 @@ function calculateSpineAngles(keypoints: KeypointWithName[]): SpineAngles {
 
   // LOWER BACK: Angle between mid-torso -> hip -> knee
   if ((leftKnee && leftKnee.score! > 0.5) || (rightKnee && rightKnee.score! > 0.5)) {
-    const kneeMidX = leftKnee && leftKnee.score! > 0.5 
+    const kneeMidX = leftKnee && leftKnee.score! > 0.5
       ? (rightKnee && rightKnee.score! > 0.5 ? (leftKnee.x + rightKnee.x) / 2 : leftKnee.x)
       : rightKnee!.x;
-    const kneeMidY = leftKnee && leftKnee.score! > 0.5 
+    const kneeMidY = leftKnee && leftKnee.score! > 0.5
       ? (rightKnee && rightKnee.score! > 0.5 ? (leftKnee.y + rightKnee.y) / 2 : leftKnee.y)
       : rightKnee!.y;
     const kneeMid: Keypoint = { x: kneeMidX, y: kneeMidY };
@@ -189,18 +189,18 @@ export function calculateAngles(keypoints: KeypointWithName[]): Angles {
 
   // Elbow angle - average both sides
 
-// FIXED: Lower threshold for elbow/wrist (harder to detect)
-let elbowAngles: number[] = [];
-if (isVisible(leftShoulder) && isVisible(leftElbow, 0.25) && isVisible(leftWrist, 0.2)) {
-  elbowAngles.push(calculateAngle(leftShoulder!, leftElbow!, leftWrist!));
-}
-if (isVisible(rightShoulder) && isVisible(rightElbow, 0.25) && isVisible(rightWrist, 0.2)) {
-  elbowAngles.push(calculateAngle(rightShoulder!, rightElbow!, rightWrist!));
-}
-if (elbowAngles.length > 0) {
-  elbowAngle = elbowAngles.reduce((a, b) => a + b) / elbowAngles.length;
-  visibleJoints.Elbow = true;
-}
+  // FIXED: Lower threshold for elbow/wrist (harder to detect)
+  let elbowAngles: number[] = [];
+  if (isVisible(leftShoulder) && isVisible(leftElbow, 0.25) && isVisible(leftWrist, 0.2)) {
+    elbowAngles.push(calculateAngle(leftShoulder!, leftElbow!, leftWrist!));
+  }
+  if (isVisible(rightShoulder) && isVisible(rightElbow, 0.25) && isVisible(rightWrist, 0.2)) {
+    elbowAngles.push(calculateAngle(rightShoulder!, rightElbow!, rightWrist!));
+  }
+  if (elbowAngles.length > 0) {
+    elbowAngle = elbowAngles.reduce((a, b) => a + b) / elbowAngles.length;
+    visibleJoints.Elbow = true;
+  }
 
   // Shoulder angle - average both sides
   let shoulderAngles: number[] = [];
@@ -217,11 +217,11 @@ if (elbowAngles.length > 0) {
 
   // Calculate spine angles for three segments
   const spineAngles = calculateSpineAngles(keypoints);
-  
+
   // ✅ Check if back is visible (requires shoulders and hips)
   if (leftShoulder && rightShoulder && leftHip && rightHip &&
-      leftShoulder.score! >= 0.5 && rightShoulder.score! >= 0.5 &&
-      leftHip.score! >= 0.5 && rightHip.score! >= 0.5) {
+    leftShoulder.score! >= 0.5 && rightShoulder.score! >= 0.5 &&
+    leftHip.score! >= 0.5 && rightHip.score! >= 0.5) {
     visibleJoints.Back = true;
   }
 
@@ -258,7 +258,7 @@ export function calculateAccuracy(angles: Angles, idealAngles: Angles): Accuracy
   // ✅ FIXED: Type-safe joint checking
   type JointName = 'Hip' | 'Knee' | 'Elbow' | 'Shoulder';
   const regularJoints: JointName[] = ['Hip', 'Knee', 'Elbow', 'Shoulder'];
-  
+
   regularJoints.forEach((joint: JointName) => {
     // Check visibility first (now type-safe)
     if (!angles.visibleJoints[joint]) {
@@ -285,7 +285,7 @@ export function calculateAccuracy(angles: Angles, idealAngles: Angles): Accuracy
   // Calculate accuracy for each spine segment (internal)
   type SpineSegment = 'UpperBack' | 'MidBack' | 'LowerBack';
   const spineSegments: SpineSegment[] = ['UpperBack', 'MidBack', 'LowerBack'];
-  
+
   spineSegments.forEach((segment: SpineSegment) => {
     const ideal = idealAngles[segment];
     const actual = angles[segment];
@@ -314,21 +314,21 @@ export function calculateAccuracy(angles: Angles, idealAngles: Angles): Accuracy
 export function calculateOverallAccuracy(accuracy: Accuracy): number {
   //define critical joints that MUST meet minimum threshold
   const criticalJoints = {
-    Hip: 0.20,        
-    Knee: 0.20,       
-    BackStraightness: 0.40  
+    Hip: 0.20,
+    Knee: 0.20,
+    BackStraightness: 0.40
   };
-  
+
   const supportJoints = {
     Elbow: 0.10,
-    Shoulder: 0.10    
+    Shoulder: 0.10
   };
-  
+
   //Check if any critical joint is below 70% (absolute minimum)
   const criticalThreshold = 65;
   const failedCriticalJoints = Object.entries(criticalJoints)
     .filter(([joint]) => accuracy[joint] < criticalThreshold);
-  
+
   if (failedCriticalJoints.length > 0) {
     // At least one critical joint is too low
     // Cap overall accuracy at lowest critical joint + 5%
@@ -337,31 +337,31 @@ export function calculateOverallAccuracy(accuracy: Accuracy): number {
     );
     return Math.min(minCritical + 5, 69); // Max 69% if critical joint fails
   }
-  
+
   // Step 2: Check if ALL joints are at least 75% (good enough)
   const allJoints = [...Object.keys(criticalJoints), ...Object.keys(supportJoints)];
   const allAbove75 = allJoints.every(joint => accuracy[joint] >= 75);
-  
+
   if (allAbove75) {
     // All joints good - use weighted average
-    const weightedSum = 
+    const weightedSum =
       accuracy.Hip * criticalJoints.Hip +
       accuracy.Knee * criticalJoints.Knee +
       accuracy.BackStraightness * criticalJoints.BackStraightness +
       accuracy.Elbow * supportJoints.Elbow +
       accuracy.Shoulder * supportJoints.Shoulder;
-    
+
     return Math.round(weightedSum);
   }
-  
+
   // Step 3: Mixed scenario - use harmonic mean (penalizes low scores)
   // Harmonic mean = n / (1/x1 + 1/x2 + ... + 1/xn)
   // This penalizes low values more than arithmetic mean
-  
+
   const weights = { ...criticalJoints, ...supportJoints };
   let harmonicSum = 0;
   let totalWeight = 0;
-  
+
   Object.entries(weights).forEach(([joint, weight]) => {
     const acc = accuracy[joint];
     if (acc > 0) { // Avoid division by zero
@@ -369,18 +369,18 @@ export function calculateOverallAccuracy(accuracy: Accuracy): number {
       totalWeight += weight;
     }
   });
-  
+
   const harmonicMean = totalWeight / harmonicSum;
-  
+
   // Apply slight boost if most joints are good (80%+ threshold)
   const goodJoints = allJoints.filter(joint => accuracy[joint] >= 80).length;
   const goodRatio = goodJoints / allJoints.length;
-  
+
   let finalAccuracy = harmonicMean;
   if (goodRatio >= 0.6) { // At least 60% joints are good
     finalAccuracy = harmonicMean * (1 + (goodRatio - 0.6) * 0.1); // Up to 4% boost
   }
-  
+
   return Math.round(Math.min(finalAccuracy, 100));
 }
 
@@ -392,12 +392,12 @@ function isPersonProperlyVisible(keypoints: KeypointWithName[]): boolean {
     'left_hip', 'right_hip',
     'left_knee', 'right_knee'
   ];
-  
+
   const essentialVisible = essentialKeypoints.filter(name => {
     const kp = keypoints.find(k => k.name === name);
     return kp && kp.score && kp.score > 0.5;
   }).length;
-  
+
   return essentialVisible >= 5;
 }
 
@@ -408,30 +408,31 @@ function checkPersonDistance(keypoints: KeypointWithName[]): 'ok' | 'too_close' 
   const leftHip = keypoints.find(kp => kp.name === 'left_hip');
   const rightHip = keypoints.find(kp => kp.name === 'right_hip');
 
-  if (!leftShoulder || !rightShoulder || 
-      leftShoulder.score! < 0.5 || rightShoulder.score! < 0.5) {
+  if (!leftShoulder || !rightShoulder ||
+    leftShoulder.score! < 0.5 || rightShoulder.score! < 0.5) {
     return 'ok';
   }
 
   const shoulderWidth = Math.abs(leftShoulder.x - rightShoulder.x);
-  
-  const hipsVisible = leftHip && rightHip && 
-                      leftHip.score! > 0.4 && rightHip.score! > 0.4;
-  
+
+  const hipsVisible = leftHip && rightHip &&
+    leftHip.score! > 0.4 && rightHip.score! > 0.4;
+
   if (!hipsVisible) {
     if (shoulderWidth > 200) {
       return 'too_close';
     }
     return 'ok';
   }
-  
+
   const shoulderMidY = (leftShoulder.y + rightShoulder.y) / 2;
   const hipMidY = (leftHip.y + rightHip.y) / 2;
   const torsoHeight = Math.abs(hipMidY - shoulderMidY);
-  
+
   const aspectRatio = torsoHeight > 0 ? shoulderWidth / torsoHeight : 0;
-  
-  if (aspectRatio < 0.3 || shoulderWidth < 80) {
+
+  // Relaxed thresholds to allow standing farther back for full body visibility
+  if (aspectRatio < 0.2 || shoulderWidth < 50) {
     return 'too_far';
   } else if (aspectRatio > 1.5 || shoulderWidth > 280) {
     return 'too_close';
@@ -458,23 +459,19 @@ export function generateFeedback(
     return feedback;
   }
 
-  // Check distance
+  // Check distance - only warn if too close (could cut off body parts)
   const distanceCheck = checkPersonDistance(keypoints);
   if (distanceCheck === 'too_close') {
     feedback.push({
       text: 'Move back from the camera',
       status: 'warning'
     });
-  } else if (distanceCheck === 'too_far') {
-    feedback.push({
-      text: 'Move closer to the camera',
-      status: 'warning'
-    });
   }
+  // Removed 'too_far' check - users can stand at comfortable distance for full body visibility
 
   // COMBINED BACK STRAIGHTNESS FEEDBACK (single entry)
   const backAccuracy = accuracy.BackStraightness;
-  
+
   if (backAccuracy >= 85) {
     feedback.push({
       text: 'Back alignment is correct',
@@ -487,18 +484,18 @@ export function generateFeedback(
       mid: accuracy.MidBack,
       lower: accuracy.LowerBack
     };
-    
+
     const lowestSegment = Object.entries(segmentAccuracies)
       .sort((a, b) => a[1] - b[1])[0][0];
-    
+
     const segmentMessages: { [key: string]: string } = {
       upper: 'straighten your upper back and neck',
       mid: 'engage your core and straighten mid-back',
       lower: 'maintain neutral lower back position'
     };
-    
+
     const severity: 'error' | 'warning' = backAccuracy < 50 ? 'error' : 'warning';
-    
+
     feedback.push({
       text: `Back Straightness: ${segmentMessages[lowestSegment]}`,
       status: severity

@@ -22,7 +22,7 @@ import {
 type Maybe<T> = T | undefined | null;
 
 const Card: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ className = '', children }) => (
-  <div className={`bg-white border border-gray-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ${className}`}>
+  <div className={`bg-white border border-orange-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ${className}`}>
     {children}
   </div>
 );
@@ -33,7 +33,7 @@ const Stat: React.FC<{ label: string; value: React.ReactNode; icon?: React.React
   icon,
   trend
 }) => (
-  <div className="flex items-center justify-between p-5 bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 transition-all duration-300">
+  <div className="flex items-center justify-between p-5 bg-gradient-to-br from-white to-orange-50 rounded-xl border border-orange-100 hover:border-orange-300 transition-all duration-300">
     <div className="flex-1">
       <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">{label}</p>
       <p className="text-2xl font-bold text-gray-900">{value}</p>
@@ -43,7 +43,7 @@ const Stat: React.FC<{ label: string; value: React.ReactNode; icon?: React.React
         </p>
       )}
     </div>
-    {icon ? <div className="text-blue-500 opacity-80">{icon}</div> : null}
+    {icon ? <div className="text-orange-500 opacity-80">{icon}</div> : null}
   </div>
 );
 
@@ -54,7 +54,7 @@ const DayDot: React.FC<{ active?: boolean; index: number }> = ({ active, index }
       <div
         className={`h-10 w-10 rounded-xl border-2 text-sm font-bold flex items-center justify-center transition-all duration-300
           ${active
-            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white border-blue-600 shadow-md scale-110'
+            ? 'bg-gradient-to-br from-orange-500 to-red-500 text-white border-orange-600 shadow-md scale-110'
             : 'bg-white text-gray-400 border-gray-200 hover:border-gray-300'}`}
         aria-label={active ? 'Workout day' : 'Rest day'}
         role="img"
@@ -114,7 +114,7 @@ const SpotlightText: React.FC<{ children: string }> = ({ children }) => {
         {children}
       </h1>
 
-      {/* Spotlight glow effect only */}
+      {/* Spotlight glow effect only - Hot colors */}
       {isHovering && (
         <div
           className="absolute pointer-events-none blur-3xl"
@@ -124,7 +124,7 @@ const SpotlightText: React.FC<{ children: string }> = ({ children }) => {
             width: '400px',
             height: '400px',
             transform: 'translate(-50%, -50%)',
-            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(147, 51, 234, 0.3) 40%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(249, 115, 22, 0.4) 0%, rgba(239, 68, 68, 0.3) 40%, transparent 70%)',
             transition: 'top 0.15s ease-out, left 0.15s ease-out',
             opacity: 0.6,
           }}
@@ -167,16 +167,31 @@ const LandingPage: React.FC = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900">
-        {/* Full-Screen Hero Section - Lighter, Professional Background */}
+      <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white text-gray-900">
+        {/* Full-Screen Hero Section - Hot Color Theme */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-          {/* Lighter professional gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-            {/* Subtle animated mesh gradients */}
-            <div className="absolute inset-0 opacity-40">
-              <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
-              <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
-              <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-indigo-100 to-blue-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+          {/* Background Image Layer - Blurred */}
+          <div className="absolute inset-0">
+            <img
+              src="/assets/hero.png"
+              alt="Workout background"
+              className="w-full h-full object-cover"
+              style={{ filter: 'blur(5px)', transform: 'scale(1.1)' }}
+            />
+            {/* Hot color overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-900/40 via-red-900/30 to-amber-900/40"></div>
+
+            {/* White overlay to lighten the image */}
+            <div className="absolute inset-0 bg-white/60"></div>
+          </div>
+
+          {/* Hot professional gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-50/80 via-amber-50/70 to-red-50/80">
+            {/* Subtle animated mesh gradients - Hot colors */}
+            <div className="absolute inset-0 opacity-15">
+              <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-100 to-amber-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
+              <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-red-100 to-orange-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
+              <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-amber-100 to-yellow-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
             </div>
 
             {/* Subtle grid pattern overlay */}
@@ -188,8 +203,8 @@ const LandingPage: React.FC = () => {
 
           {/* Hero content */}
           <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-            <div className="mb-8 inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-lg rounded-full border border-gray-200 shadow-lg">
-              <Zap className="h-4 w-4 text-blue-600 animate-pulse" />
+            <div className="mb-8 inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-lg rounded-full border border-orange-200 shadow-lg">
+              <Zap className="h-4 w-4 text-orange-600 animate-pulse" />
               <span className="text-gray-700 font-semibold text-xs tracking-wide">AI-Powered Form Analysis</span>
             </div>
 
@@ -206,7 +221,7 @@ const LandingPage: React.FC = () => {
             <div className="mb-12">
               <Link
                 to={isLoggedIn ? '/trainer' : '/signin'}
-                className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-blue-600 text-white font-bold text-base hover:bg-blue-700 hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl"
+                className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold text-base hover:from-orange-600 hover:to-red-600 hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl"
               >
                 <Play className="h-5 w-5 group-hover:scale-110 transition-transform" />
                 {isLoggedIn ? 'Start Training Now' : 'Get Started Free'}
@@ -241,9 +256,9 @@ const LandingPage: React.FC = () => {
             {/* Profile Summary */}
             <section className="lg:col-span-1">
               <Card>
-                <div className="p-6 border-b border-gray-100 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <div className="p-6 border-b border-orange-100 bg-gradient-to-br from-orange-50 to-amber-50">
                   <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg">
                       <Dumbbell className="h-8 w-8 text-white" />
                     </div>
                     <div>
@@ -253,7 +268,7 @@ const LandingPage: React.FC = () => {
                       <div className="flex items-center gap-2 mt-2">
                         <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+                            className="h-full bg-gradient-to-r from-orange-500 to-red-600 rounded-full transition-all duration-500"
                             style={{ width: `${((100 - xpToNext) / 100) * 100}%` }}
                           ></div>
                         </div>
@@ -358,10 +373,10 @@ const LandingPage: React.FC = () => {
 
               {/* Achievements & Insights */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <p className="text-xs uppercase tracking-wider text-purple-600 font-bold flex items-center gap-2">
+                      <p className="text-xs uppercase tracking-wider text-amber-600 font-bold flex items-center gap-2">
                         <Trophy className="h-4 w-4" /> Achievements
                       </p>
                       <Trophy className="h-6 w-6 text-amber-500" />
@@ -369,8 +384,8 @@ const LandingPage: React.FC = () => {
                     <ul className="space-y-3">
                       {[
                         { title: 'First Workout', desc: 'Completed your first workout session', color: 'bg-green-500' },
-                        { title: 'Perfect Form', desc: 'Achieved 95% form accuracy', color: 'bg-blue-500' },
-                        { title: '3-Day Streak', desc: 'Work out for 3 days in a row', color: 'bg-purple-500' }
+                        { title: 'Perfect Form', desc: 'Achieved 95% form accuracy', color: 'bg-orange-500' },
+                        { title: '3-Day Streak', desc: 'Work out for 3 days in a row', color: 'bg-red-500' }
                       ].map((achievement, idx) => (
                         <li key={idx} className="flex items-start gap-3 p-3 bg-white/60 rounded-lg backdrop-blur-sm">
                           <span className={`mt-1 h-3 w-3 rounded-full ${achievement.color} shadow-md`} />
@@ -390,10 +405,10 @@ const LandingPage: React.FC = () => {
                       <p className="text-xs uppercase tracking-wider text-gray-600 font-bold flex items-center gap-2">
                         <BarChart3 className="h-4 w-4" /> Quick Insights
                       </p>
-                      <BarChart3 className="h-6 w-6 text-blue-500" />
+                      <BarChart3 className="h-6 w-6 text-orange-500" />
                     </div>
                     <div className="space-y-3">
-                      <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
+                      <div className="p-4 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100">
                         <p className="text-xs text-gray-600 font-semibold">Last Session</p>
                         <p className="text-lg font-bold text-gray-900 mt-1">Accuracy • {avgAccuracy}%</p>
                       </div>
@@ -404,7 +419,7 @@ const LandingPage: React.FC = () => {
                     </div>
                     <Link
                       to="/trainer"
-                      className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 hover:gap-3 transition-all"
+                      className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-orange-600 hover:text-orange-700 hover:gap-3 transition-all"
                     >
                       View detailed analytics <ChevronRight className="h-4 w-4" />
                     </Link>
@@ -412,15 +427,15 @@ const LandingPage: React.FC = () => {
                 </Card>
               </div>
 
-              {/* CTA Card */}
-              <Card className="bg-gradient-to-r from-blue-600 to-indigo-700 border-0">
+              {/* CTA Card - Hot theme */}
+              <Card className="bg-gradient-to-r from-orange-500 to-red-600 border-0">
                 <div className="p-8 text-center">
                   <h3 className="text-2xl font-bold text-white mb-2">Ready to train smarter?</h3>
-                  <p className="text-blue-100 mb-6">Start your next session with AI-powered guidance</p>
+                  <p className="text-orange-100 mb-6">Start your next session with AI-powered guidance</p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Link
                       to="/trainer"
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-blue-700 font-bold hover:scale-105 transition-transform shadow-xl"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-orange-700 font-bold hover:scale-105 transition-transform shadow-xl"
                     >
                       <Play className="h-5 w-5" /> Start Training
                     </Link>
@@ -438,7 +453,7 @@ const LandingPage: React.FC = () => {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-gray-200 bg-white">
+        <footer className="border-t border-orange-200 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-gray-500">
             <p>© {new Date().getFullYear()} AI Workout Trainer. Powered by TensorFlow.js & MoveNet.</p>
           </div>

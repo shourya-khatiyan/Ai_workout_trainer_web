@@ -3,8 +3,9 @@ import Webcam from 'react-webcam';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
-import { Play, Upload, Pause, SkipBack, SkipForward, RotateCcw, Camera, CameraOff, Download, Settings, Minimize2, Maximize2, LogOut, User, RefreshCw, Plus, ChevronDown, Menu, X, FolderOpen, Trash2 } from 'lucide-react';
+import { Play, Upload, Pause, SkipBack, SkipForward, RotateCcw, Camera, CameraOff, Download, Settings, Minimize2, Maximize2, LogOut, User, RefreshCw, Plus, ChevronDown, Menu, X, FolderOpen, Trash2, Mic, MicOff } from 'lucide-react';
 import { calculateAngles, calculateAccuracy, generateFeedback, calculateOverallAccuracy, initializeDetector } from '../utils';
+import { voiceFeedbackService } from '../services/voiceFeedbackService';
 
 import './WorkoutTrainerApp.css';
 import { createPortal } from 'react-dom';
@@ -18,6 +19,7 @@ export default function WorkoutTrainerApp() {
   const [detector, setDetector] = useState<poseDetection.PoseDetector | null>(null);
   const [isDetecting, setIsDetecting] = useState<boolean>(false);
   const [cameraActive, setCameraActive] = useState<boolean>(false);
+  const [voiceFeedbackActive, setVoiceFeedbackActive] = useState<boolean>(false);
   const [isTrainerReady, setIsTrainerReady] = useState<boolean>(false);
 
   // State for trainer video
@@ -151,6 +153,13 @@ export default function WorkoutTrainerApp() {
       if (detector) {
         detector.dispose?.();
       }
+    };
+  }, []);
+
+  // Cleanup voice feedback service on unmount
+  useEffect(() => {
+    return () => {
+      voiceFeedbackService.cleanup();
     };
   }, []);
 
@@ -369,8 +378,8 @@ export default function WorkoutTrainerApp() {
             ctx.strokeStyle = '#ef4444'; // Red for error
           }
         } else {
-          // Professional colors - blue for trainer, indigo for trainee
-          ctx.strokeStyle = isTrainer ? '#000000ff' : '#6366f1';
+          // Professional colors - orange for trainer
+          ctx.strokeStyle = isTrainer ? '#000000ff' : '#f97316';
         }
 
         ctx.stroke();
@@ -392,7 +401,7 @@ export default function WorkoutTrainerApp() {
         }
 
         ctx.arc(x, y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = isTrainer ? '#000000ff' : '#6366f1';
+        ctx.fillStyle = isTrainer ? '#000000ff' : '#f97316';
         ctx.fill();
       }
     });
@@ -425,7 +434,7 @@ export default function WorkoutTrainerApp() {
         }
 
         ctx.arc(x, keypoint.y, 6, 0, 2 * Math.PI);
-        ctx.fillStyle = isTrainer ? '#3b82f6' : '#6366f1';
+        ctx.fillStyle = isTrainer ? '#f97316' : '#ef4444';
         ctx.fill();
       }
     });
@@ -492,8 +501,8 @@ export default function WorkoutTrainerApp() {
             ctx.strokeStyle = '#ef4444'; // Red for error
           }
         } else {
-          // Professional blue colors
-          ctx.strokeStyle = isTrainer ? '#3bf6eaff' : '#6366f1';
+          // Professional hot colors
+          ctx.strokeStyle = isTrainer ? '#f97316' : '#ef4444';
         }
 
         ctx.stroke();
@@ -530,6 +539,9 @@ export default function WorkoutTrainerApp() {
     ];
 
     setFeedbackItems(organizedFeedback);
+
+    // Send feedback to voice service (wrong posture only)
+    voiceFeedbackService.addFeedback(improvementFeedback);
   }, []);
 
 
@@ -1011,10 +1023,10 @@ export default function WorkoutTrainerApp() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900 flex flex-col">
       {/* Header */}
-      <header ref={headerRef} className="bg-gradient-to-r from-blue-50 to-purple-50 backdrop-blur-lg border-b border-gray-200 shadow-lg sticky top-0 z-50">
+      <header ref={headerRef} className="bg-gradient-to-r from-orange-50 to-amber-50 backdrop-blur-lg border-b border-orange-200 shadow-lg sticky top-0 z-50">
         {/* Subtle background decoration */}
-        <div className="absolute -top-20 left-1/3 w-64 h-64 bg-blue-100 rounded-full filter blur-[100px] opacity-20"></div>
-        <div className="absolute -top-10 right-1/4 w-40 h-40 bg-purple-100 rounded-full filter blur-[80px] opacity-10"></div>
+        <div className="absolute -top-20 left-1/3 w-64 h-64 bg-orange-100 rounded-full filter blur-[100px] opacity-20"></div>
+        <div className="absolute -top-10 right-1/4 w-40 h-40 bg-amber-100 rounded-full filter blur-[80px] opacity-10"></div>
 
         <div className="container mx-auto py-2 px-3 sm:px-4">
           <div className="flex items-center justify-end relative z-[100] gap-4">
@@ -1055,17 +1067,17 @@ export default function WorkoutTrainerApp() {
                         getCurrentCategoryVideos().map((video, index) => (
                           <div
                             key={index}
-                            className="p-3 border-b border-gray-100 hover:bg-blue-50 cursor-pointer flex justify-between items-center group"
+                            className="p-3 border-b border-gray-100 hover:bg-orange-50 cursor-pointer flex justify-between items-center group"
                           >
                             <span
-                              className="truncate group-hover:text-blue-600 transition-colors flex-grow font-medium"
+                              className="truncate group-hover:text-orange-600 transition-colors flex-grow font-medium"
                               onClick={() => loadVideo(video)}
                             >
                               {video.name}
                             </span>
                             <div className="flex items-center gap-2">
                               <button
-                                className="text-blue-600 hover:text-blue-800 text-sm font-semibold px-2 py-1 rounded hover:bg-blue-50"
+                                className="text-orange-600 hover:text-orange-800 text-sm font-semibold px-2 py-1 rounded hover:bg-orange-50"
                                 onClick={() => loadVideo(video)}
                               >
                                 Load
@@ -1114,10 +1126,10 @@ export default function WorkoutTrainerApp() {
                       exerciseCategories.map((category, index) => (
                         <div
                           key={index}
-                          className="p-3 border-b border-gray-100 hover:bg-blue-50 cursor-pointer flex items-center justify-between group"
+                          className="p-3 border-b border-gray-100 hover:bg-orange-50 cursor-pointer flex items-center justify-between group"
                         >
                           <span
-                            className="truncate group-hover:text-blue-600 transition-colors flex-grow font-medium"
+                            className="truncate group-hover:text-orange-600 transition-colors flex-grow font-medium"
                             onClick={() => {
                               setSelectedCategory(category.name);
                               setShowCategoryDropdown(false);
@@ -1151,7 +1163,7 @@ export default function WorkoutTrainerApp() {
 
                     {/* Add New Category button */}
                     <div
-                      className="p-3 border-t border-gray-200 hover:bg-blue-50 cursor-pointer flex items-center text-blue-600 font-medium"
+                      className="p-3 border-t border-gray-200 hover:bg-orange-50 cursor-pointer flex items-center text-orange-600 font-medium"
                       onClick={() => {
                         setShowCategoryDropdown(false);
                         setShowAddCategoryModal(true);
@@ -1166,7 +1178,7 @@ export default function WorkoutTrainerApp() {
 
               <div className="p-2 flex justify-center space-x-3">
                 <button
-                  className={`${isTraining ? 'bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700' : 'trainer-button'} text-white py-2 px-4 rounded-lg flex items-center justify-center transition-all font-semibold text-sm`}
+                  className={`${isTraining ? 'bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700' : 'trainer-button'} text-white py-2 px-4 rounded-lg flex items-center justify-center transition-all font-semibold text-sm`}
                   onClick={isTraining ? stopTraining : startTraining}
                 >
                   {isTraining ? "Stop Training" : "Start Training"}
@@ -1193,7 +1205,7 @@ export default function WorkoutTrainerApp() {
           left: '15%',
           width: '550px',
           height: '550px',
-          background: 'linear-gradient(to bottom right, rgba(170, 186, 244, 1), rgba(231, 209, 244, 1))',
+          background: 'linear-gradient(to bottom right, rgba(249, 115, 22, 0.6), rgba(251, 191, 36, 0.6))',
           borderRadius: '20%',
           filter: 'blur(70px)',
           opacity: 0.35,
@@ -1207,7 +1219,7 @@ export default function WorkoutTrainerApp() {
           left: '55%',
           width: '350px',
           height: '350px',
-          background: 'linear-gradient(to bottom right, rgba(170, 186, 244, 1), rgba(231, 209, 244, 1))',
+          background: 'linear-gradient(to bottom right, rgba(239, 68, 68, 0.6), rgba(251, 146, 60, 0.6))',
           borderRadius: '20%',
           filter: 'blur(70px)',
           opacity: 0.35,
@@ -1217,14 +1229,14 @@ export default function WorkoutTrainerApp() {
         }}></div>
 
         {/* Subtle background decoration */}
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-100 rounded-full filter blur-[150px] opacity-20 z-0"></div>
-        <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-blue-100 rounded-full filter blur-[120px] opacity-20 z-0"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-100 rounded-full filter blur-[150px] opacity-20 z-0"></div>
+        <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-amber-100 rounded-full filter blur-[120px] opacity-20 z-0"></div>
 
         {/* Video panels */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
           {/* Left panel - Trainer video */}
           <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
-            <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-indigo-50">
+            <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
               <p className="text-xs text-center font-semibold text-gray-700">
                 {selectedVideo ? `Trainer Video: ${selectedVideo.name}` : "Trainer Video Preview"}
               </p>
@@ -1263,19 +1275,19 @@ export default function WorkoutTrainerApp() {
                   {showVideoControls && (
                     <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-40 p-3 flex justify-center items-center space-x-4 backdrop-blur-sm rounded-b-xl">
                       <button
-                        className="text-white hover:text-blue-400 transition-colors p-2 rounded-lg hover:bg-white/20"
+                        className="text-white hover:text-orange-400 transition-colors p-2 rounded-lg hover:bg-white/20"
                         onClick={skipBackward}
                       >
                         <SkipBack size={20} />
                       </button>
                       <button
-                        className="text-white hover:text-blue-400 transition-colors p-2 rounded-lg hover:bg-white/20"
+                        className="text-white hover:text-orange-400 transition-colors p-2 rounded-lg hover:bg-white/20"
                         onClick={togglePlayPause}
                       >
                         {isPlaying ? <Pause size={24} /> : <Play size={24} />}
                       </button>
                       <button
-                        className="text-white hover:text-blue-400 transition-colors p-2 rounded-lg hover:bg-white/20"
+                        className="text-white hover:text-orange-400 transition-colors p-2 rounded-lg hover:bg-white/20"
                         onClick={skipForward}
                       >
                         <SkipForward size={20} />
@@ -1291,13 +1303,13 @@ export default function WorkoutTrainerApp() {
 
           {/* Middle panel - Joint line comparison */}
           <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
-            <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-0">
+            <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
               <p className="text-xs text-center font-semibold text-gray-700">Joint Line Comparison</p>
             </div>
             <div className="flex-1 grid grid-cols-2 gap-3 m-3">
               {/* Trainer joint lines */}
               <div className="bg-white rounded-xl flex items-center justify-center relative border-2 border-gray-100">
-                <p className="text-blue-600 absolute top-2 left-2 text-xs font-semibold">Trainer Joint Lines</p>
+                <p className="text-orange-600 absolute top-2 left-2 text-xs font-semibold">Trainer Joint Lines</p>
                 <canvas
                   ref={trainerJointCanvasRef}
                   className="w-full h-full object-contain"
@@ -1306,7 +1318,7 @@ export default function WorkoutTrainerApp() {
 
               {/* Trainee joint lines */}
               <div className="bg-white rounded-xl flex items-center justify-center relative border-2 border-gray-100">
-                <p className="text-indigo-600 absolute top-2 left-2 text-xs font-semibold">Trainee Joint Lines</p>
+                <p className="text-red-600 absolute top-2 left-2 text-xs font-semibold">Trainee Joint Lines</p>
                 <canvas
                   ref={traineeJointCanvasRef}
                   className="w-full h-full object-contain"
@@ -1317,14 +1329,14 @@ export default function WorkoutTrainerApp() {
 
           {/* Right panel - Trainee video */}
           <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
-            <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-emerald-10">
+            <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold text-gray-700">Trainee's Cam</p>
                 <button
                   onClick={() => setCameraActive(!cameraActive)}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all ${cameraActive
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
-                      : 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-300'
+                    ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
+                    : 'bg-red-100 text-red-700 hover:bg-red-200 border border-red-300'
                     }`}
                 >
                   {cameraActive ? (
@@ -1400,10 +1412,36 @@ export default function WorkoutTrainerApp() {
 
             {/* Improvement feedback */}
             <div>
-              <h2 className="text-base font-bold mb-3 text-orange-700 flex items-center">
-                <span className="w-2.5 h-2.5 bg-orange-500 rounded-full mr-2"></span>
-                Improvement Feedback
-              </h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-base font-bold text-orange-700 flex items-center">
+                  <span className="w-2.5 h-2.5 bg-orange-500 rounded-full mr-2"></span>
+                  Improvement Feedback
+                </h2>
+                <button
+                  onClick={() => {
+                    const newState = !voiceFeedbackActive;
+                    setVoiceFeedbackActive(newState);
+                    voiceFeedbackService.setEnabled(newState);
+                  }}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all ${voiceFeedbackActive
+                    ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                    }`}
+                  title={voiceFeedbackActive ? 'Voice Feedback ON' : 'Voice Feedback OFF'}
+                >
+                  {voiceFeedbackActive ? (
+                    <>
+                      <Mic className="h-3 w-3" />
+                      <span>VOICE ON</span>
+                    </>
+                  ) : (
+                    <>
+                      <MicOff className="h-3 w-3" />
+                      <span>VOICE OFF</span>
+                    </>
+                  )}
+                </button>
+              </div>
               <div className="max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
                 <ul className="space-y-3">
                   {feedbackItems
@@ -1461,8 +1499,8 @@ export default function WorkoutTrainerApp() {
                 {jointAngles.map((item, index) => {
                   const getColor = (accuracy: number) => {
                     if (accuracy >= 85) return { text: 'text-green-700', bg: 'bg-green-500', light: 'bg-green-100' };
-                    if (accuracy >= 70) return { text: 'text-blue-700', bg: 'bg-blue-500', light: 'bg-blue-100' };
-                    if (accuracy >= 50) return { text: 'text-orange-700', bg: 'bg-orange-500', light: 'bg-orange-100' };
+                    if (accuracy >= 70) return { text: 'text-orange-700', bg: 'bg-orange-500', light: 'bg-orange-100' };
+                    if (accuracy >= 50) return { text: 'text-amber-700', bg: 'bg-amber-500', light: 'bg-amber-100' };
                     return { text: 'text-red-700', bg: 'bg-red-500', light: 'bg-red-100' };
                   };
 
@@ -1506,7 +1544,7 @@ export default function WorkoutTrainerApp() {
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               placeholder="Enter category name"
-              className="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+              className="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none text-sm"
             />
             <div className="mt-4 flex justify-end gap-2">
               <button

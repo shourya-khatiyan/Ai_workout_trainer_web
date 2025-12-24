@@ -46,17 +46,16 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
-        isScrolled
-          ? 'bg-white/95 backdrop-blur-lg shadow-lg border-b border-gray-200'
-          : 'bg-white/80 backdrop-blur-md border-b border-gray-100'
-      }`}
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${isScrolled
+          ? 'bg-white/95 backdrop-blur-lg shadow-lg border-b border-orange-200'
+          : 'bg-white/80 backdrop-blur-md border-b border-orange-100'
+        }`}
     >
-      <div className="w-full px-6 sm:px-8 lg:px-12 bg-gradient-to-r from-blue-50 to-purple-50">
+      <div className="w-full px-6 sm:px-8 lg:px-12 bg-gradient-to-r from-orange-50 to-amber-50">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
               <Dumbbell className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold text-gray-900 hidden sm:block">
@@ -70,7 +69,7 @@ export default function Navbar() {
               <div className="relative z-[9999]" ref={profileDropdownRef}>
                 <button
                   onClick={toggleProfileDropdown}
-                  className="flex items-center space-x-3 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 hover:border-blue-200 hover:shadow-md transition-all duration-300"
+                  className="flex items-center space-x-3 px-3 py-2 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100 hover:border-orange-300 hover:shadow-md transition-all duration-300"
                 >
                   {user?.profileImage ? (
                     <img
@@ -79,7 +78,7 @@ export default function Navbar() {
                       className="h-9 w-9 rounded-lg border-2 border-white shadow-sm object-cover"
                     />
                   ) : (
-                    <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                    <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
                       {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   )}
@@ -91,10 +90,9 @@ export default function Navbar() {
                       Level {user?.level || 1}
                     </p>
                   </div>
-                  <ChevronDown 
-                    className={`h-4 w-4 text-gray-600 transition-transform duration-300 ${
-                      isProfileOpen ? 'rotate-180' : ''
-                    }`} 
+                  <ChevronDown
+                    className={`h-4 w-4 text-gray-600 transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''
+                      }`}
                   />
                 </button>
 
@@ -107,10 +105,10 @@ export default function Navbar() {
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
                       style={{ zIndex: 99999 }}
-                      className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 overflow-hidden"
+                      className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-orange-100 py-2 overflow-hidden"
                     >
                       {/* User Info Header */}
-                      <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                      <div className="px-4 py-3 border-b border-orange-100 bg-gradient-to-r from-orange-50 to-amber-50">
                         <p className="text-sm font-bold text-gray-900">
                           {user?.name || 'User'}
                         </p>
@@ -124,7 +122,7 @@ export default function Navbar() {
                         <Link
                           to="/profile"
                           onClick={() => setIsProfileOpen(false)}
-                          className="flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                          className="flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
                         >
                           <User className="h-4 w-4 mr-3" />
                           Your Profile
@@ -132,7 +130,7 @@ export default function Navbar() {
                       </div>
 
                       {/* Logout */}
-                      <div className="border-t border-gray-100 pt-2 pb-1">
+                      <div className="border-t border-orange-100 pt-2 pb-1">
                         <button
                           onClick={handleLogout}
                           className="w-full flex items-center px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
@@ -155,7 +153,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   to="/signup"
-                  className="px-6 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-bold hover:from-orange-600 hover:to-red-600 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
                 >
                   Sign Up
                 </Link>

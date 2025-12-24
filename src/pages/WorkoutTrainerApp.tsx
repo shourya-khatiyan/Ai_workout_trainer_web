@@ -11,7 +11,7 @@ import './WorkoutTrainerApp.css';
 import { createPortal } from 'react-dom';
 
 export default function WorkoutTrainerApp() {
-  // State for webcam and pose detection
+  // refs and state for webcam and pose detection
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const trainerJointCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -22,7 +22,7 @@ export default function WorkoutTrainerApp() {
   const [voiceFeedbackActive, setVoiceFeedbackActive] = useState<boolean>(false);
   const [isTrainerReady, setIsTrainerReady] = useState<boolean>(false);
 
-  // State for trainer video
+  // trainer video element and related state
   const trainerVideoRef = useRef<HTMLVideoElement>(null);
   const trainerCanvasRef = useRef<HTMLCanvasElement>(null);
   const [trainerVideoUrl, setTrainerVideoUrl] = useState<string | null>(null);
@@ -49,10 +49,9 @@ export default function WorkoutTrainerApp() {
   });
 
 
-  // State for pose data with debouncing
+  // pose accuracy data with debouncing to reduce ui updates
   const [postureAccuracy, setPostureAccuracy] = useState(85);
   const [postureStatus, setPostureStatus] = useState('CORRECT');
-  // ✅ UPDATED
   const [jointAngles, setJointAngles] = useState([
     { joint: 'Hip', angle: 120, accuracy: 85 },
     { joint: 'Knee', angle: 145, accuracy: 45 },
@@ -66,16 +65,16 @@ export default function WorkoutTrainerApp() {
     { text: 'Position yourself in front of the camera', status: 'warning' }
   ]);
 
-  // Current trainee pose
+  // stores the detected pose from trainee's webcam
   const [traineePose, setTraineePose] = useState<poseDetection.Pose | null>(null);
 
-  // Training state
+  // training session state
   const [isTraining, setIsTraining] = useState<boolean>(false);
   const [countdownValue, setCountdownValue] = useState(0);
   const [showCountdown, setShowCountdown] = useState(false);
   const [showVideoControls, setShowVideoControls] = useState(false);
 
-  // Exercise categories
+  // exercise categories and videos management
   interface ExerciseVideo {
     name: string;
     url: string;
@@ -87,7 +86,7 @@ export default function WorkoutTrainerApp() {
   }
 
   const [exerciseCategories, setExerciseCategories] = useState<ExerciseCategory[]>(() => {
-    // Load from localStorage if available
+    // load saved categories from localstorage
     const savedCategories = localStorage.getItem('exerciseCategories');
     return savedCategories ? JSON.parse(savedCategories) : [
       { name: 'Squats', videos: [] },
@@ -96,13 +95,13 @@ export default function WorkoutTrainerApp() {
     ];
   });
 
-  // Save categories to localStorage whenever they change
+  // persist categories to localstorage when they change
   useEffect(() => {
     localStorage.setItem('exerciseCategories', JSON.stringify(exerciseCategories));
   }, [exerciseCategories]);
 
   const [selectedCategory, setSelectedCategory] = useState<string>(() => {
-    // Get the first category name or empty string if no categories
+    // use first saved category or default to squats
     const savedCategories = localStorage.getItem('exerciseCategories');
     if (savedCategories) {
       const categories = JSON.parse(savedCategories);
@@ -115,11 +114,11 @@ export default function WorkoutTrainerApp() {
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
 
-  // Video management
+  // video selection state
   const [showVideoDropdown, setShowVideoDropdown] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<ExerciseVideo | null>(null);
 
-  // Refs for debouncing
+  // debounce refs for performance
   const lastUpdateTime = useRef(0);
   const pendingData = useRef<{
     angles: any
@@ -128,14 +127,14 @@ export default function WorkoutTrainerApp() {
     feedback: any
   } | null>(null);
 
-  // Refs for dropdowns
+  // dropdown refs for click-outside detection
   const videoBtnRef = useRef<HTMLButtonElement>(null);
   const videoDropdownRef = useRef<HTMLDivElement>(null);
   const categoryBtnRef = useRef<HTMLButtonElement>(null);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
 
-  // Initialize TensorFlow.js and pose detector
+  // setup tensorflow and movenet detector on mount
   useEffect(() => {
     const initDetector = async () => {
       try {
@@ -156,14 +155,14 @@ export default function WorkoutTrainerApp() {
     };
   }, []);
 
-  // Cleanup voice feedback service on unmount
+  // cleanup voice service when component unmounts
   useEffect(() => {
     return () => {
       voiceFeedbackService.cleanup();
     };
   }, []);
 
-  // Add scroll effect to navbar
+  // navbar scroll effect - adds shadow on scroll
   useEffect(() => {
     const handleScroll = () => {
       if (headerRef.current) {
@@ -181,20 +180,20 @@ export default function WorkoutTrainerApp() {
     };
   }, []);
 
-  // Analyze trainer video when it's loaded
+  // detect pose in trainer video when loaded or playing
   useEffect(() => {
     if (!trainerVideoUrl || !detector || !trainerVideoRef.current) return;
 
     const analyzeTrainerVideo = async () => {
       if (!trainerVideoRef.current || !detector) return;
 
-      // Give time for the trainer to get into position
+      // wait a moment for trainer to get into position
       setIsTrainerReady(false);
 
-      // Pause at a good frame for analysis (3 seconds in)
+      // seek to 3 seconds for better pose analysis
       trainerVideoRef.current.currentTime = 3.0;
 
-      // Wait for the video to seek
+      // wait for seek to complete
       await new Promise(resolve => {
         const handleSeeked = () => {
           trainerVideoRef.current?.removeEventListener('seeked', handleSeeked);
@@ -204,23 +203,23 @@ export default function WorkoutTrainerApp() {
       });
 
       try {
-        // Detect pose in the trainer video
+        // detect pose in trainer video frame
         const poses = await detector.estimatePoses(trainerVideoRef.current);
 
         if (poses.length > 0) {
           const pose = poses[0];
           setTrainerPose(pose);
 
-          // Calculate ideal angles from trainer pose
+          // get angles from trainer for comparison
           const angles = calculateAngles(pose.keypoints);
           setTrainerAngles(angles);
 
-          // Draw pose on trainer canvas
+          // draw skeleton overlay on trainer video
           if (trainerCanvasRef.current) {
             drawPoseOnCanvas(pose, trainerCanvasRef.current, true);
           }
 
-          // Draw pose on trainer joint canvas
+          // draw joint lines on separate canvas
           if (trainerJointCanvasRef.current) {
             drawJointLinesOnCanvas(pose, trainerJointCanvasRef.current, true);
           }
@@ -234,7 +233,7 @@ export default function WorkoutTrainerApp() {
 
     analyzeTrainerVideo();
 
-    // Add event listener for timeupdate to continuously update trainer pose during playback
+    // continuously update trainer pose during video playback
     const updateTrainerPoseDuringPlayback = async () => {
       if (!trainerVideoRef.current || !detector || !isPlaying) return;
 
@@ -245,16 +244,16 @@ export default function WorkoutTrainerApp() {
           const pose = poses[0];
           setTrainerPose(pose);
 
-          // Update trainer angles
+          // update angles as trainer moves
           const angles = calculateAngles(pose.keypoints);
           setTrainerAngles(angles);
 
-          // Draw updated pose on trainer canvas
+          // redraw skeleton on trainer canvas
           if (trainerCanvasRef.current) {
             drawPoseOnCanvas(pose, trainerCanvasRef.current, true);
           }
 
-          // Draw updated pose on trainer joint canvas
+          // redraw joint lines
           if (trainerJointCanvasRef.current) {
             drawJointLinesOnCanvas(pose, trainerJointCanvasRef.current, true);
           }
@@ -272,7 +271,7 @@ export default function WorkoutTrainerApp() {
     };
   }, [trainerVideoUrl, detector, isPlaying]);
 
-  // Helper function to draw joint lines only on canvas with white background
+  // draws skeleton joints on a canvas with white background
   const drawJointLinesOnCanvas = (pose: poseDetection.Pose, canvas: HTMLCanvasElement, isTrainer: boolean = false, accuracyData: any = null) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -281,18 +280,18 @@ export default function WorkoutTrainerApp() {
     canvas.width = 300;
     canvas.height = 300;
 
-    // Fill with white background for professional look
+    // white background for clean look
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Scale keypoints to fit the canvas
+    // scale keypoints to fit canvas
     const keypoints = pose.keypoints;
     let minX = Number.MAX_VALUE;
     let minY = Number.MAX_VALUE;
     let maxX = 0;
     let maxY = 0;
 
-    // Find the bounds of the pose
+    // find pose boundaries
     keypoints.forEach(keypoint => {
       if (keypoint.score && keypoint.score > 0.3) {
         minX = Math.min(minX, keypoint.x);
@@ -302,7 +301,7 @@ export default function WorkoutTrainerApp() {
       }
     });
 
-    // Calculate scale and offset to center the pose
+    // center the pose in canvas
     const poseWidth = maxX - minX;
     const poseHeight = maxY - minY;
     const scale = Math.min(
@@ -326,7 +325,7 @@ export default function WorkoutTrainerApp() {
       ['left_knee', 'left_ankle'], ['right_knee', 'right_ankle']
     ];
 
-    // Map body parts to joint names for coloring (used only for trainee)
+    // map body parts to joint names for color coding
     const bodyPartToJoint: { [key: string]: string } = {
       'left_shoulder': 'Shoulder', 'right_shoulder': 'Shoulder',
       'left_elbow': 'Elbow', 'right_elbow': 'Elbow',
@@ -365,7 +364,7 @@ export default function WorkoutTrainerApp() {
         ctx.lineTo(toX, toY);
         ctx.lineWidth = isTrainer ? 2 : 2;
 
-        // Determine line color based on accuracy if available for trainee
+        // color based on accuracy for trainee joints
         if (!isTrainer && accuracyData && (from in bodyPartToJoint || to in bodyPartToJoint)) {
           const jointName = bodyPartToJoint[from] || bodyPartToJoint[to];
           const accuracy = accuracyData[jointName] || 0;
@@ -378,7 +377,7 @@ export default function WorkoutTrainerApp() {
             ctx.strokeStyle = '#ef4444'; // Red for error
           }
         } else {
-          // Professional colors - orange for trainer
+          // orange for trainer, hot theme for trainee
           ctx.strokeStyle = isTrainer ? '#000000ff' : '#f97316';
         }
 
@@ -407,18 +406,18 @@ export default function WorkoutTrainerApp() {
     });
   };
 
-  // Helper function to draw pose on canvas with colored lines
+  // draws pose skeleton on video overlay canvas
   const drawPoseOnCanvas = (pose: poseDetection.Pose, canvas: HTMLCanvasElement, isTrainer: boolean = false, accuracyData: any = null) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas dimensions to match video or webcam
+    // match canvas size to video
     const videoElement = isTrainer ? trainerVideoRef.current : webcamRef.current?.video;
     if (videoElement) {
       canvas.width = videoElement.videoWidth || videoElement.width;
       canvas.height = videoElement.videoHeight || videoElement.height;
 
-      // Clear canvas
+      // clear previous frame
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
@@ -452,7 +451,7 @@ export default function WorkoutTrainerApp() {
       ['left_knee', 'left_ankle'], ['right_knee', 'right_ankle']
     ];
 
-    // Map body parts to joint names for coloring
+    // map body parts to joints for accuracy coloring
     const bodyPartToJoint: { [key: string]: string } = {
       'left_shoulder': 'Shoulder', 'right_shoulder': 'Shoulder',
       'left_elbow': 'Elbow', 'right_elbow': 'Elbow',
@@ -460,7 +459,7 @@ export default function WorkoutTrainerApp() {
       'left_knee': 'Knee', 'right_knee': 'Knee'
     };
 
-    // Draw connections with color based on accuracy
+    // draw lines with color based on accuracy
     connections.forEach(([from, to]) => {
       const fromKeypoint = pose.keypoints.find(kp => kp.name === from);
       const toKeypoint = pose.keypoints.find(kp => kp.name === to);
@@ -488,7 +487,7 @@ export default function WorkoutTrainerApp() {
         ctx.lineTo(toX, toKeypoint.y);
         ctx.lineWidth = isTrainer ? 7 : 2;
 
-        // Determine line color based on accuracy if available
+        // set line color by accuracy level
         if (!isTrainer && accuracyData && (from in bodyPartToJoint || to in bodyPartToJoint)) {
           const jointName = bodyPartToJoint[from] || bodyPartToJoint[to];
           const accuracy = accuracyData[jointName] || 0;
@@ -501,7 +500,7 @@ export default function WorkoutTrainerApp() {
             ctx.strokeStyle = '#ef4444'; // Red for error
           }
         } else {
-          // Professional hot colors
+          // hot theme colors
           ctx.strokeStyle = isTrainer ? '#f97316' : '#ef4444';
         }
 
@@ -510,7 +509,7 @@ export default function WorkoutTrainerApp() {
     });
   };
 
-  // Update UI with debounced data
+  // update ui state with processed pose data
   const updateUIWithData = useCallback((data: any) => {
     setJointAngles([
       { joint: 'Hip', angle: Math.round(data.angles.Hip), accuracy: data.accuracy.Hip },
@@ -520,9 +519,9 @@ export default function WorkoutTrainerApp() {
       { joint: 'Back', angle: Math.round(data.angles.BackStraightness), accuracy: data.accuracy.BackStraightness }
     ]);
 
-    setPostureAccuracy(data.overallAccuracy);  // ✅ Changed from weightedAccuracy
+    setPostureAccuracy(data.overallAccuracy);  // use calculated overall accuracy
 
-    if (data.overallAccuracy >= 85) {  // ✅ Changed from weightedAccuracy
+    if (data.overallAccuracy >= 85) {  // 85+ is considered good form
       setPostureStatus('CORRECT');
     } else {
       setPostureStatus('INCORRECT');
@@ -540,18 +539,18 @@ export default function WorkoutTrainerApp() {
 
     setFeedbackItems(organizedFeedback);
 
-    // Send feedback to voice service (wrong posture only)
+    // only speak corrections, not positive feedback
     voiceFeedbackService.addFeedback(improvementFeedback);
   }, []);
 
 
 
-  // Process debounced updates
+  // process debounced pose updates at 500ms intervals
   useEffect(() => {
     const processDebounce = () => {
       const now = Date.now();
 
-      // If there's pending data and enough time has passed since the last update
+      // only update if 500ms has passed since last update
       if (pendingData.current && now - lastUpdateTime.current > 500) {
         updateUIWithData(pendingData.current);
         lastUpdateTime.current = now;
@@ -565,7 +564,7 @@ export default function WorkoutTrainerApp() {
     return () => cancelAnimationFrame(animationFrameId);
   }, [updateUIWithData]);
 
-  // Start pose detection loop
+  // main pose detection loop - runs every animation frame
   useEffect(() => {
     let animationFrameId: number;
 
@@ -582,21 +581,21 @@ export default function WorkoutTrainerApp() {
           const video = webcamRef.current.video;
           const canvas = canvasRef.current;
 
-          // Detect poses
+          // run pose detection on webcam frame
           const poses = await detector.estimatePoses(video);
 
           if (poses.length > 0) {
             const pose = poses[0];
             setTraineePose(pose);
 
-            // Calculate joint angles
+            // calculate joint angles from keypoints
             const angles = calculateAngles(pose.keypoints);
 
-            // Calculate accuracy compared to ideal angles (either from trainer or default)
-            // ✅ UPDATED
+            // compare trainee angles to trainer or defaults
+            // use trainer or default ideal angles
             const idealAngles = trainerPose ? {
               ...trainerAngles,
-              visibleJoints: {  // ✅ Add visibility for trainer angles
+              visibleJoints: {  // track which joints are visible
                 Hip: true,
                 Knee: true,
                 Elbow: true,
@@ -612,7 +611,7 @@ export default function WorkoutTrainerApp() {
               UpperBack: 180,
               MidBack: 180,
               LowerBack: 180,
-              visibleJoints: {  // ✅ Add visibility for default angles
+              visibleJoints: {  // default visibility flags
                 Hip: true,
                 Knee: true,
                 Elbow: true,
@@ -624,33 +623,33 @@ export default function WorkoutTrainerApp() {
 
             const accuracy = calculateAccuracy(angles, idealAngles);
 
-            // ✅ NEW: Use harmonic mean for overall accuracy
+            // use harmonic mean for more accurate overall score
             const overallAccuracy = calculateOverallAccuracy(accuracy);
 
             // Generate feedback
             const feedback = generateFeedback(angles, idealAngles, accuracy, pose.keypoints);
 
-            // Draw pose on canvas with colored lines based on accuracy
+            // draw skeleton with accuracy-based colors
             drawPoseOnCanvas(pose, canvas, false, accuracy);
 
-            // Update trainee joint lines canvas with accuracy data
+            // update trainee joint visualization
             if (traineeJointCanvasRef.current) {
               drawJointLinesOnCanvas(pose, traineeJointCanvasRef.current, false, accuracy);
             }
 
-            // Only update UI if training is active
+            // only update ui during active training
             if (isTraining) {
-              // Store data for debounced update
+              // queue data for debounced update
               pendingData.current = {
                 angles,
                 accuracy,
-                overallAccuracy,  // ✅ Changed from weightedAccuracy
+                overallAccuracy,  // using harmonic mean
                 feedback
               };
             }
 
           } else {
-            // No pose detected
+            // no pose detected in frame
             if (isTraining) {
               pendingData.current = {
                 angles: {
@@ -674,7 +673,7 @@ export default function WorkoutTrainerApp() {
                   MidBack: 0,
                   LowerBack: 0
                 },
-                overallAccuracy: 0,  // ✅ Changed from weightedAccuracy
+                overallAccuracy: 0,  // no valid accuracy
                 feedback: [
                   { text: 'No person detected. Position yourself in front of the camera.', status: 'error' }
                 ]
@@ -683,7 +682,7 @@ export default function WorkoutTrainerApp() {
           }
 
         } else if (webcamRef.current && !webcamRef.current.video) {
-          // Camera not available
+          // webcam not available
           if (isTraining) {
             pendingData.current = {
               angles: {
@@ -707,7 +706,7 @@ export default function WorkoutTrainerApp() {
                 MidBack: 0,
                 LowerBack: 0
               },
-              overallAccuracy: 0,  // ✅ Changed from weightedAccuracy
+              overallAccuracy: 0,  // camera not ready
               feedback: [
                 { text: 'Camera not available. Please allow camera access.', status: 'error' }
               ]
@@ -733,13 +732,13 @@ export default function WorkoutTrainerApp() {
     };
   }, [isDetecting, detector, trainerPose, trainerAngles, isTraining]);
 
-  // Handle trainer video upload
+  // handle video file upload from user
   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
 
-      // Add to current category's videos
+      // add video to current category
       const updatedCategories = exerciseCategories.map(category => {
         if (category.name === selectedCategory) {
           return {
@@ -755,7 +754,7 @@ export default function WorkoutTrainerApp() {
     }
   };
 
-  // Load a previously uploaded video
+  // load a previously saved video
   const loadVideo = (video: ExerciseVideo) => {
     setTrainerVideoUrl(video.url);
     setSelectedVideo(video);
@@ -766,7 +765,7 @@ export default function WorkoutTrainerApp() {
     setShowVideoDropdown(false);
   };
 
-  // Video control handlers
+  // play/pause video with training requirement
   const togglePlayPause = () => {
     if (!isTraining) {
       alert('Please click "Start Training" first to begin the session.');
@@ -796,14 +795,14 @@ export default function WorkoutTrainerApp() {
     }
   };
 
-  // Start training
+  // begin training session with countdown
   const startTraining = () => {
     if (!trainerVideoUrl) {
       alert('Please load a trainer video first to start training.');
       return;
     }
 
-    // Start countdown
+    // start 3 second countdown
     setShowCountdown(true);
     setCountdownValue(3);
 
@@ -813,7 +812,7 @@ export default function WorkoutTrainerApp() {
           clearInterval(countdownInterval);
           setShowCountdown(false);
           setIsTraining(true);
-          // Don't auto-play, let user control playback
+          // countdown finished, begin training
           return 0;
         }
         return prev - 1;
@@ -821,7 +820,7 @@ export default function WorkoutTrainerApp() {
     }, 1000);
   };
 
-  // Stop training
+  // end training session
   const stopTraining = () => {
     setIsTraining(false);
     if (trainerVideoRef.current) {
@@ -829,10 +828,10 @@ export default function WorkoutTrainerApp() {
     }
     setIsPlaying(false);
 
-    // Reset UI
+    // reset ui to defaults
     setPostureAccuracy(85);
     setPostureStatus('CORRECT');
-    // ✅ UPDATED
+    // reset joint angles to initial values
     setJointAngles([
       { joint: 'Hip', angle: 120, accuracy: 85 },
       { joint: 'Knee', angle: 145, accuracy: 45 },
@@ -847,13 +846,13 @@ export default function WorkoutTrainerApp() {
     ]);
   };
 
-  // Reset webcam and pose detection
+  // reset camera and clear all state
   const resetCamera = () => {
-    // Stop current detection and training
+    // stop current detection
     setIsDetecting(false);
     setIsTraining(false);
 
-    // Clear canvases
+    // clear all canvases
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
       if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -869,13 +868,13 @@ export default function WorkoutTrainerApp() {
       if (ctx) ctx.clearRect(0, 0, traineeJointCanvasRef.current.width, traineeJointCanvasRef.current.height);
     }
 
-    // Reset trainer video
+    // reset trainer video
     if (trainerVideoRef.current) {
       trainerVideoRef.current.pause();
       setIsPlaying(false);
     }
 
-    // Reset states
+    // reset all state to defaults
     setTrainerVideoUrl(null);
     setSelectedVideo(null);
     setTraineePose(null);
@@ -894,13 +893,13 @@ export default function WorkoutTrainerApp() {
       { text: 'Position yourself in front of the camera', status: 'warning' }
     ]);
 
-    // Restart detection after a short delay
+    // restart detection after a short pause
     setTimeout(() => {
       setIsDetecting(true);
     }, 500);
   };
 
-  // Add new exercise category
+  // create new exercise category
   const addNewCategory = () => {
     if (newCategoryName.trim() === '') return;
 
@@ -913,13 +912,13 @@ export default function WorkoutTrainerApp() {
     setShowAddCategoryModal(false);
   };
 
-  // Get current category's videos
+  // get videos for selected category
   const getCurrentCategoryVideos = () => {
     const category = exerciseCategories.find(cat => cat.name === selectedCategory);
     return category ? category.videos : [];
   };
 
-  // Delete a video from a category
+  // remove a video from category
   const deleteVideo = (videoName: string) => {
     if (confirm(`Are you sure you want to delete the video "${videoName}"?`)) {
       const updatedCategories = exerciseCategories.map(category => {
@@ -934,7 +933,7 @@ export default function WorkoutTrainerApp() {
 
       setExerciseCategories(updatedCategories);
 
-      // If the deleted video was selected, reset the selection
+      // if deleted video was selected, clear it
       if (selectedVideo && selectedVideo.name === videoName) {
         setSelectedVideo(null);
         setTrainerVideoUrl(null);
@@ -942,7 +941,7 @@ export default function WorkoutTrainerApp() {
     }
   };
 
-  // Delete a category
+  // remove an exercise category
   const deleteCategory = (categoryName: string) => {
     if (exerciseCategories.length <= 1) {
       alert("You cannot delete the last category. Please create a new category first.");
@@ -956,7 +955,7 @@ export default function WorkoutTrainerApp() {
 
       setExerciseCategories(updatedCategories);
 
-      // If the deleted category was selected, select the first available category
+      // select another category if current was deleted
       if (selectedCategory === categoryName) {
         setSelectedCategory(updatedCategories[0].name);
         setSelectedVideo(null);
@@ -965,7 +964,7 @@ export default function WorkoutTrainerApp() {
     }
   };
 
-  // Create a Portal component for dropdowns
+  // portal component for rendering dropdowns outside dom hierarchy
   const DropdownPortal: React.FC<{ children: React.ReactNode; isOpen: boolean }> = ({ children, isOpen }) => {
     if (!isOpen) return null;
 
@@ -975,10 +974,10 @@ export default function WorkoutTrainerApp() {
     );
   };
 
-  // Close dropdowns when clicking outside
+  // close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Close video dropdown if clicking outside
+      // close video dropdown if click is outside
       if (
         showVideoDropdown &&
         videoBtnRef.current &&
@@ -989,7 +988,7 @@ export default function WorkoutTrainerApp() {
         setShowVideoDropdown(false);
       }
 
-      // Close category dropdown if clicking outside
+      // close category dropdown if click is outside
       if (
         showCategoryDropdown &&
         categoryBtnRef.current &&
@@ -1007,10 +1006,10 @@ export default function WorkoutTrainerApp() {
     };
   }, [showVideoDropdown, showCategoryDropdown]);
 
-  // Update dropdown positions when buttons are resized or window is resized
+  // handle window resize for dropdown positioning
   useEffect(() => {
     const updateDropdownPositions = () => {
-      // Don't force re-render as this causes flickering
+      // no forced re-render to prevent flickering
       // Just update the state if needed
     };
 
@@ -1022,7 +1021,7 @@ export default function WorkoutTrainerApp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900 flex flex-col">
-      {/* Header */}
+      {/* header bar */}
       <header ref={headerRef} className="bg-gradient-to-r from-orange-50 to-amber-50 backdrop-blur-lg border-b border-orange-200 shadow-lg sticky top-0 z-50">
         {/* Subtle background decoration */}
         <div className="absolute -top-20 left-1/3 w-64 h-64 bg-orange-100 rounded-full filter blur-[100px] opacity-20"></div>
@@ -1030,7 +1029,7 @@ export default function WorkoutTrainerApp() {
 
         <div className="container mx-auto py-2 px-3 sm:px-4">
           <div className="flex items-center justify-end relative z-[100] gap-4">
-            {/* Controls - Centered */}
+            {/* controls section */}
             <div className="flex items-center gap-4">
               <div className="dropdown-container">
                 <button
@@ -1161,7 +1160,7 @@ export default function WorkoutTrainerApp() {
                       </div>
                     )}
 
-                    {/* Add New Category button */}
+                    {/* add new category button */}
                     <div
                       className="p-3 border-t border-gray-200 hover:bg-orange-50 cursor-pointer flex items-center text-orange-600 font-medium"
                       onClick={() => {
@@ -1196,7 +1195,7 @@ export default function WorkoutTrainerApp() {
         </div>
       </header>
 
-      {/* Main content */}
+      {/* main content area */}
 
       <div className="flex-1 p-4 flex flex-col gap-6 relative">
         <div style={{
@@ -1232,9 +1231,9 @@ export default function WorkoutTrainerApp() {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-100 rounded-full filter blur-[150px] opacity-20 z-0"></div>
         <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-amber-100 rounded-full filter blur-[120px] opacity-20 z-0"></div>
 
-        {/* Video panels */}
+        {/* video panels grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
-          {/* Left panel - Trainer video */}
+          {/* left panel - trainer video */}
           <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
             <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
               <p className="text-xs text-center font-semibold text-gray-700">
@@ -1271,7 +1270,7 @@ export default function WorkoutTrainerApp() {
                     </div>
                   )}
 
-                  {/* Video controls overlay */}
+                  {/* video controls overlay */}
                   {showVideoControls && (
                     <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-40 p-3 flex justify-center items-center space-x-4 backdrop-blur-sm rounded-b-xl">
                       <button
@@ -1301,13 +1300,13 @@ export default function WorkoutTrainerApp() {
             </div>
           </div>
 
-          {/* Middle panel - Joint line comparison */}
+          {/* middle panel - joint line comparison */}
           <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
             <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
               <p className="text-xs text-center font-semibold text-gray-700">Joint Line Comparison</p>
             </div>
             <div className="flex-1 grid grid-cols-2 gap-3 m-3">
-              {/* Trainer joint lines */}
+              {/* trainer joint lines */}
               <div className="bg-white rounded-xl flex items-center justify-center relative border-2 border-gray-100">
                 <p className="text-orange-600 absolute top-2 left-2 text-xs font-semibold">Trainer Joint Lines</p>
                 <canvas
@@ -1316,7 +1315,7 @@ export default function WorkoutTrainerApp() {
                 />
               </div>
 
-              {/* Trainee joint lines */}
+              {/* trainee joint lines */}
               <div className="bg-white rounded-xl flex items-center justify-center relative border-2 border-gray-100">
                 <p className="text-red-600 absolute top-2 left-2 text-xs font-semibold">Trainee Joint Lines</p>
                 <canvas
@@ -1327,7 +1326,7 @@ export default function WorkoutTrainerApp() {
             </div>
           </div>
 
-          {/* Right panel - Trainee video */}
+          {/* right panel - trainee camera */}
           <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
             <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
               <div className="flex items-center justify-between">
@@ -1387,11 +1386,11 @@ export default function WorkoutTrainerApp() {
           </div>
         </div>
 
-        {/* Feedback and metrics section */}
+        {/* feedback and metrics section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
-          {/* Feedback panel */}
+          {/* feedback panel */}
           <div className="trainer-card rounded-2xl p-4 lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Good form feedback */}
+            {/* good form feedback */}
             <div>
               <h2 className="text-base font-bold mb-3 text-green-700 flex items-center">
                 <span className="w-2.5 h-2.5 bg-green-500 rounded-full mr-2"></span>
@@ -1410,7 +1409,7 @@ export default function WorkoutTrainerApp() {
               </div>
             </div>
 
-            {/* Improvement feedback */}
+            {/* improvement feedback */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base font-bold text-orange-700 flex items-center">
@@ -1456,9 +1455,9 @@ export default function WorkoutTrainerApp() {
             </div>
           </div>
 
-          {/* Metrics panel - Ultra Compact */}
+          {/* metrics panel - compact */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
-            {/* Blur overlay when training is not active */}
+            {/* blur overlay when not training */}
             {!isTraining && (
               <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center">
                 <div className="text-center px-4">
@@ -1471,7 +1470,7 @@ export default function WorkoutTrainerApp() {
               </div>
             )}
 
-            {/* Compact Posture Accuracy */}
+            {/* overall posture accuracy */}
             <div className="p-3 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -1491,7 +1490,7 @@ export default function WorkoutTrainerApp() {
               </div>
             </div>
 
-            {/* Compact Joint Accuracy List */}
+            {/* joint accuracy list */}
             <div className="p-2.5">
               <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2 px-0.5">Joint Accuracy</div>
 
@@ -1508,7 +1507,7 @@ export default function WorkoutTrainerApp() {
 
                   return (
                     <div key={index} className="bg-gray-50 rounded px-2 py-1.5 border border-gray-100">
-                      {/* Joint name and values */}
+                      {/* joint name and values */}
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-[11px] font-bold text-gray-700 uppercase">{item.joint}</span>
                         <div className="flex items-center gap-2">
@@ -1518,7 +1517,7 @@ export default function WorkoutTrainerApp() {
                         </div>
                       </div>
 
-                      {/* Compact progress bar */}
+                      {/* accuracy progress bar */}
                       <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
                         <div
                           className={`${color.bg} h-full rounded-full transition-all duration-300`}
@@ -1534,7 +1533,7 @@ export default function WorkoutTrainerApp() {
         </div>
       </div>
 
-      {/* Add Category Modal */}
+      {/* add category modal */}
       {showAddCategoryModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-[10000]">
           <div className="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full mx-4">
@@ -1563,7 +1562,7 @@ export default function WorkoutTrainerApp() {
           </div>
         </div>
       )}
-      {/* Countdown overlay */}
+      {/* countdown before training starts */}
       {showCountdown && (
         <div className="countdown-overlay">
           <div className="text-center">

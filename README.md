@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/assets/logo.png" alt="AI Workout Trainer Logo" width="120" height="120">
+  <img src="https://img.icons8.com/?size=100&id=s1oWJWDF36JQ&format=png&color=000000" alt="AI Workout Trainer Logo" width="120" height="120">
 </p>
 
 <h1 align="center"> AI Workout Trainer</h1>

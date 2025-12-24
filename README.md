@@ -2,7 +2,7 @@
   <img src="public/assets/logo.png" alt="AI Workout Trainer Logo" width="120" height="120">
 </p>
 
-<h1 align="center">🏋️ AI Workout Trainer</h1>
+<h1 align="center"> AI Workout Trainer</h1>
 
 <p align="center">
   <strong>Real-time AI-powered exercise form analysis using pose detection</strong>
@@ -249,7 +249,6 @@ The application uses a **"Hot Colors"** theme:
 | 🟠 Primary | `#F97316` | Buttons, accents |
 | 🔴 Secondary | `#EF4444` | Gradients, alerts |
 | 🟡 Accent | `#FBBF24` | Highlights |
-| ⚫ Background | `#1A1412` | Dark mode |
 
 ---
 

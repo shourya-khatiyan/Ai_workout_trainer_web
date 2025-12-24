@@ -5,6 +5,7 @@ import { ArrowRight, ArrowLeft, User, Ruler, Weight, Grape as Tape } from 'lucid
 import { useUser } from '../context/UserContext';
 import Logo from '../components/Logo';
 
+// multi-step form for collecting body measurements
 export default function BodyCalibration() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -17,34 +18,33 @@ export default function BodyCalibration() {
     neckSize: ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  
-  const { updateUserData } = useUser();
+
+  const { updateUser } = useUser();
   const navigate = useNavigate();
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const nextStep = () => {
     setStep(prev => prev + 1);
   };
-  
+
   const prevStep = () => {
     setStep(prev => prev - 1);
   };
 
+  // save all measurements and redirect to home
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form submitted');
     setIsLoading(true);
-    
+
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update user data with body measurements
-      updateUserData({
+
+      updateUser({
         age: parseInt(formData.age),
         gender: formData.gender,
         height: parseFloat(formData.height),
@@ -53,9 +53,8 @@ export default function BodyCalibration() {
         chestSize: parseFloat(formData.chestSize),
         neckSize: parseFloat(formData.neckSize)
       });
-      
+
       console.log('Redirecting to landing page');
-      // Redirect to landing page (root route) using window.location
       window.location.href = '/';
     } catch (error) {
       console.error('Error saving data:', error);
@@ -63,7 +62,7 @@ export default function BodyCalibration() {
       setIsLoading(false);
     }
   };
-  
+
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -99,7 +98,7 @@ export default function BodyCalibration() {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label htmlFor="gender" className="block text-sm font-medium text-gray-300 mb-1">
                   Gender
@@ -119,7 +118,7 @@ export default function BodyCalibration() {
                   <option value="prefer-not-to-say">Prefer not to say</option>
                 </select>
               </div>
-              
+
               <div className="pt-4">
                 <button
                   type="button"
@@ -132,7 +131,7 @@ export default function BodyCalibration() {
             </div>
           </motion.div>
         );
-        
+
       case 2:
         return (
           <motion.div
@@ -167,7 +166,7 @@ export default function BodyCalibration() {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label htmlFor="weight" className="block text-sm font-medium text-gray-300 mb-1">
                   Weight (kg)
@@ -191,7 +190,7 @@ export default function BodyCalibration() {
                   />
                 </div>
               </div>
-              
+
               <div className="flex space-x-4 pt-4">
                 <button
                   type="button"
@@ -211,7 +210,7 @@ export default function BodyCalibration() {
             </div>
           </motion.div>
         );
-        
+
       case 3:
         return (
           <motion.div
@@ -248,7 +247,7 @@ export default function BodyCalibration() {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label htmlFor="chestSize" className="block text-sm font-medium text-gray-300 mb-1">
                   Chest Size (cm)
@@ -271,7 +270,7 @@ export default function BodyCalibration() {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label htmlFor="neckSize" className="block text-sm font-medium text-gray-300 mb-1">
                   Neck Size (cm)
@@ -294,7 +293,7 @@ export default function BodyCalibration() {
                   />
                 </div>
               </div>
-              
+
               <div className="flex space-x-4 pt-4">
                 <button
                   type="button"
@@ -321,13 +320,13 @@ export default function BodyCalibration() {
               </div>
             </div>
           </motion.div>
-         );
-        
+        );
+
       default:
         return null;
     }
   };
-  
+
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
       <div className="absolute inset-0 grid-pattern opacity-10"></div>
@@ -345,7 +344,7 @@ export default function BodyCalibration() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="bg-card-bg py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-border">
-          {/* Progress bar */}
+          {/* progress bar */}
           <div className="mb-8">
             <div className="flex justify-between text-xs text-gray-400 mb-1">
               <span>Basic Info</span>
@@ -353,19 +352,19 @@ export default function BodyCalibration() {
               <span>Additional</span>
             </div>
             <div className="h-2 bg-card-dark rounded-full">
-              <div 
+              <div
                 className="h-2 bg-primary rounded-full transition-all duration-300"
                 style={{ width: `${(step / 3) * 100}%` }}
               ></div>
             </div>
           </div>
-          
+
           <form onSubmit={handleSubmit}>
             {renderStep()}
           </form>
         </div>
       </div>
-      
+
       <div className="mt-8 text-center relative z-10">
         <p className="text-sm text-gray-400">
           Your data is securely stored and will only be used to improve your workout experience.

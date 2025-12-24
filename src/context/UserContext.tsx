@@ -48,19 +48,19 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
+  // load saved user from localstorage
   const [user, setUser] = useState<UserData | null>(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       return JSON.parse(savedUser);
     }
-    // Initialize with default stats and streak for new users
     return null;
   });
 
   const isLoggedIn = !!user;
 
   const login = (userData: UserData) => {
-    // Initialize default stats and streak if not provided
+    // set default stats if not provided
     const userWithDefaults = {
       ...userData,
       streak: userData.streak || { current: 0, longest: 0 },

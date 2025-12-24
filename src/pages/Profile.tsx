@@ -7,7 +7,6 @@ import {
   Dumbbell,
   Trophy,
   Target,
-  TrendingUp,
   Calendar,
   Clock,
   Activity,
@@ -26,11 +25,13 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
 
+  // redirect to signin if not logged in
   if (!isLoggedIn) {
     navigate('/signin');
     return null;
   }
 
+  // calculate xp progress
   const level = user?.level || 1;
   const experience = user?.experience || 0;
   const xpToNext = 100 - (experience % 100);
@@ -42,20 +43,20 @@ const Profile: React.FC = () => {
 
       <div className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          {/* Hero Section with Profile Header - Hot colors */}
+          {/* profile header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="relative bg-gradient-to-br from-orange-500 via-red-500 to-amber-500 rounded-3xl shadow-2xl overflow-hidden mb-8 p-8 sm:p-12"
           >
-            {/* Decorative background elements */}
+            {/* decorative blobs */}
             <div className="absolute inset-0 opacity-20">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
               <div className="absolute bottom-0 left-0 w-96 h-96 bg-yellow-300 rounded-full blur-3xl"></div>
             </div>
 
             <div className="relative z-10 flex flex-col sm:flex-row items-center gap-8">
-              {/* Profile Picture */}
+              {/* profile picture */}
               <div className="relative group">
                 <div className="w-32 h-32 rounded-3xl bg-white/20 backdrop-blur-xl border-4 border-white/30 shadow-2xl flex items-center justify-center overflow-hidden">
                   {user?.profileImage ? (
@@ -75,7 +76,7 @@ const Profile: React.FC = () => {
                 </button>
               </div>
 
-              {/* User Info */}
+              {/* user info */}
               <div className="flex-1 text-center sm:text-left">
                 <h1 className="text-4xl font-black text-white mb-2">
                   {user?.name || 'Fitness Enthusiast'}
@@ -84,7 +85,7 @@ const Profile: React.FC = () => {
                   Level {level} • {user?.email || 'email@example.com'}
                 </p>
 
-                {/* XP Progress */}
+                {/* xp bar */}
                 <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-4 max-w-md">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-bold text-white">Experience</span>
@@ -101,7 +102,6 @@ const Profile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Edit Button */}
               <button
                 onClick={() => setIsEditing(!isEditing)}
                 className="bg-white/20 backdrop-blur-lg border border-white/30 text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/30 transition-all flex items-center gap-2 shadow-xl"
@@ -112,7 +112,7 @@ const Profile: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Stats Grid - Hot colors */}
+          {/* stats grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {[
               { icon: Flame, label: 'Current Streak', value: '3 days', color: 'from-orange-400 to-red-500', bg: 'from-orange-50 to-red-50' },
@@ -137,9 +137,9 @@ const Profile: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Personal Info */}
+            {/* left column */}
             <div className="lg:col-span-1 space-y-6">
-              {/* Basic Info Card */}
+              {/* personal info card */}
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                 <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-4 border-b border-gray-100">
                   <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -162,7 +162,7 @@ const Profile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Body Measurements Card */}
+              {/* body measurements card */}
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                 <div className="bg-gradient-to-r from-red-50 to-orange-50 px-6 py-4 border-b border-gray-100">
                   <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -185,9 +185,9 @@ const Profile: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Column - Activity & Achievements */}
+            {/* right column */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Quick Stats */}
+              {/* quick stats */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -208,7 +208,7 @@ const Profile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Achievements */}
+              {/* achievements */}
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                 <div className="bg-gradient-to-r from-amber-50 to-yellow-50 px-6 py-4 border-b border-gray-100">
                   <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -236,7 +236,7 @@ const Profile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Recent Activity */}
+              {/* recent activity */}
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-100">
                   <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">

@@ -15,6 +15,7 @@ export default function SignUp() {
   const { login, isLoggedIn } = useUser();
   const navigate = useNavigate();
 
+  // redirect if already logged in
   useEffect(() => {
     if (isLoggedIn) {
       navigate('/');
@@ -43,6 +44,7 @@ export default function SignUp() {
     setIsLoading(true);
 
     try {
+      // fake delay to simulate api call
       await new Promise(resolve => setTimeout(resolve, 1000));
       login({
         name,
@@ -51,7 +53,7 @@ export default function SignUp() {
         experience: 0,
         badges: ['Beginner']
       });
-      navigate('/profile-setup'); // Changed from '/' to '/profile-setup'
+      navigate('/profile-setup');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -61,7 +63,7 @@ export default function SignUp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-amber-50 to-orange-50 flex items-center justify-center p-4">
-      {/* Animated Background Elements - Hot colors */}
+      {/* floating background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-red-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
         <div className="absolute top-40 right-10 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
@@ -69,7 +71,7 @@ export default function SignUp() {
       </div>
 
       <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-center relative z-10">
-        {/* Left Side - Branding */}
+        {/* left side - branding */}
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
@@ -94,6 +96,7 @@ export default function SignUp() {
             </p>
           </div>
 
+          {/* feature list */}
           <div className="space-y-4">
             <div className="flex items-start space-x-4 p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-orange-100">
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
@@ -125,7 +128,7 @@ export default function SignUp() {
           </div>
         </motion.div>
 
-        {/* Right Side - Sign Up Form */}
+        {/* right side - form */}
         <motion.div
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
@@ -133,6 +136,7 @@ export default function SignUp() {
           className="w-full"
         >
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 p-8 lg:p-12">
+            {/* mobile logo */}
             <Link to="/" className="lg:hidden flex items-center justify-center space-x-3 mb-8">
               <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg">
                 <Dumbbell className="h-7 w-7 text-white" />

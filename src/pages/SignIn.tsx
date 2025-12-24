@@ -13,6 +13,7 @@ export default function SignIn() {
   const { login, isLoggedIn } = useUser();
   const navigate = useNavigate();
 
+  // redirect if already logged in
   useEffect(() => {
     if (isLoggedIn) {
       navigate('/');
@@ -31,6 +32,7 @@ export default function SignIn() {
     setIsLoading(true);
 
     try {
+      // fake delay to simulate api call
       await new Promise(resolve => setTimeout(resolve, 1000));
       login({
         name: email.split('@')[0],
@@ -49,7 +51,7 @@ export default function SignIn() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-amber-50 flex items-center justify-center p-4">
-      {/* Animated Background Elements - Hot colors */}
+      {/* floating background blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
         <div className="absolute top-40 right-10 w-72 h-72 bg-red-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
@@ -57,14 +59,13 @@ export default function SignIn() {
       </div>
 
       <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-center relative z-10">
-        {/* Left Side - Branding */}
+        {/* left side - branding */}
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
           className="hidden lg:flex flex-col justify-center space-y-8 p-12"
         >
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
             <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-105">
               <Dumbbell className="h-8 w-8 text-white" />
@@ -105,7 +106,7 @@ export default function SignIn() {
           </div>
         </motion.div>
 
-        {/* Right Side - Sign In Form */}
+        {/* right side - form */}
         <motion.div
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
@@ -113,7 +114,7 @@ export default function SignIn() {
           className="w-full"
         >
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 p-8 lg:p-12">
-            {/* Mobile Logo */}
+            {/* mobile logo */}
             <Link to="/" className="lg:hidden flex items-center justify-center space-x-3 mb-8">
               <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg">
                 <Dumbbell className="h-7 w-7 text-white" />
@@ -139,7 +140,6 @@ export default function SignIn() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm font-bold text-gray-900 mb-2">
                   Email Address
@@ -158,7 +158,6 @@ export default function SignIn() {
                 </div>
               </div>
 
-              {/* Password Field */}
               <div>
                 <label htmlFor="password" className="block text-sm font-bold text-gray-900 mb-2">
                   Password
@@ -184,7 +183,6 @@ export default function SignIn() {
                 </div>
               </div>
 
-              {/* Forgot Password Link */}
               <div className="flex justify-end">
                 <Link
                   to="/forgot-password"
@@ -194,7 +192,6 @@ export default function SignIn() {
                 </Link>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isLoading}
@@ -214,7 +211,6 @@ export default function SignIn() {
               </button>
             </form>
 
-            {/* Sign Up Link */}
             <div className="mt-8 text-center">
               <p className="text-gray-600">
                 Don't have an account?{' '}

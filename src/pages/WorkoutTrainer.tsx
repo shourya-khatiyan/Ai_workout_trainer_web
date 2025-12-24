@@ -11,6 +11,7 @@ const WorkoutTrainer: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [modelsLoaded, setModelsLoaded] = useState(false);
 
+  // redirect to signin if not logged in
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/signin');
@@ -18,6 +19,7 @@ const WorkoutTrainer: React.FC = () => {
     document.title = 'AI Workout Trainer';
   }, [isLoggedIn, navigate]);
 
+  // called when models finish loading
   const handleModelsLoaded = () => {
     setModelsLoaded(true);
     setTimeout(() => {

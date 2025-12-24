@@ -6,17 +6,18 @@ interface ModelLoadingIndicatorProps {
   message?: string;
 }
 
+// loading spinner shown while ai model is loading
 const ModelLoadingIndicator: React.FC<ModelLoadingIndicatorProps> = ({
   message = 'Loading AI model...'
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-gray-100 shadow-lg">
+    <div className="flex flex-col items-center justify-center p-8 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl border border-gray-100 shadow-lg">
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
         className="mb-6"
       >
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl">
+        <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-xl">
           <Cpu className="h-8 w-8 text-white" />
         </div>
       </motion.div>
@@ -33,12 +34,12 @@ const ModelLoadingIndicator: React.FC<ModelLoadingIndicatorProps> = ({
         Please ensure your camera is connected and ready
       </p>
 
-      {/* Animated loading dots */}
+      {/* loading dots */}
       <div className="flex space-x-2 mt-6">
         {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
-            className="w-2 h-2 bg-blue-500 rounded-full"
+            className="w-2 h-2 bg-orange-500 rounded-full"
             animate={{
               y: [-4, 4, -4],
               opacity: [1, 0.5, 1]

@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Add a global style for dropdowns to ensure they're always on top */
+/* dropdown z-index fix */
 .dropdown-container {
   position: relative;
   z-index: 9999;
@@ -18,12 +18,12 @@
   opacity: 1;
 }
 
-/* Portal container for dropdowns */
 #portal-root {
   position: relative;
   z-index: 9999;
 }
 
+/* main color vars - hot theme */
 :root {
   --primary: #F97316;
   --primary-dark: #EA580C;
@@ -42,7 +42,7 @@
   --text-secondary: #D4A574;
 }
 
-/* Light theme variables */
+/* light theme */
 .light-theme {
   --primary: #F97316;
   --primary-dark: #EA580C;
@@ -61,7 +61,7 @@
   --text-secondary: #78716C;
 }
 
-/* Dark theme is the default */
+/* dark theme is default */
 .dark-theme {
   --primary: #F97316;
   --primary-dark: #EA580C;
@@ -92,7 +92,7 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Theme-specific styles */
+/* light theme specific stuff */
 .light-theme .hero-gradient {
   background: linear-gradient(to bottom, #FFFBF5, #FFF7ED);
 }
@@ -114,7 +114,7 @@ body {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* New theme styles */
+/* background helpers */
 .bg-background {
   background-color: #0F0908;
 }
@@ -131,7 +131,7 @@ body {
   border-color: #4A3530;
 }
 
-/* Text colors - Hot theme */
+/* text colors */
 .neon-orange {
   color: #FB923C;
 }
@@ -152,7 +152,7 @@ body {
   color: #F56565;
 }
 
-/* Borders - Hot theme */
+/* borders */
 .neon-border {
   border: 1px solid rgba(249, 115, 22, 0.5);
 }
@@ -166,7 +166,7 @@ body {
   border: 1px solid rgba(61, 45, 40, 0.5);
 }
 
-/* Gradient text - Hot theme */
+/* gradient text */
 .gradient-text {
   background: linear-gradient(to right, #F97316, #EF4444);
   -webkit-background-clip: text;
@@ -208,7 +208,7 @@ body {
   z-index: 0;
 }
 
-/* Grid pattern */
+/* grid pattern overlay */
 .grid-pattern {
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
@@ -216,7 +216,7 @@ body {
   background-size: 30px 30px;
 }
 
-/* Button styles */
+/* button hover effects */
 .glow-border {
   transition: all 0.3s ease;
 }
@@ -245,7 +245,7 @@ body {
   transform: translateY(-1px);
 }
 
-/* Animations */
+/* animations */
 @keyframes gradient-shift {
   0% {
     background-position: 0% 50%;
@@ -283,7 +283,7 @@ body {
   animation: pulse-animation 2s infinite;
 }
 
-/* Components - Hot theme buttons */
+/* button styles */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -338,7 +338,7 @@ body {
   box-shadow: 0 10px 25px rgba(249, 115, 22, 0.05);
 }
 
-/* Form elements */
+/* form inputs */
 input,
 textarea,
 select {
@@ -358,7 +358,7 @@ select:focus {
   box-shadow: 0 0 0 2px #F97316;
 }
 
-/* Navbar styles */
+/* navbar */
 .navbar {
   position: fixed;
   top: 0;
@@ -376,14 +376,14 @@ select:focus {
   box-shadow: 0 4px 20px rgba(249, 115, 22, 0.1);
 }
 
-/* Footer styles */
+/* footer */
 .footer {
   background-color: var(--card-dark);
   border-top: 1px solid var(--border);
   padding: 3rem 0;
 }
 
-/* Custom scrollbar - Hot theme */
+/* custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -420,27 +420,27 @@ select:focus {
   background: rgba(249, 115, 22, 0.7);
 }
 
-/* Fix for WebGL texture import error */
+/* webgl texture fix */
 video {
   transform: translateZ(0);
   backface-visibility: hidden;
   will-change: transform;
 }
 
-/* Prevent flickering in the UI */
+/* smooth transitions */
 .transition-all {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 500ms;
 }
 
-/* Improve canvas rendering */
+/* canvas rendering */
 canvas {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
 }
 
-/* Smoother animations */
+/* fade in animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -455,7 +455,7 @@ canvas {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Floating animation */
+/* floating animation */
 @keyframes float {
   0% {
     transform: translateY(0px);

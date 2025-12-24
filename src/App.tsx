@@ -16,14 +16,14 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    // Skip loading for trainer page
+    // skip loading screen for trainer page
     if (location.pathname === '/trainer') {
       setIsLoading(false);
       return;
     }
 
-    // Smooth progress animation
-    const duration = 2500; // 2.5 seconds
+    // fake loading bar that takes 2.5 seconds
+    const duration = 2500;
     const steps = 50;
     const interval = duration / steps;
 
@@ -41,6 +41,7 @@ function App() {
     return () => clearInterval(timer);
   }, [location.pathname]);
 
+  // loading screen
   if (isLoading) {
     return (
       <motion.div
@@ -48,7 +49,7 @@ function App() {
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 overflow-hidden"
       >
-        {/* Professional gradient background - Hot theme */}
+        {/* background */}
         <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
           <div className="absolute inset-0 opacity-40">
             <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-100 to-amber-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
@@ -59,9 +60,9 @@ function App() {
           <div className="absolute inset-0 bg-light-vignette"></div>
         </div>
 
-        {/* Content Container */}
+        {/* main content */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-6">
-          {/* Logo Section */}
+          {/* logo */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -83,7 +84,6 @@ function App() {
               </div>
             </motion.div>
 
-            {/* Tagline */}
             <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -94,7 +94,7 @@ function App() {
             </motion.p>
           </motion.div>
 
-          {/* Features Cards - Hot theme */}
+          {/* feature cards */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -122,21 +122,19 @@ function App() {
             ))}
           </motion.div>
 
-          {/* Progress Section - Hot theme */}
+          {/* progress bar */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
             className="w-full max-w-md"
           >
-            {/* Progress Bar */}
             <div className="relative w-full h-2 bg-white/60 backdrop-blur-sm rounded-full overflow-hidden mb-3 shadow-inner">
               <motion.div
                 className="absolute inset-y-0 left-0 bg-gradient-to-r from-orange-500 via-red-500 to-amber-500 rounded-full"
                 style={{ width: `${progress}%` }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
-                {/* Shimmer effect */}
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-40"
                   animate={{ x: ['-100%', '200%'] }}
@@ -145,7 +143,6 @@ function App() {
               </motion.div>
             </div>
 
-            {/* Loading Text */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-orange-600 animate-pulse" />
@@ -159,7 +156,6 @@ function App() {
             </div>
           </motion.div>
 
-          {/* Bottom Tagline */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -170,44 +166,31 @@ function App() {
           </motion.p>
         </div>
 
-        {/* Styles */}
+        {/* css animations */}
         <style>{`
           @keyframes float {
             0%, 100% { transform: translate(0px, 0px) scale(1); }
             33% { transform: translate(50px, -80px) scale(1.1); }
             66% { transform: translate(-40px, 60px) scale(0.95); }
           }
-          
           @keyframes float-delayed {
             0%, 100% { transform: translate(0px, 0px) scale(1); }
             33% { transform: translate(-60px, 70px) scale(1.05); }
             66% { transform: translate(50px, -50px) scale(0.9); }
           }
-          
           @keyframes float-slow {
             0%, 100% { transform: translate(0px, 0px) scale(1); }
             50% { transform: translate(30px, -40px) scale(1.08); }
           }
-          
-          .animate-float {
-            animation: float 15s ease-in-out infinite;
-          }
-          
-          .animate-float-delayed {
-            animation: float-delayed 18s ease-in-out infinite;
-          }
-          
-          .animate-float-slow {
-            animation: float-slow 20s ease-in-out infinite;
-          }
-
+          .animate-float { animation: float 15s ease-in-out infinite; }
+          .animate-float-delayed { animation: float-delayed 18s ease-in-out infinite; }
+          .animate-float-slow { animation: float-slow 20s ease-in-out infinite; }
           .bg-grid-pattern {
             background-image: 
               linear-gradient(rgba(100, 100, 100, 0.03) 1px, transparent 1px),
               linear-gradient(90deg, rgba(100, 100, 100, 0.03) 1px, transparent 1px);
             background-size: 50px 50px;
           }
-
           .bg-light-vignette {
             background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
           }
@@ -216,6 +199,7 @@ function App() {
     );
   }
 
+  // main app with routes
   return (
     <UserProvider>
       <AnimatePresence mode="wait">

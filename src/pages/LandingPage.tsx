@@ -21,12 +21,14 @@ import {
 
 type Maybe<T> = T | undefined | null;
 
+// simple card component
 const Card: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ className = '', children }) => (
   <div className={`bg-white border border-orange-100 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ${className}`}>
     {children}
   </div>
 );
 
+// stat display component
 const Stat: React.FC<{ label: string; value: React.ReactNode; icon?: React.ReactNode; trend?: string }> = ({
   label,
   value,
@@ -47,6 +49,7 @@ const Stat: React.FC<{ label: string; value: React.ReactNode; icon?: React.React
   </div>
 );
 
+// day dot for streak calendar
 const DayDot: React.FC<{ active?: boolean; index: number }> = ({ active, index }) => {
   const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   return (
@@ -66,7 +69,7 @@ const DayDot: React.FC<{ active?: boolean; index: number }> = ({ active, index }
   );
 };
 
-// Clean spotlight effect only - no gradient color change
+// cool spotlight effect on the title text
 const SpotlightText: React.FC<{ children: string }> = ({ children }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
@@ -103,7 +106,6 @@ const SpotlightText: React.FC<{ children: string }> = ({ children }) => {
       ref={containerRef}
       className="relative inline-block cursor-pointer select-none"
     >
-      {/* Base text - solid color */}
       <h1
         className="font-black text-gray-900"
         style={{
@@ -114,7 +116,6 @@ const SpotlightText: React.FC<{ children: string }> = ({ children }) => {
         {children}
       </h1>
 
-      {/* Spotlight glow effect only - Hot colors */}
       {isHovering && (
         <div
           className="absolute pointer-events-none blur-3xl"
@@ -134,6 +135,7 @@ const SpotlightText: React.FC<{ children: string }> = ({ children }) => {
   );
 };
 
+// helper functions
 const formatCm = (v: Maybe<number>) => (typeof v === 'number' ? `${v} cm` : 'Not set');
 const formatKg = (v: Maybe<number>) => (typeof v === 'number' ? `${v} kg` : 'Not set');
 const safe = <T,>(v: Maybe<T>, fallback: T) => (v ?? fallback);
@@ -141,7 +143,7 @@ const safe = <T,>(v: Maybe<T>, fallback: T) => (v ?? fallback);
 const LandingPage: React.FC = () => {
   const { isLoggedIn, user } = useUser?.() ?? { isLoggedIn: false, user: {} as any };
 
-  // Derive values
+  // get user stats with fallbacks
   const level = safe<number>(user?.level, 1);
   const experience = safe<number>(user?.experience, 0);
   const xpToNext = 100 - (experience % 100);
@@ -153,7 +155,6 @@ const LandingPage: React.FC = () => {
   const chest = typeof user?.chestSize === 'number' ? `${user.chestSize} cm` : 'N/A';
   const neck = typeof user?.neckSize === 'number' ? `${user.neckSize} cm` : 'N/A';
 
-  // Analytics
   const streak = safe<number>(user?.streak?.current, 3);
   const totalWorkouts = safe<number>(user?.stats?.totalWorkouts, 12);
   const avgAccuracy = safe<number>(user?.stats?.averageAccuracy, 87);
@@ -161,16 +162,15 @@ const LandingPage: React.FC = () => {
   const mostPracticed = safe<string>(user?.stats?.mostPracticed, 'Squats');
   const mostPracticedSessions = safe<number>(user?.stats?.mostPracticedSessions, 8);
 
-  // 7-day streak visualization
   const streakDays = Array.from({ length: 7 }, (_, i) => i < streak).reverse();
 
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white text-gray-900">
-        {/* Full-Screen Hero Section - Hot Color Theme */}
+        {/* hero section */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-          {/* Background Image Layer - Blurred */}
+          {/* background image */}
           <div className="absolute inset-0">
             <img
               src="/assets/hero.png"
@@ -178,37 +178,28 @@ const LandingPage: React.FC = () => {
               className="w-full h-full object-cover"
               style={{ filter: 'blur(5px)', transform: 'scale(1.1)' }}
             />
-            {/* Hot color overlay for better text readability */}
             <div className="absolute inset-0 bg-gradient-to-br from-orange-900/40 via-red-900/30 to-amber-900/40"></div>
-
-            {/* White overlay to lighten the image */}
             <div className="absolute inset-0 bg-white/60"></div>
           </div>
 
-          {/* Hot professional gradient overlay */}
+          {/* gradient overlay with floating blobs */}
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50/80 via-amber-50/70 to-red-50/80">
-            {/* Subtle animated mesh gradients - Hot colors */}
             <div className="absolute inset-0 opacity-15">
               <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-100 to-amber-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
               <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-red-100 to-orange-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
               <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-amber-100 to-yellow-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
             </div>
-
-            {/* Subtle grid pattern overlay */}
             <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
-
-            {/* Light radial gradient vignette */}
             <div className="absolute inset-0 bg-light-vignette"></div>
           </div>
 
-          {/* Hero content */}
+          {/* hero content */}
           <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
             <div className="mb-8 inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-lg rounded-full border border-orange-200 shadow-lg">
               <Zap className="h-4 w-4 text-orange-600 animate-pulse" />
               <span className="text-gray-700 font-semibold text-xs tracking-wide">AI-Powered Form Analysis</span>
             </div>
 
-            {/* Spotlight text effect - Clean, professional */}
             <div className="mb-6 space-y-2">
               <SpotlightText>AI Workout</SpotlightText>
               <SpotlightText>Trainer</SpotlightText>
@@ -228,21 +219,17 @@ const LandingPage: React.FC = () => {
               </Link>
             </div>
 
-            {/* Scroll indicator */}
             <div className="animate-bounce">
               <ArrowDown className="h-6 w-6 text-gray-400 mx-auto" />
               <p className="text-gray-500 text-xs mt-1 font-medium">Scroll to see your progress</p>
             </div>
           </div>
 
-          {/* Decorative gradient overlay */}
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent"></div>
         </section>
 
-        {/* Analytics Dashboard Section */}
+        {/* dashboard section */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
-
-          {/* Section header */}
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Your Training Dashboard
@@ -253,7 +240,7 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Profile Summary */}
+            {/* profile summary */}
             <section className="lg:col-span-1">
               <Card>
                 <div className="p-6 border-b border-orange-100 bg-gradient-to-br from-orange-50 to-amber-50">
@@ -305,9 +292,9 @@ const LandingPage: React.FC = () => {
               </Card>
             </section>
 
-            {/* Analytics Grid */}
+            {/* analytics grid */}
             <section className="lg:col-span-2 space-y-8">
-              {/* Streak Card */}
+              {/* streak card */}
               <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
@@ -331,7 +318,7 @@ const LandingPage: React.FC = () => {
                 </div>
               </Card>
 
-              {/* Stats Grid */}
+              {/* stats grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Card>
                   <div className="p-6 space-y-4">
@@ -371,7 +358,7 @@ const LandingPage: React.FC = () => {
                 </Card>
               </div>
 
-              {/* Achievements & Insights */}
+              {/* achievements and insights */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
                   <div className="p-6">
@@ -427,7 +414,7 @@ const LandingPage: React.FC = () => {
                 </Card>
               </div>
 
-              {/* CTA Card - Hot theme */}
+              {/* cta card */}
               <Card className="bg-gradient-to-r from-orange-500 to-red-600 border-0">
                 <div className="p-8 text-center">
                   <h3 className="text-2xl font-bold text-white mb-2">Ready to train smarter?</h3>
@@ -452,51 +439,38 @@ const LandingPage: React.FC = () => {
           </div>
         </main>
 
-        {/* Footer */}
+        {/* footer */}
         <footer className="border-t border-orange-200 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-gray-500">
             <p>© {new Date().getFullYear()} AI Workout Trainer. Powered by TensorFlow.js & MoveNet.</p>
           </div>
         </footer>
 
-        {/* Custom animations and styles */}
+        {/* css animations */}
         <style>{`
         @keyframes float {
           0%, 100% { transform: translate(0px, 0px) scale(1); }
           33% { transform: translate(50px, -80px) scale(1.1); }
           66% { transform: translate(-40px, 60px) scale(0.95); }
         }
-        
         @keyframes float-delayed {
           0%, 100% { transform: translate(0px, 0px) scale(1); }
           33% { transform: translate(-60px, 70px) scale(1.05); }
           66% { transform: translate(50px, -50px) scale(0.9); }
         }
-        
         @keyframes float-slow {
           0%, 100% { transform: translate(0px, 0px) scale(1); }
           50% { transform: translate(30px, -40px) scale(1.08); }
         }
-        
-        .animate-float {
-          animation: float 15s ease-in-out infinite;
-        }
-        
-        .animate-float-delayed {
-          animation: float-delayed 18s ease-in-out infinite;
-        }
-        
-        .animate-float-slow {
-          animation: float-slow 20s ease-in-out infinite;
-        }
-
+        .animate-float { animation: float 15s ease-in-out infinite; }
+        .animate-float-delayed { animation: float-delayed 18s ease-in-out infinite; }
+        .animate-float-slow { animation: float-slow 20s ease-in-out infinite; }
         .bg-grid-pattern {
           background-image: 
             linear-gradient(rgba(100, 100, 100, 0.03) 1px, transparent 1px),
             linear-gradient(90deg, rgba(100, 100, 100, 0.03) 1px, transparent 1px);
           background-size: 50px 50px;
         }
-
         .bg-light-vignette {
           background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
         }

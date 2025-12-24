@@ -26,12 +26,12 @@ function App() {
     const duration = 2500; // 2.5 seconds
     const steps = 50;
     const interval = duration / steps;
-    
+
     let currentStep = 0;
     const timer = setInterval(() => {
       currentStep++;
       setProgress((currentStep / steps) * 100);
-      
+
       if (currentStep >= steps) {
         clearInterval(timer);
         setTimeout(() => setIsLoading(false), 300);
@@ -48,12 +48,12 @@ function App() {
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 overflow-hidden"
       >
-        {/* Professional gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        {/* Professional gradient background - Hot theme */}
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
           <div className="absolute inset-0 opacity-40">
-            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-100 to-cyan-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
-            <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
-            <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-indigo-100 to-blue-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-100 to-amber-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
+            <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-red-100 to-orange-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
+            <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-amber-100 to-yellow-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
           </div>
           <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
           <div className="absolute inset-0 bg-light-vignette"></div>
@@ -69,14 +69,14 @@ function App() {
             className="text-center mb-12"
           >
             <motion.div
-              className="inline-flex items-center gap-4 px-8 py-4 bg-white/90 backdrop-blur-xl rounded-2xl border border-gray-200 shadow-2xl mb-6"
+              className="inline-flex items-center gap-4 px-8 py-4 bg-white/90 backdrop-blur-xl rounded-2xl border border-orange-200 shadow-2xl mb-6"
               whileHover={{ scale: 1.02 }}
             >
-              <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+              <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg">
                 <Dumbbell className="h-9 w-9 text-white" />
               </div>
               <div className="text-left">
-                <h1 className="text-3xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-black bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
                   AI Workout Trainer
                 </h1>
                 <p className="text-sm text-gray-600 font-semibold">Transform Your Fitness Journey</p>
@@ -94,7 +94,7 @@ function App() {
             </motion.p>
           </motion.div>
 
-          {/* Features Cards */}
+          {/* Features Cards - Hot theme */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -102,16 +102,16 @@ function App() {
             className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12 max-w-4xl w-full"
           >
             {[
-              { icon: Zap, title: 'Instant Feedback', desc: 'Real-time pose correction', color: 'from-blue-500 to-cyan-500' },
-              { icon: Target, title: 'Precision Tracking', desc: 'Advanced motion analysis', color: 'from-indigo-500 to-purple-500' },
-              { icon: TrendingUp, title: 'Progress Insights', desc: 'Data-driven improvements', color: 'from-purple-500 to-pink-500' }
+              { icon: Zap, title: 'Instant Feedback', desc: 'Real-time pose correction', color: 'from-orange-500 to-amber-500' },
+              { icon: Target, title: 'Precision Tracking', desc: 'Advanced motion analysis', color: 'from-red-500 to-orange-500' },
+              { icon: TrendingUp, title: 'Progress Insights', desc: 'Data-driven improvements', color: 'from-amber-500 to-yellow-500' }
             ].map((feature, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.5 + idx * 0.1 }}
-                className="bg-white/80 backdrop-blur-md rounded-xl p-5 border border-gray-200 shadow-lg hover:shadow-xl transition-all"
+                className="bg-white/80 backdrop-blur-md rounded-xl p-5 border border-orange-200 shadow-lg hover:shadow-xl transition-all"
               >
                 <div className={`h-12 w-12 rounded-lg bg-gradient-to-br ${feature.color} flex items-center justify-center mb-3 shadow-md`}>
                   <feature.icon className="h-6 w-6 text-white" />
@@ -122,7 +122,7 @@ function App() {
             ))}
           </motion.div>
 
-          {/* Progress Section */}
+          {/* Progress Section - Hot theme */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -132,7 +132,7 @@ function App() {
             {/* Progress Bar */}
             <div className="relative w-full h-2 bg-white/60 backdrop-blur-sm rounded-full overflow-hidden mb-3 shadow-inner">
               <motion.div
-                className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full"
+                className="absolute inset-y-0 left-0 bg-gradient-to-r from-orange-500 via-red-500 to-amber-500 rounded-full"
                 style={{ width: `${progress}%` }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
@@ -148,14 +148,14 @@ function App() {
             {/* Loading Text */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-blue-600 animate-pulse" />
+                <Activity className="h-4 w-4 text-orange-600 animate-pulse" />
                 <span className="text-sm font-semibold text-gray-700">
-                  {progress < 30 ? 'Loading AI Models...' : 
-                   progress < 70 ? 'Preparing Workspace...' : 
-                   'Almost Ready...'}
+                  {progress < 30 ? 'Loading AI Models...' :
+                    progress < 70 ? 'Preparing Workspace...' :
+                      'Almost Ready...'}
                 </span>
               </div>
-              <span className="text-sm font-bold text-blue-600">{Math.round(progress)}%</span>
+              <span className="text-sm font-bold text-orange-600">{Math.round(progress)}%</span>
             </div>
           </motion.div>
 

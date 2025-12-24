@@ -1,5 +1,6 @@
 import { Dumbbell } from 'lucide-react';
 
+// simple logo component
 export default function Logo() {
   return (
     <div className="flex items-center">

@@ -1,11 +1,10 @@
-// Voice Feedback Service for AI Workout Trainer
-// Manages intelligent voice feedback with dialogue variations, priority queue, and voting mechanism
+// voice feedback service - handles all the speech stuff for correcting posture
 
 interface FeedbackItem {
     text: string;
     status: 'good' | 'warning' | 'error';
-    type?: string; // Type of feedback for dialogue selection
-    priority?: number; // Priority for queue sorting (higher = more urgent)
+    type?: string;
+    priority?: number;
 }
 
 interface QueuedFeedback {
@@ -22,17 +21,17 @@ interface DialogueDatabase {
 class VoiceFeedbackService {
     private isEnabled: boolean = false;
     private feedbackQueue: Map<string, QueuedFeedback> = new Map();
-    private dialogueHistory: Map<string, number[]> = new Map(); // Track recently used dialogue indices
+    private dialogueHistory: Map<string, number[]> = new Map();
     private isSpeaking: boolean = false;
     private processingInterval: number | null = null;
-    private longDurationThreshold: number = 10000; // 10 seconds for correction guidance
-    private votingThreshold: number = 1500; // 1.5 seconds for voting mechanism
+    private longDurationThreshold: number = 10000; // 10 seconds before giving detailed help
+    private votingThreshold: number = 1500; // 1.5 seconds before speaking
     private speechSynthesis: SpeechSynthesis;
     private currentUtterance: SpeechSynthesisUtterance | null = null;
 
-    // Dialogue database with natural-sounding variations
+    // all the different ways to say feedback
     private dialogues: DialogueDatabase = {
-        // Hip feedback
+        // hip stuff
         hip_more: [
             "Bend your hips a bit more",
             "Lower your hips down",
@@ -47,8 +46,7 @@ class VoiceFeedbackService {
             "Lift your hips slightly",
             "Your hips are too low, come up a bit"
         ],
-
-        // Knee feedback
+        // knee stuff
         knee_more: [
             "Bend your knees more",
             "Lower down by bending your knees",
@@ -63,8 +61,7 @@ class VoiceFeedbackService {
             "Raise up by straightening your knees",
             "Less bend in the knees"
         ],
-
-        // Elbow feedback
+        // elbow stuff
         elbow_more: [
             "Bend your elbows more",
             "Your elbows need more bend",
@@ -79,8 +76,7 @@ class VoiceFeedbackService {
             "Less bend in the elbows",
             "Push your arms straighter"
         ],
-
-        // Shoulder feedback
+        // shoulder stuff
         shoulder_more: [
             "Adjust your shoulder angle",
             "Rotate your shoulders forward slightly",
@@ -95,8 +91,7 @@ class VoiceFeedbackService {
             "Retract your shoulders slightly",
             "Roll your shoulders back"
         ],
-
-        // Back straightness feedback
+        // back stuff
         back_upper: [
             "Straighten your upper back",
             "Keep your upper back straight",
@@ -118,8 +113,7 @@ class VoiceFeedbackService {
             "Don't arch your lower back too much",
             "Align your lower back"
         ],
-
-        // Distance feedback
+        // camera distance
         distance_close: [
             "Step back from the camera",
             "You're too close, move back a bit",
@@ -134,8 +128,7 @@ class VoiceFeedbackService {
             "Take a step forward",
             "Move in a bit closer"
         ],
-
-        // Visibility feedback
+        // visibility
         visibility: [
             "Position yourself in front of the camera",
             "Make sure you're fully visible",
@@ -145,7 +138,7 @@ class VoiceFeedbackService {
         ]
     };
 
-    // Correction guidance for long-duration errors
+    // detailed help for when someone keeps messing up the same thing
     private correctionGuidance: { [key: string]: string } = {
         hip: "To correct your hip position: First, imagine sitting back into a chair. Keep your weight on your heels. Your knees should track over your toes.",
         knee: "For proper knee alignment: Make sure your knees don't go past your toes. Keep them aligned with your feet. Distribute your weight evenly.",
@@ -160,7 +153,6 @@ class VoiceFeedbackService {
         this.speechSynthesis = window.speechSynthesis;
     }
 
-    // Enable or disable voice feedback
     setEnabled(enabled: boolean): void {
         this.isEnabled = enabled;
 
@@ -172,19 +164,18 @@ class VoiceFeedbackService {
         }
     }
 
-    // Check if voice feedback is enabled
     isActive(): boolean {
         return this.isEnabled;
     }
 
-    // Add feedback to the voting queue
+    // add feedback to the queue
     addFeedback(feedbackItems: FeedbackItem[]): void {
         if (!this.isEnabled) return;
 
         const currentTime = Date.now();
         const activeKeys = new Set<string>();
 
-        // Process only error and warning feedback (wrong posture only)
+        // only care about errors and warnings
         const relevantFeedback = feedbackItems.filter(
             item => item.status === 'error' || item.status === 'warning'
         );
@@ -194,12 +185,10 @@ class VoiceFeedbackService {
             activeKeys.add(key);
 
             if (this.feedbackQueue.has(key)) {
-                // Update existing feedback
                 const queued = this.feedbackQueue.get(key)!;
                 queued.lastSeenTime = currentTime;
-                queued.feedback = item; // Update with latest version
+                queued.feedback = item;
             } else {
-                // Add new feedback
                 this.feedbackQueue.set(key, {
                     feedback: item,
                     firstSeenTime: currentTime,
@@ -209,7 +198,7 @@ class VoiceFeedbackService {
             }
         });
 
-        // Remove feedback that's no longer active
+        // remove old feedback that's not happening anymore
         const keysToRemove: string[] = [];
         this.feedbackQueue.forEach((_, key) => {
             if (!activeKeys.has(key)) {
@@ -219,19 +208,16 @@ class VoiceFeedbackService {
         keysToRemove.forEach(key => this.feedbackQueue.delete(key));
     }
 
-    // Generate unique key for feedback item
     private generateFeedbackKey(item: FeedbackItem): string {
         return `${item.text}-${item.status}`;
     }
 
-    // Start processing feedback queue
     private startProcessing(): void {
         this.processingInterval = window.setInterval(() => {
             this.processFeedbackQueue();
-        }, 500); // Check every 500ms
+        }, 500);
     }
 
-    // Stop processing feedback queue
     private stopProcessing(): void {
         if (this.processingInterval) {
             clearInterval(this.processingInterval);
@@ -240,18 +226,15 @@ class VoiceFeedbackService {
         this.feedbackQueue.clear();
     }
 
-    // Process the feedback queue
     private processFeedbackQueue(): void {
         if (!this.isEnabled || this.isSpeaking) return;
 
         const currentTime = Date.now();
         const eligibleFeedback: QueuedFeedback[] = [];
 
-        // Find feedback that has persisted long enough
+        // find feedback thats been around long enough
         this.feedbackQueue.forEach(queued => {
             const persistenceDuration = currentTime - queued.firstSeenTime;
-
-            // Check if feedback has persisted for voting threshold
             if (persistenceDuration >= this.votingThreshold) {
                 eligibleFeedback.push(queued);
             }
@@ -259,29 +242,24 @@ class VoiceFeedbackService {
 
         if (eligibleFeedback.length === 0) return;
 
-        // Sort by priority (error > warning) and then by persistence duration
+        // sort by priority and time
         eligibleFeedback.sort((a, b) => {
             const priorityA = this.getPriority(a.feedback);
             const priorityB = this.getPriority(b.feedback);
 
             if (priorityA !== priorityB) {
-                return priorityB - priorityA; // Higher priority first
+                return priorityB - priorityA;
             }
-
-            // If same priority, speak the one that's been waiting longer
             return a.firstSeenTime - b.firstSeenTime;
         });
 
-        // Speak the highest priority feedback
         const toSpeak = eligibleFeedback[0];
         this.speakFeedback(toSpeak);
     }
 
-    // Get priority value for feedback
     private getPriority(feedback: FeedbackItem): number {
         if (feedback.priority !== undefined) return feedback.priority;
 
-        // Default priority based on status
         switch (feedback.status) {
             case 'error':
                 return 3;
@@ -292,14 +270,13 @@ class VoiceFeedbackService {
         }
     }
 
-    // Speak feedback with natural voice
     private speakFeedback(queued: QueuedFeedback): void {
         const currentTime = Date.now();
         const persistenceDuration = currentTime - queued.firstSeenTime;
 
         let textToSpeak: string;
 
-        // Check if this is a long-duration error that needs correction guidance
+        // give detailed help if they keep messing up
         if (persistenceDuration >= this.longDurationThreshold && queued.spokenCount > 0) {
             textToSpeak = this.getCorrectionGuidance(queued.feedback);
         } else {
@@ -309,19 +286,14 @@ class VoiceFeedbackService {
         if (!textToSpeak) return;
 
         this.isSpeaking = true;
-
-        // Cancel any ongoing speech
         this.cancelCurrentSpeech();
 
-        // Create and configure utterance
         this.currentUtterance = new SpeechSynthesisUtterance(textToSpeak);
+        this.currentUtterance.rate = 0.95;
+        this.currentUtterance.pitch = 1.0;
+        this.currentUtterance.volume = 1.0;
 
-        // Configure for natural-sounding speech
-        this.currentUtterance.rate = 0.95; // Slightly slower for clarity
-        this.currentUtterance.pitch = 1.0; // Normal pitch
-        this.currentUtterance.volume = 1.0; // Full volume
-
-        // Try to use a natural-sounding voice
+        // try to find a nice voice
         const voices = this.speechSynthesis.getVoices();
         const preferredVoice = voices.find(voice =>
             voice.lang.startsWith('en') && (voice.name.includes('Natural') || voice.name.includes('Premium'))
@@ -331,25 +303,21 @@ class VoiceFeedbackService {
             this.currentUtterance.voice = preferredVoice;
         }
 
-        // Handle speech end
         this.currentUtterance.onend = () => {
             this.isSpeaking = false;
             queued.spokenCount++;
-            queued.firstSeenTime = Date.now(); // Reset timer for long-duration guidance
+            queued.firstSeenTime = Date.now();
             this.currentUtterance = null;
         };
 
-        // Handle speech error
         this.currentUtterance.onerror = () => {
             this.isSpeaking = false;
             this.currentUtterance = null;
         };
 
-        // Speak
         this.speechSynthesis.speak(this.currentUtterance);
     }
 
-    // Cancel current speech
     private cancelCurrentSpeech(): void {
         if (this.speechSynthesis.speaking) {
             this.speechSynthesis.cancel();
@@ -357,28 +325,24 @@ class VoiceFeedbackService {
         this.currentUtterance = null;
     }
 
-    // Get dialogue variation for feedback
+    // pick a random variation so it doesnt sound robotic
     private getDialogueVariation(feedback: FeedbackItem): string {
         const dialogueKey = this.identifyDialogueType(feedback);
 
         if (!dialogueKey || !this.dialogues[dialogueKey]) {
-            return feedback.text; // Fallback to original text
+            return feedback.text;
         }
 
         const variations = this.dialogues[dialogueKey];
         if (variations.length === 0) return feedback.text;
 
-        // Get recently used indices for this dialogue type
         const recentIndices = this.dialogueHistory.get(dialogueKey) || [];
 
-        // Find an index that hasn't been used recently
         let selectedIndex: number;
         if (recentIndices.length >= variations.length) {
-            // All variations have been used, clear history and start fresh
             selectedIndex = 0;
             this.dialogueHistory.set(dialogueKey, []);
         } else {
-            // Find unused variation
             const availableIndices = variations
                 .map((_, index) => index)
                 .filter(index => !recentIndices.includes(index));
@@ -386,31 +350,25 @@ class VoiceFeedbackService {
             selectedIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
         }
 
-        // Update history (keep last 3 used indices)
         const updatedHistory = [...recentIndices, selectedIndex].slice(-3);
         this.dialogueHistory.set(dialogueKey, updatedHistory);
 
         return variations[selectedIndex];
     }
 
-    // Identify dialogue type from feedback
+    // figure out what kind of feedback this is
     private identifyDialogueType(feedback: FeedbackItem): string | null {
         const text = feedback.text.toLowerCase();
 
-        // Distance checks
         if (text.includes('move back') || text.includes('too close')) {
             return 'distance_close';
         }
         if (text.includes('move closer') || text.includes('too far')) {
             return 'distance_far';
         }
-
-        // Visibility check
         if (text.includes('position yourself') || text.includes('camera')) {
             return 'visibility';
         }
-
-        // Back checks
         if (text.includes('upper back') || text.includes('neck')) {
             return 'back_upper';
         }
@@ -421,7 +379,6 @@ class VoiceFeedbackService {
             return 'back_lower';
         }
 
-        // Joint checks with direction
         const joints = ['hip', 'knee', 'elbow', 'shoulder'];
         for (const joint of joints) {
             if (text.includes(joint)) {
@@ -437,11 +394,9 @@ class VoiceFeedbackService {
         return null;
     }
 
-    // Get correction guidance for long-duration errors
     private getCorrectionGuidance(feedback: FeedbackItem): string {
         const text = feedback.text.toLowerCase();
 
-        // Identify the body part that needs correction
         if (text.includes('hip')) return this.correctionGuidance.hip;
         if (text.includes('knee')) return this.correctionGuidance.knee;
         if (text.includes('elbow')) return this.correctionGuidance.elbow;
@@ -454,10 +409,9 @@ class VoiceFeedbackService {
             return this.correctionGuidance.visibility;
         }
 
-        return feedback.text; // Fallback
+        return feedback.text;
     }
 
-    // Clean up
     cleanup(): void {
         this.stopProcessing();
         this.cancelCurrentSpeech();
@@ -466,5 +420,4 @@ class VoiceFeedbackService {
     }
 }
 
-// Export singleton instance
 export const voiceFeedbackService = new VoiceFeedbackService();

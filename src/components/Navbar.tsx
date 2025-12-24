@@ -22,10 +22,12 @@ export default function Navbar() {
   };
 
   useEffect(() => {
+    // add shadow when scrolled
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
 
+    // close dropdown when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
       if (
         profileDropdownRef.current &&
@@ -47,13 +49,13 @@ export default function Navbar() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${isScrolled
-          ? 'bg-white/95 backdrop-blur-lg shadow-lg border-b border-orange-200'
-          : 'bg-white/80 backdrop-blur-md border-b border-orange-100'
+        ? 'bg-white/95 backdrop-blur-lg shadow-lg border-b border-orange-200'
+        : 'bg-white/80 backdrop-blur-md border-b border-orange-100'
         }`}
     >
       <div className="w-full px-6 sm:px-8 lg:px-12 bg-gradient-to-r from-orange-50 to-amber-50">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+          {/* logo */}
           <Link to="/" className="flex items-center space-x-3 group">
             <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
               <Dumbbell className="h-6 w-6 text-white" />
@@ -63,7 +65,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Auth/Profile */}
+          {/* profile or auth buttons */}
           <div className="flex items-center">
             {isLoggedIn ? (
               <div className="relative z-[9999]" ref={profileDropdownRef}>
@@ -96,7 +98,7 @@ export default function Navbar() {
                   />
                 </button>
 
-                {/* Dropdown Menu */}
+                {/* dropdown menu */}
                 <AnimatePresence>
                   {isProfileOpen && (
                     <motion.div
@@ -107,7 +109,6 @@ export default function Navbar() {
                       style={{ zIndex: 99999 }}
                       className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-orange-100 py-2 overflow-hidden"
                     >
-                      {/* User Info Header */}
                       <div className="px-4 py-3 border-b border-orange-100 bg-gradient-to-r from-orange-50 to-amber-50">
                         <p className="text-sm font-bold text-gray-900">
                           {user?.name || 'User'}
@@ -117,7 +118,6 @@ export default function Navbar() {
                         </p>
                       </div>
 
-                      {/* Menu Items */}
                       <div className="py-2">
                         <Link
                           to="/profile"
@@ -129,7 +129,6 @@ export default function Navbar() {
                         </Link>
                       </div>
 
-                      {/* Logout */}
                       <div className="border-t border-orange-100 pt-2 pb-1">
                         <button
                           onClick={handleLogout}

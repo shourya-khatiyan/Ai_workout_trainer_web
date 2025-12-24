@@ -16,13 +16,11 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    // skip loading screen for trainer page
     if (location.pathname === '/trainer') {
       setIsLoading(false);
       return;
     }
 
-    // fake loading bar that takes 2.5 seconds
     const duration = 2500;
     const steps = 50;
     const interval = duration / steps;

@@ -2,22 +2,26 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import * as tf from '@tensorflow/tfjs';
 import * as poseDetection from '@tensorflow-models/pose-detection';
+import { Dumbbell } from 'lucide-react';
 
 interface ModelPreloaderProps {
   onComplete: () => void;
 }
 
 export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
-  const [loadingText, setLoadingText] = useState('Initializing Model...');
+  const [loadingText, setLoadingText] = useState('Initializing...');
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const loadModels = async () => {
       try {
         setLoadingText('Setting up TensorFlow...');
+        setProgress(20);
         await tf.setBackend('webgl');
         await tf.ready();
 
-        setLoadingText('Loading Pose Detection...');
+        setLoadingText('Loading Pose Detection Model...');
+        setProgress(50);
         const model = poseDetection.SupportedModels.MoveNet;
         const detectorConfig = {
           modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
@@ -25,13 +29,16 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
 
         await poseDetection.createDetector(model, detectorConfig);
 
-        setLoadingText('Models Ready!');
+        setLoadingText('Preparing AI Engine...');
+        setProgress(80);
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        setLoadingText('Ready!');
+        setProgress(100);
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        console.log('Models loaded successfully');
         onComplete();
       } catch (error) {
-        // retry if loading fails
         console.error('Error loading models:', error);
         setTimeout(() => loadModels(), 2000);
       }
@@ -40,160 +47,247 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
     loadModels();
   }, [onComplete]);
 
+  // Animated skeleton keypoints
+  const skeletonPoints = [
+    { id: 'head', cx: 200, cy: 60, r: 18 },
+    { id: 'neck', cx: 200, cy: 95, r: 8 },
+    { id: 'lShoulder', cx: 160, cy: 110, r: 10 },
+    { id: 'rShoulder', cx: 240, cy: 110, r: 10 },
+    { id: 'lElbow', cx: 130, cy: 150, r: 8 },
+    { id: 'rElbow', cx: 270, cy: 150, r: 8 },
+    { id: 'lWrist', cx: 110, cy: 190, r: 8 },
+    { id: 'rWrist', cx: 290, cy: 190, r: 8 },
+    { id: 'torso', cx: 200, cy: 160, r: 12 },
+    { id: 'lHip', cx: 170, cy: 210, r: 10 },
+    { id: 'rHip', cx: 230, cy: 210, r: 10 },
+    { id: 'lKnee', cx: 165, cy: 270, r: 8 },
+    { id: 'rKnee', cx: 235, cy: 270, r: 8 },
+    { id: 'lAnkle', cx: 160, cy: 330, r: 8 },
+    { id: 'rAnkle', cx: 240, cy: 330, r: 8 },
+  ];
+
+  const skeletonLines = [
+    { from: 'head', to: 'neck' },
+    { from: 'neck', to: 'lShoulder' },
+    { from: 'neck', to: 'rShoulder' },
+    { from: 'lShoulder', to: 'lElbow' },
+    { from: 'rShoulder', to: 'rElbow' },
+    { from: 'lElbow', to: 'lWrist' },
+    { from: 'rElbow', to: 'rWrist' },
+    { from: 'neck', to: 'torso' },
+    { from: 'torso', to: 'lHip' },
+    { from: 'torso', to: 'rHip' },
+    { from: 'lHip', to: 'rHip' },
+    { from: 'lHip', to: 'lKnee' },
+    { from: 'rHip', to: 'rKnee' },
+    { from: 'lKnee', to: 'lAnkle' },
+    { from: 'rKnee', to: 'rAnkle' },
+  ];
+
+  const getPoint = (id: string) => skeletonPoints.find(p => p.id === id)!;
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden">
-      {/* background with blur */}
-      <div className="absolute inset-0">
-        <img
-          src="/assets/hero.png"
-          alt="Background"
-          className="w-full h-full object-cover"
-          style={{ filter: 'blur(12px)', transform: 'scale(1.1)' }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-900/60 via-red-900/50 to-amber-900/60"></div>
-        <div className="absolute inset-0 bg-white/40"></div>
-      </div>
+      {/* Light gradient background matching website theme */}
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
+        {/* Background image with blur */}
+        <div className="absolute inset-0">
+          <img
+            src="/assets/hero.png"
+            alt="Background"
+            className="w-full h-full object-cover"
+            style={{ filter: 'blur(12px)', transform: 'scale(1.1)' }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-900/40 via-red-900/30 to-amber-900/40"></div>
+          <div className="absolute inset-0 bg-white/60"></div>
+        </div>
 
-      {/* floating blobs */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-50/80 via-amber-50/70 to-red-50/80">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-100 to-amber-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
-          <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-red-100 to-orange-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
-          <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-amber-100 to-yellow-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+        {/* Floating blobs like landing page */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-200 to-amber-200 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
+          <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-red-200 to-orange-200 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
+          <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-amber-200 to-yellow-200 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
         </div>
       </div>
 
-      {/* main content */}
-      <div className="relative z-10 text-center px-6 max-w-2xl w-full">
-        {/* logo */}
+      {/* Main content */}
+      <div className="relative z-10 text-center px-6 max-w-lg w-full">
+        {/* Logo */}
         <motion.div
-          initial={{ scale: 0.8, opacity: 15 }}
-          animate={{ scale: 1, opacity: 29 }}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-12 inline-flex items-center gap-3 px-6 py-3 bg-white/40 backdrop-blur-lg rounded-full border-2 shadow-2xl"
+          className="mb-8 inline-flex items-center gap-3 px-6 py-3 bg-white/80 backdrop-blur-lg rounded-2xl border border-orange-200 shadow-xl"
         >
-          <span className="text-2xl font-black bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-md">
+            <Dumbbell className="h-5 w-5 text-white" />
+          </div>
+          <span className="text-xl font-black bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
             AI Workout Trainer
           </span>
         </motion.div>
 
-        {/* ai chip animation */}
-        <div className="flex justify-center items-center mb-8">
-          <svg className="w-full max-w-md" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-            {/* chip body */}
-            <rect
-              className="chip-body"
-              x="120"
-              y="100"
-              width="160"
-              height="100"
-              rx="12"
-              ry="12"
-              fill="#ffffffff"
-              fillOpacity="0.3"
-              filter="url(#chipShadow)"
-            />
-
-            {/* chip labels */}
-            <text x="200" y="140" textAnchor="middle" className="chip-text" fill="#676a6cff" fontSize="15" fontWeight="600">
-              AI PROCESSOR
-            </text>
-            <text x="200" y="165" textAnchor="middle" fill="#686868ff" fontSize="12" fontWeight="400">
-              POSE DETECTION
-            </text>
-
-            {/* left pins */}
-            <g className="chip-pins-left">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <rect key={`left-${i}`} className="chip-pin" x="100" y={110 + i * 18} width="20" height="4" fill="#ffffffff" stroke="#ffffffff" strokeWidth="0.5" />
-              ))}
-            </g>
-
-            {/* right pins */}
-            <g className="chip-pins-right">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <rect key={`right-${i}`} className="chip-pin" x="280" y={110 + i * 18} width="20" height="4" fill="#ffffffff" stroke="#ffffffff" strokeWidth="0.5" />
-              ))}
-            </g>
-
-            {/* left side traces */}
-            <path className="trace-bg" d="M 20 112 L 100 112" stroke="#ffffffff" strokeWidth="2" fill="none" />
-            <path className="trace-flow orange" d="M 20 112 L 100 112" strokeWidth="2" fill="none" />
-
-            <path className="trace-bg" d="M 20 130 L 100 130" stroke="#ffffffff" strokeWidth="2" fill="none" />
-            <path className="trace-flow red" d="M 20 130 L 100 130" strokeWidth="2" fill="none" style={{ animationDelay: '0.3s' }} />
-
-            <path className="trace-bg" d="M 20 148 L 100 148" stroke="#ffffffff" strokeWidth="2" fill="none" />
-            <path className="trace-flow amber" d="M 20 148 L 100 148" strokeWidth="2" fill="none" style={{ animationDelay: '0.6s' }} />
-
-            <path className="trace-bg" d="M 20 166 L 100 166" stroke="#ffffffff" strokeWidth="2" fill="none" />
-            <path className="trace-flow yellow" d="M 20 166 L 100 166" strokeWidth="2" fill="none" style={{ animationDelay: '0.9s' }} />
-
-            <path className="trace-bg" d="M 20 184 L 100 184" stroke="#ffffffff" strokeWidth="2" fill="none" />
-            <path className="trace-flow rose" d="M 20 184 L 100 184" strokeWidth="2" fill="none" style={{ animationDelay: '1.2s' }} />
-
-            {/* right side traces */}
-            <path className="trace-bg" d="M 300 112 L 380 112" stroke="#ffffffff" strokeWidth="2" fill="none" />
-            <path className="trace-flow orange" d="M 300 112 L 380 112" strokeWidth="2" fill="none" style={{ animationDelay: '0.2s' }} />
-
-            <path className="trace-bg" d="M 300 130 L 380 130" stroke="#ffffffff" strokeWidth="2" fill="none" />
-            <path className="trace-flow red" d="M 300 130 L 380 130" strokeWidth="2" fill="none" style={{ animationDelay: '0.5s' }} />
-
-            <path className="trace-bg" d="M 300 148 L 380 148" stroke="#ffffffff" strokeWidth="2" fill="none" />
-            <path className="trace-flow amber" d="M 300 148 L 380 148" strokeWidth="2" fill="none" style={{ animationDelay: '0.8s' }} />
-
-            <path className="trace-bg" d="M 300 166 L 380 166" stroke="#ffffffff" strokeWidth="2" fill="none" />
-            <path className="trace-flow yellow" d="M 300 166 L 380 166" strokeWidth="2" fill="none" style={{ animationDelay: '1.1s' }} />
-
-            <path className="trace-bg" d="M 300 184 L 380 184" stroke="#ffffffff" strokeWidth="2" fill="none" />
-            <path className="trace-flow rose" d="M 300 184 L 380 184" strokeWidth="2" fill="none" style={{ animationDelay: '1.4s' }} />
-
-            {/* svg filters */}
-            <defs>
-              <linearGradient id="chipGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#fff7ed" />
-                <stop offset="50%" stopColor="#fed7aa" />
-                <stop offset="100%" stopColor="#fdba74" />
-              </linearGradient>
-              <filter id="chipShadow">
-                <feDropShadow dx="0" dy="4" stdDeviation="8" floodOpacity="0.3" />
-              </filter>
-            </defs>
-          </svg>
-        </div>
-
-        {/* loading text */}
-        <motion.p
-          key={loadingText}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-lg font-bold text-gray-800 mb-4"
+        {/* Animated skeleton figure */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex justify-center mb-8"
         >
-          {loadingText}
-        </motion.p>
+          <div className="bg-white/60 backdrop-blur-lg rounded-3xl p-6 border border-orange-100 shadow-2xl">
+            <svg width="320" height="300" viewBox="0 0 400 380" className="drop-shadow-lg">
+              {/* Glow filter */}
+              <defs>
+                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                  <feMerge>
+                    <feMergeNode in="coloredBlur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <linearGradient id="skeletonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#f97316">
+                    <animate attributeName="stop-color" values="#f97316;#ef4444;#f97316" dur="3s" repeatCount="indefinite" />
+                  </stop>
+                  <stop offset="100%" stopColor="#ef4444">
+                    <animate attributeName="stop-color" values="#ef4444;#f97316;#ef4444" dur="3s" repeatCount="indefinite" />
+                  </stop>
+                </linearGradient>
+              </defs>
 
-        {/* pulsing dots */}
-        <div className="flex justify-center gap-2">
-          {[0, 1, 2].map((i) => (
-            <motion.div
-              key={i}
-              className="w-2 h-2 bg-orange-600 rounded-full"
-              animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                delay: i * 0.2,
-              }}
-            />
-          ))}
-        </div>
+              {/* Skeleton lines */}
+              {skeletonLines.map((line, idx) => {
+                const from = getPoint(line.from);
+                const to = getPoint(line.to);
+                return (
+                  <motion.line
+                    key={idx}
+                    x1={from.cx}
+                    y1={from.cy}
+                    x2={to.cx}
+                    y2={to.cy}
+                    stroke="url(#skeletonGradient)"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    filter="url(#glow)"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: idx * 0.05 }}
+                  />
+                );
+              })}
+
+              {/* Skeleton points */}
+              {skeletonPoints.map((point, idx) => (
+                <motion.circle
+                  key={point.id}
+                  cx={point.cx}
+                  cy={point.cy}
+                  r={point.r}
+                  fill="url(#skeletonGradient)"
+                  filter="url(#glow)"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{
+                    scale: [1, 1.15, 1],
+                    opacity: 1
+                  }}
+                  transition={{
+                    scale: { duration: 2, repeat: Infinity, delay: idx * 0.1 },
+                    opacity: { duration: 0.3, delay: idx * 0.03 }
+                  }}
+                />
+              ))}
+
+              {/* Scanning effect */}
+              <motion.rect
+                x="100"
+                y="0"
+                width="200"
+                height="6"
+                fill="url(#skeletonGradient)"
+                opacity="0.4"
+                rx="3"
+                animate={{ y: [0, 380, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              />
+            </svg>
+          </div>
+        </motion.div>
+
+        {/* Progress section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 border border-orange-100 shadow-xl"
+        >
+          {/* Loading text */}
+          <motion.p
+            key={loadingText}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-lg font-bold text-gray-800 mb-4"
+          >
+            {loadingText}
+          </motion.p>
+
+          {/* Progress bar */}
+          <div className="relative mb-3">
+            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.5 }}
+                style={{
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 2s linear infinite'
+                }}
+              />
+            </div>
+            <div className="flex justify-between mt-2">
+              <span className="text-xs font-semibold text-gray-500">Loading AI Models</span>
+              <span className="text-xs font-bold text-orange-600">{progress}%</span>
+            </div>
+          </div>
+
+          {/* Pulsing dots */}
+          <div className="flex justify-center gap-2 mt-4">
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-orange-500 to-red-500"
+                animate={{
+                  scale: [1, 1.5, 1],
+                  opacity: [0.4, 1, 0.4],
+                }}
+                transition={{
+                  duration: 1.2,
+                  repeat: Infinity,
+                  delay: i * 0.15,
+                }}
+              />
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Powered by text */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="mt-6 text-sm text-gray-500 font-medium"
+        >
+          Powered by TensorFlow.js & MoveNet
+        </motion.p>
       </div>
 
-      {/* css animations */}
+      {/* CSS animations */}
       <style>{`
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
         @keyframes float {
           0%, 100% { transform: translate(0px, 0px) scale(1); }
           33% { transform: translate(50px, -80px) scale(1.1); }
@@ -211,20 +305,6 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
         .animate-float { animation: float 15s ease-in-out infinite; }
         .animate-float-delayed { animation: float-delayed 18s ease-in-out infinite; }
         .animate-float-slow { animation: float-slow 20s ease-in-out infinite; }
-        .trace-flow {
-          stroke-dasharray: 40 400;
-          stroke-dashoffset: 438;
-          filter: drop-shadow(0 0 6px currentColor);
-          animation: flow 3s cubic-bezier(0.5, 0, 0.9, 1) infinite;
-        }
-        .orange { stroke: #f97316; color: #f97316; }
-        .red { stroke: #ef4444; color: #ef4444; }
-        .amber { stroke: #f59e0b; color: #f59e0b; }
-        .yellow { stroke: #eab308; color: #eab308; }
-        .rose { stroke: #f43f5e; color: #f43f5e; }
-        @keyframes flow { to { stroke-dashoffset: 0; } }
-        .chip-text { font-weight: bold; letter-spacing: 2px; }
-        .chip-pin { filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3)); }
       `}</style>
     </div>
   );

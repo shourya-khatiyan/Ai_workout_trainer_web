@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import ProfileSetup from './pages/ProfileSetup';
+import BodyCalibration from './pages/BodyCalibration';
 import Profile from './pages/Profile';
 import WorkoutTrainer from './pages/WorkoutTrainer';
 import { UserProvider } from './context/UserContext';
@@ -206,6 +207,7 @@ function App() {
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/profile-setup" element={<ProfileSetup />} />
+          <Route path="/body-calibration" element={<BodyCalibration />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/trainer" element={<WorkoutTrainer />} />
         </Routes>

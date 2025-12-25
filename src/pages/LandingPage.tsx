@@ -37,12 +37,12 @@ const Stat: React.FC<{ label: string; value: React.ReactNode; icon?: React.React
 }) => (
   <div className="flex items-center justify-between p-5 bg-gradient-to-br from-white to-orange-50 rounded-xl border border-orange-100 hover:border-orange-300 transition-all duration-300">
     <div className="flex-1">
-      <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">{label}</p>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      <span className="block text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">{label}</span>
+      <span className="block text-2xl font-bold text-gray-900">{value}</span>
       {trend && (
-        <p className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1">
+        <span className="block text-xs text-green-600 font-medium mt-1 flex items-center gap-1">
           <TrendingUp className="h-3 w-3" /> {trend}
-        </p>
+        </span>
       )}
     </div>
     {icon ? <div className="text-orange-500 opacity-80">{icon}</div> : null}
@@ -155,12 +155,13 @@ const LandingPage: React.FC = () => {
   const chest = typeof user?.chestSize === 'number' ? `${user.chestSize} cm` : 'N/A';
   const neck = typeof user?.neckSize === 'number' ? `${user.neckSize} cm` : 'N/A';
 
-  const streak = safe<number>(user?.streak?.current, 3);
-  const totalWorkouts = safe<number>(user?.stats?.totalWorkouts, 12);
-  const avgAccuracy = safe<number>(user?.stats?.averageAccuracy, 87);
-  const totalTimeHours = safe<number>(user?.stats?.totalTimeHours, 3.5);
-  const mostPracticed = safe<string>(user?.stats?.mostPracticed, 'Squats');
-  const mostPracticedSessions = safe<number>(user?.stats?.mostPracticedSessions, 8);
+  const streak = safe<number>(user?.streak?.current, 0);
+  const totalWorkouts = safe<number>(user?.stats?.totalWorkouts, 0);
+  const avgAccuracy = safe<number>(user?.stats?.averageAccuracy, 0);
+  const totalTimeHours = safe<number>(user?.stats?.totalTimeHours, 0);
+  const mostPracticed = safe<string>(user?.stats?.mostPracticed, 'None yet');
+  const mostPracticedSessions = safe<number>(user?.stats?.mostPracticedSessions, 0);
+  const badges = user?.badges || [];
 
   const streakDays = Array.from({ length: 7 }, (_, i) => i < streak).reverse();
 
@@ -176,7 +177,7 @@ const LandingPage: React.FC = () => {
               src="/assets/hero.png"
               alt="Workout background"
               className="w-full h-full object-cover"
-              style={{ filter: 'blur(5px)', transform: 'scale(1.1)' }}
+              style={{ filter: 'blur(4px)', transform: 'scale(1.1)' }}
             />
             <div className="absolute inset-0 bg-gradient-to-br from-orange-900/40 via-red-900/30 to-amber-900/40"></div>
             <div className="absolute inset-0 bg-white/60"></div>
@@ -369,19 +370,20 @@ const LandingPage: React.FC = () => {
                       <Trophy className="h-6 w-6 text-amber-500" />
                     </div>
                     <ul className="space-y-3">
-                      {[
-                        { title: 'First Workout', desc: 'Completed your first workout session', color: 'bg-green-500' },
-                        { title: 'Perfect Form', desc: 'Achieved 95% form accuracy', color: 'bg-orange-500' },
-                        { title: '3-Day Streak', desc: 'Work out for 3 days in a row', color: 'bg-red-500' }
-                      ].map((achievement, idx) => (
-                        <li key={idx} className="flex items-start gap-3 p-3 bg-white/60 rounded-lg backdrop-blur-sm">
-                          <span className={`mt-1 h-3 w-3 rounded-full ${achievement.color} shadow-md`} />
-                          <div>
-                            <p className="text-sm font-bold text-gray-900">{achievement.title}</p>
-                            <p className="text-xs text-gray-600">{achievement.desc}</p>
-                          </div>
+                      {badges.length > 0 ? (
+                        badges.slice(0, 3).map((badge, idx) => (
+                          <li key={idx} className="flex items-start gap-3 p-3 bg-white/60 rounded-lg backdrop-blur-sm">
+                            <span className="mt-1 h-3 w-3 rounded-full bg-gradient-to-r from-orange-500 to-red-500 shadow-md" />
+                            <div>
+                              <p className="text-sm font-bold text-gray-900">{badge}</p>
+                            </div>
+                          </li>
+                        ))
+                      ) : (
+                        <li className="text-center py-4 text-gray-500 text-sm">
+                          Complete workouts to earn badges!
                         </li>
-                      ))}
+                      )}
                     </ul>
                   </div>
                 </Card>
@@ -425,12 +427,6 @@ const LandingPage: React.FC = () => {
                       className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-orange-700 font-bold hover:scale-105 transition-transform shadow-xl"
                     >
                       <Play className="h-5 w-5" /> Start Training
-                    </Link>
-                    <Link
-                      to="/programs"
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 backdrop-blur-md text-white font-semibold border-2 border-white/30 hover:bg-white/20 transition-all"
-                    >
-                      <Activity className="h-5 w-5" /> Browse Programs
                     </Link>
                   </div>
                 </div>

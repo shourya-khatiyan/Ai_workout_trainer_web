@@ -11,10 +11,14 @@ export default function Navbar() {
   const navigate = useNavigate();
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-    setIsProfileOpen(false);
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+      setIsProfileOpen(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const toggleProfileDropdown = () => {

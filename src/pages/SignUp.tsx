@@ -12,7 +12,7 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isLoggedIn } = useUser();
+  const { signUp, isLoggedIn } = useUser();
   const navigate = useNavigate();
 
   // redirect if already logged in
@@ -44,18 +44,18 @@ export default function SignUp() {
     setIsLoading(true);
 
     try {
-      // fake delay to simulate api call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      login({
-        name,
-        email,
-        level: 1,
-        experience: 0,
-        badges: ['Beginner']
-      });
+      await signUp(email, password, name);
       navigate('/profile-setup');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      // Handle specific Supabase auth errors
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      if (errorMessage.includes('User already registered')) {
+        setError('An account with this email already exists.');
+      } else if (errorMessage.includes('Password')) {
+        setError('Password does not meet requirements.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }

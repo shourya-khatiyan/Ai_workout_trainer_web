@@ -6,6 +6,7 @@ import '@tensorflow/tfjs-backend-webgl';
 import { Play, Upload, Pause, SkipBack, SkipForward, RotateCcw, Camera, CameraOff, Download, Settings, Minimize2, Maximize2, LogOut, User, RefreshCw, Plus, ChevronDown, Menu, X, FolderOpen, Trash2, Mic, MicOff } from 'lucide-react';
 import { calculateAngles, calculateAccuracy, generateFeedback, calculateOverallAccuracy, initializeDetector } from '../utils';
 import { voiceFeedbackService } from '../services/voiceFeedbackService';
+import { useUser } from '../context/UserContext';
 
 import './WorkoutTrainerApp.css';
 import { createPortal } from 'react-dom';
@@ -73,6 +74,11 @@ export default function WorkoutTrainerApp() {
   const [countdownValue, setCountdownValue] = useState(0);
   const [showCountdown, setShowCountdown] = useState(false);
   const [showVideoControls, setShowVideoControls] = useState(false);
+
+  // Training metrics for Supabase
+  const [trainingStartTime, setTrainingStartTime] = useState<number | null>(null);
+  const [accuracyReadings, setAccuracyReadings] = useState<number[]>([]);
+  const { completeWorkout, isLoggedIn } = useUser();
 
   // exercise categories and videos management
   interface ExerciseVideo {
@@ -521,6 +527,11 @@ export default function WorkoutTrainerApp() {
 
     setPostureAccuracy(data.overallAccuracy);  // use calculated overall accuracy
 
+    // Collect accuracy readings for workout average
+    if (data.overallAccuracy > 0) {
+      setAccuracyReadings(prev => [...prev, data.overallAccuracy]);
+    }
+
     if (data.overallAccuracy >= 85) {  // 85+ is considered good form
       setPostureStatus('CORRECT');
     } else {
@@ -802,6 +813,9 @@ export default function WorkoutTrainerApp() {
       return;
     }
 
+    // Reset accuracy readings for new session
+    setAccuracyReadings([]);
+
     // start 3 second countdown
     setShowCountdown(true);
     setCountdownValue(3);
@@ -812,6 +826,7 @@ export default function WorkoutTrainerApp() {
           clearInterval(countdownInterval);
           setShowCountdown(false);
           setIsTraining(true);
+          setTrainingStartTime(Date.now()); // Track start time
           // countdown finished, begin training
           return 0;
         }
@@ -821,12 +836,38 @@ export default function WorkoutTrainerApp() {
   };
 
   // end training session
-  const stopTraining = () => {
+  const stopTraining = async () => {
     setIsTraining(false);
     if (trainerVideoRef.current) {
       trainerVideoRef.current.pause();
     }
     setIsPlaying(false);
+
+    // Calculate training duration and average accuracy
+    if (trainingStartTime && isLoggedIn) {
+      const durationMinutes = (Date.now() - trainingStartTime) / 60000;
+      const avgAccuracy = accuracyReadings.length > 0
+        ? accuracyReadings.reduce((a, b) => a + b, 0) / accuracyReadings.length
+        : postureAccuracy;
+
+      // Only save if training was at least 10 seconds
+      if (durationMinutes >= 0.17) {
+        try {
+          const exerciseName = selectedCategory || 'General Workout';
+          const result = await completeWorkout(avgAccuracy, durationMinutes, exerciseName);
+
+          // Show achievement notification if badges earned
+          if (result.newBadges && result.newBadges.length > 0) {
+            alert(`Congrats!! New Badge Earned: ${result.newBadges.join(', ')}!\n+${result.xpGained} XP`);
+          }
+        } catch (error) {
+          console.error('Error saving workout:', error);
+        }
+      }
+    }
+
+    setTrainingStartTime(null);
+    setAccuracyReadings([]);
 
     // reset ui to defaults
     setPostureAccuracy(85);

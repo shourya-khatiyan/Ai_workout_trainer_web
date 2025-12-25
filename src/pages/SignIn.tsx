@@ -32,18 +32,18 @@ export default function SignIn() {
     setIsLoading(true);
 
     try {
-      // fake delay to simulate api call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      login({
-        name: email.split('@')[0],
-        email,
-        level: 1,
-        experience: 0,
-        badges: ['Beginner']
-      });
+      await login(email, password);
       navigate('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      // Handle specific Supabase auth errors
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      if (errorMessage.includes('Invalid login credentials')) {
+        setError('Invalid email or password. Please try again.');
+      } else if (errorMessage.includes('Email not confirmed')) {
+        setError('Please verify your email before signing in.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }

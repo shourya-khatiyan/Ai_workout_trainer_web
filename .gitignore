@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Environment variables (contains secrets)
+.env
+.env.local
+.env.*.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +27,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.env.example
+schema.sql
+fix_constraints.sql
+SUPABASE_SETUP.md

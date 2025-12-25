@@ -18,6 +18,7 @@ AI Workout Trainer is a React-based web application that uses TensorFlow.js and 
 | **Icons** | Lucide React |
 | **AI/ML** | TensorFlow.js + MoveNet |
 | **Webcam** | react-webcam |
+| **Backend** | Supabase (Auth + DB) |
 
 ---
 
@@ -49,6 +50,9 @@ project/
 │   │   └── WorkoutTrainerApp.css
 │   │
 │   ├── services/            # business logic services
+│   │   ├── authService.ts       # supabase auth & profiles
+│   │   ├── gamificationService.ts # xp & leveling logic
+│   │   ├── supabase.ts          # client initialization
 │   │   └── voiceFeedbackService.ts
 │   │
 │   ├── utils/               # utility functions
@@ -94,6 +98,15 @@ npm install
 
 # start development server
 npm run dev
+```
+
+### Environment Setup
+
+Create a `.env` file in the project root:
+
+```env
+VITE_SUPABASE_URL=your_project_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
 ```
 
 ### Available Scripts
@@ -152,7 +165,7 @@ interface UserContextType {
 const { user, isLoggedIn, login, logout, updateUser } = useUser();
 ```
 
-#### ThemeContext
+### ThemeContext
 
 Manages dark/light theme toggle:
 
@@ -163,6 +176,55 @@ interface ThemeContextType {
   isDark: boolean;
 }
 ```
+
+---
+
+## Backend Architecture
+
+### Supabase Integration
+
+The application uses Supabase for authentication and data persistence. The client is initialized in `src/services/supabase.ts`.
+
+### Database Schema
+
+#### `profiles` Table
+Stores user data, stats, and progression.
+
+```typescript
+interface Profile {
+  id: string;               // References auth.users.id
+  email: string;
+  full_name: string;
+  // Stats
+  level: number;
+  experience: number;
+  badges: text[];           // Array of badge names
+  streak_current: number;
+  total_workouts: number;
+  average_accuracy: number;
+  // ...other physical stats
+}
+```
+
+#### `workout_sessions` Table
+Logs individual workout history.
+
+```typescript
+interface WorkoutSession {
+  id: string;
+  user_id: string;
+  exercise_name: string;
+  duration_minutes: number;
+  accuracy: number;
+  created_at: string;
+}
+```
+
+### Authentication Flow
+
+1. **Sign Up**: `authService.signUp` creates auth user + `profiles` row.
+2. **Session**: `UserContext` listens to `onAuthStateChange`.
+3. **Protection**: Protected routes check `useUser().isLoggedIn`.
 
 ---
 

@@ -38,7 +38,8 @@ AI Workout Trainer is a web application that uses **TensorFlow.js** and **MoveNe
 - 🤖 **AI-Powered** - Uses Google's MoveNet for accurate pose detection
 - 🔊 **Voice Feedback** - Hands-free corrections while you work out
 - 📊 **Progress Tracking** - Track your accuracy, streaks, and achievements
-- 🔒 **Privacy First** - All processing happens locally in your browser
+- ☁️ **Cloud Sync** - Save your progress across devices securely
+- 🔒 **Privacy Focused** - Video processing happens locally; only stats are synced
 
 ---
 
@@ -59,6 +60,7 @@ AI Workout Trainer is a web application that uses **TensorFlow.js** and **MoveNe
 | Feature | Description |
 |---------|-------------|
 | **User Profiles** | Create and customize your fitness profile |
+| **Cloud Storage** | Sync stats, streaks, and history across devices |
 | **Body Calibration** | Enter measurements for personalized analysis |
 | **Dashboard** | View workout statistics and progress |
 | **Achievements** | Earn badges for milestones |
@@ -66,11 +68,12 @@ AI Workout Trainer is a web application that uses **TensorFlow.js** and **MoveNe
 
 ### Technical Features
 
+- ⚡ **Supabase Backend** - Secure authentication and database
 - ⚡ **WebGL Acceleration** - GPU-powered pose detection
 - 📱 **Responsive Design** - Works on desktop and tablets
 - 🎨 **Hot Color Theme** - Vibrant orange/red/amber design
 - 🌙 **Dark/Light Mode** - Theme switching support
-- 💾 **Local Storage** - Data persisted in browser
+- 🔒 **Local Processing** - Video stream never leaves your device
 
 ---
 
@@ -93,22 +96,37 @@ AI Workout Trainer is a web application that uses **TensorFlow.js** and **MoveNe
 - **Node.js** 18 or higher
 - **npm** or **yarn**
 - Modern browser with WebGL support
+- **Supabase Account** for backend
 
 ### Quick Start
 
-```bash
-# Clone the repository
-git clone https://github.com/shourya-khatiyan/Ai_workout_trainer_web.git
+1. **Clone the repository**
 
-# Navigate to project directory
-cd Ai_workout_trainer_web/project
+   ```bash
+   git clone https://github.com/shourya-khatiyan/Ai_workout_trainer_web.git
+   cd Ai_workout_trainer_web/project
+   ```
 
-# Install dependencies
-npm install
+2. **Install dependencies**
 
-# Start development server
-npm run dev
-```
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables**
+
+   Create a `.env` file in the project root:
+
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Start development server**
+
+   ```bash
+   npm run dev
+   ```
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
@@ -163,10 +181,11 @@ npm run preview
 | [React Router](https://reactrouter.com/) | Navigation |
 | [Lucide React](https://lucide.dev/) | Icons |
 
-### AI/ML
+### Backend & AI
 
 | Technology | Purpose |
 |------------|---------|
+| [Supabase](https://supabase.com/) | Auth & Database |
 | [TensorFlow.js](https://www.tensorflow.org/js) | ML Runtime |
 | [MoveNet](https://www.tensorflow.org/hub/tutorials/movenet) | Pose Detection |
 | Web Speech API | Voice Feedback |

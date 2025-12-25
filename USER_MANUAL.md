@@ -2,7 +2,7 @@
 
 ## Introduction
 
-AI Workout Trainer is a web application that uses artificial intelligence to analyze your exercise form in real-time. Using your webcam, the app detects your body posture and provides instant feedback to help you perform exercises correctly and safely.
+AI Workout Trainer is a web application that uses artificial intelligence to analyze your exercise form in real-time. Using your webcam, the app detects your body posture and provides instant feedback to help you perform exercises correctly and safely. Your stats and progress are securely synced to the cloud, allowing you to train from any device.
 
 ---
 
@@ -225,9 +225,10 @@ On your profile page, you can update:
 
 ## Privacy & Data
 
-- **Camera data** is processed locally in your browser
+- **Camera data** is processed locally in your browser (video never leaves your device)
+- **Profile data** is stored securely in the cloud via Supabase
 - **No video** is uploaded to servers
-- **Profile data** is stored in your browser's local storage
+- **Authentication** ensures only you can access your data
 - Sign out to clear your session data
 
 ---

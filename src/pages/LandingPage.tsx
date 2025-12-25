@@ -206,7 +206,7 @@ const LandingPage: React.FC = () => {
             </div>
 
             <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
-              Real-time pose detection, instant feedback, and personalized coaching—powered by advanced machine learning.
+              Real-time pose detection, instant feedback, and personalized coaching--powered by advanced machine learning.
             </p>
 
             <div className="mb-12">

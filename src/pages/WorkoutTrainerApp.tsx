@@ -3,7 +3,7 @@ import Webcam from 'react-webcam';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
-import { Play, Upload, Pause, SkipBack, SkipForward, RotateCcw, Camera, CameraOff, Download, Settings, Minimize2, Maximize2, LogOut, User, RefreshCw, Plus, ChevronDown, Menu, X, FolderOpen, Trash2, Mic, MicOff, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import { Play, Upload, Pause, SkipBack, SkipForward, RotateCcw, Camera, CameraOff, Download, Settings, Minimize2, Maximize2, LogOut, User, RefreshCw, Plus, ChevronDown, Menu, X, FolderOpen, Trash2, Mic, MicOff, CheckCircle2, AlertTriangle, XCircle, Volume2, VolumeX, Repeat, Gauge } from 'lucide-react';
 import { calculateAngles, calculateAccuracy, generateFeedback, calculateOverallAccuracy, initializeDetector } from '../utils';
 import { voiceFeedbackService } from '../services/voiceFeedbackService';
 import { useUser } from '../context/UserContext';
@@ -81,6 +81,15 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
   const [countdownValue, setCountdownValue] = useState(0);
   const [showCountdown, setShowCountdown] = useState(false);
   const [showVideoControls, setShowVideoControls] = useState(false);
+
+  // Enhanced video player state
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [isLooping, setIsLooping] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [videoCurrentTime, setVideoCurrentTime] = useState(0);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const progressBarRef = useRef<HTMLDivElement>(null);
 
   // Training metrics for Supabase
   const [trainingStartTime, setTrainingStartTime] = useState<number | null>(null);
@@ -858,6 +867,14 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
     }
   };
 
+  // Format seconds to MM:SS display
+  const formatTime = (seconds: number): string => {
+    if (isNaN(seconds) || seconds < 0) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   // begin training session with countdown
   const startTraining = () => {
     if (!trainerVideoUrl) {
@@ -1344,12 +1361,26 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
                     ref={trainerVideoRef}
                     src={trainerVideoUrl}
                     className="w-full h-full object-contain bg-black"
-                    onEnded={() => setIsPlaying(false)}
+                    onEnded={() => {
+                      if (!isLooping) setIsPlaying(false);
+                    }}
                     playsInline
-                    onLoadedData={() => {
-                      // Set slower playback rate for better landmark tracking
+                    loop={isLooping}
+                    onLoadedMetadata={() => {
                       if (trainerVideoRef.current) {
-                        trainerVideoRef.current.playbackRate = 0.25; // 75% speed
+                        setVideoDuration(trainerVideoRef.current.duration);
+                      }
+                    }}
+                    onLoadedData={() => {
+                      // Set playback rate when video loads
+                      if (trainerVideoRef.current) {
+                        trainerVideoRef.current.playbackRate = playbackRate;
+                      }
+                    }}
+                    onTimeUpdate={() => {
+                      if (trainerVideoRef.current) {
+                        setVideoCurrentTime(trainerVideoRef.current.currentTime);
+                        setVideoProgress((trainerVideoRef.current.currentTime / trainerVideoRef.current.duration) * 100);
                       }
                     }}
                   />
@@ -1363,27 +1394,101 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
                     </div>
                   )}
 
-                  {/* video controls overlay */}
+                  {/* Enhanced video controls overlay */}
                   {showVideoControls && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-40 p-3 flex justify-center items-center space-x-4 backdrop-blur-sm rounded-b-xl">
-                      <button
-                        className="text-white hover:text-orange-400 transition-colors p-2 rounded-lg hover:bg-white/20"
-                        onClick={skipBackward}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 backdrop-blur-sm rounded-b-xl">
+                      {/* Progress bar */}
+                      <div
+                        ref={progressBarRef}
+                        className="h-1.5 bg-white/30 rounded-full mb-3 cursor-pointer group"
+                        onClick={(e) => {
+                          if (progressBarRef.current && trainerVideoRef.current) {
+                            const rect = progressBarRef.current.getBoundingClientRect();
+                            const pos = (e.clientX - rect.left) / rect.width;
+                            trainerVideoRef.current.currentTime = pos * videoDuration;
+                          }
+                        }}
                       >
-                        <SkipBack size={20} />
-                      </button>
-                      <button
-                        className="text-white hover:text-orange-400 transition-colors p-2 rounded-lg hover:bg-white/20"
-                        onClick={togglePlayPause}
-                      >
-                        {isPlaying ? <Pause size={24} /> : <Play size={24} />}
-                      </button>
-                      <button
-                        className="text-white hover:text-orange-400 transition-colors p-2 rounded-lg hover:bg-white/20"
-                        onClick={skipForward}
-                      >
-                        <SkipForward size={20} />
-                      </button>
+                        <div
+                          className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full relative"
+                          style={{ width: `${videoProgress}%` }}
+                        >
+                          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
+
+                      {/* Controls row */}
+                      <div className="flex justify-between items-center">
+                        {/* Left: playback controls */}
+                        <div className="flex items-center gap-2">
+                          <button
+                            className="text-white hover:text-orange-400 transition-colors p-1.5 rounded-lg hover:bg-white/20"
+                            onClick={skipBackward}
+                          >
+                            <SkipBack size={18} />
+                          </button>
+                          <button
+                            className="text-white hover:text-orange-400 transition-colors p-2 rounded-lg hover:bg-white/20 bg-white/10"
+                            onClick={togglePlayPause}
+                          >
+                            {isPlaying ? <Pause size={22} /> : <Play size={22} />}
+                          </button>
+                          <button
+                            className="text-white hover:text-orange-400 transition-colors p-1.5 rounded-lg hover:bg-white/20"
+                            onClick={skipForward}
+                          >
+                            <SkipForward size={18} />
+                          </button>
+
+                          {/* Time display */}
+                          <span className="text-white/80 text-xs font-mono ml-2">
+                            {formatTime(videoCurrentTime)} / {formatTime(videoDuration)}
+                          </span>
+                        </div>
+
+                        {/* Right: options */}
+                        <div className="flex items-center gap-1">
+                          {/* Speed selector */}
+                          <div className="relative">
+                            <button
+                              className={`text-white hover:text-orange-400 transition-colors p-1.5 rounded-lg hover:bg-white/20 flex items-center gap-1 text-xs ${playbackRate !== 1 ? 'text-orange-400' : ''}`}
+                              onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                            >
+                              <Gauge size={16} />
+                              <span>{playbackRate}x</span>
+                            </button>
+
+                            {showSpeedMenu && (
+                              <div className="absolute bottom-full right-0 mb-2 bg-gray-900/95 backdrop-blur-sm rounded-lg py-1 shadow-xl border border-white/10 z-50">
+                                {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 2].map(rate => (
+                                  <button
+                                    key={rate}
+                                    className={`block w-full px-4 py-1.5 text-xs text-left hover:bg-white/10 transition-colors ${playbackRate === rate ? 'text-orange-400 bg-white/5' : 'text-white'}`}
+                                    onClick={() => {
+                                      setPlaybackRate(rate);
+                                      if (trainerVideoRef.current) {
+                                        trainerVideoRef.current.playbackRate = rate;
+                                      }
+                                      setShowSpeedMenu(false);
+                                    }}
+                                  >
+                                    {rate}x
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Loop toggle */}
+                          <button
+                            className={`text-white hover:text-orange-400 transition-colors p-1.5 rounded-lg hover:bg-white/20 ${isLooping ? 'text-orange-400 bg-white/10' : ''}`}
+                            onClick={() => setIsLooping(!isLooping)}
+                            title="Loop video"
+                          >
+                            <Repeat size={16} />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </>

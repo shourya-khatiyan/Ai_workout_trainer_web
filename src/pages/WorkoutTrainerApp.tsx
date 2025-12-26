@@ -1,15 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import * as poseDetection from '@tensorflow-models/pose-detection';
-import * as tf from '@tensorflow/tfjs';
-import '@tensorflow/tfjs-backend-webgl';
-import { Play, Upload, Pause, SkipBack, SkipForward, RotateCcw, Camera, CameraOff, Download, Settings, Minimize2, Maximize2, LogOut, User, RefreshCw, Plus, ChevronDown, Menu, X, FolderOpen, Trash2, Mic, MicOff, CheckCircle2, AlertTriangle, XCircle, Volume2, VolumeX, Repeat, Gauge } from 'lucide-react';
+import { Play, Upload, Pause, SkipBack, SkipForward, Camera, CameraOff, Plus, ChevronDown, FolderOpen, Trash2, Mic, MicOff, CheckCircle2, AlertTriangle, XCircle, Repeat, Gauge } from 'lucide-react';
 import { calculateAngles, calculateAccuracy, generateFeedback, calculateOverallAccuracy, initializeDetector, analyzeVideoForSegments, calculateSegmentMatch, SegmentTrainingState, initialSegmentState } from '../utils';
 import { voiceFeedbackService } from '../services/voiceFeedbackService';
 import { useUser } from '../context/UserContext';
 
 import './WorkoutTrainerApp.css';
-import { createPortal } from 'react-dom';
+
 
 interface WorkoutTrainerAppProps {
   preloadedCameraStream?: MediaStream | null;
@@ -73,8 +71,7 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
     { text: 'Position yourself in front of the camera', status: 'warning' }
   ]);
 
-  // stores the detected pose from trainee's webcam
-  const [traineePose, setTraineePose] = useState<poseDetection.Pose | null>(null);
+
 
   // training session state
   const [isTraining, setIsTraining] = useState<boolean>(false);
@@ -645,7 +642,6 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
 
           if (poses.length > 0) {
             const pose = poses[0];
-            setTraineePose(pose);
 
             // calculate joint angles from keypoints
             const angles = calculateAngles(pose.keypoints);
@@ -1785,7 +1781,7 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
                   <>
                     {/* SEGMENT MODE INFO */}
                     <h2 className="text-base font-bold mb-3 text-purple-700 flex items-center">
-                      🎯 Segment Training
+                      Segment Training
                     </h2>
                     <div className="space-y-3">
                       {/* Segment progress indicators */}

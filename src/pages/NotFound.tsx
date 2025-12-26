@@ -28,16 +28,29 @@ const NotFound: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
-            {/* Animated floating blobs */}
-            <div className="absolute inset-0 opacity-40">
-                <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-200 to-amber-200 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
-                <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-red-200 to-orange-200 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
-                <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-amber-200 to-yellow-200 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+        <div className="min-h-screen relative overflow-hidden">
+            {/* Background image - same as landing page hero */}
+            <div className="absolute inset-0">
+                <img
+                    src="/assets/hero.png"
+                    alt="Background"
+                    className="w-full h-full object-cover"
+                    style={{ filter: 'blur(4px)', transform: 'scale(1.1)' }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-900/40 via-red-900/30 to-amber-900/40"></div>
+                <div className="absolute inset-0 bg-white/60"></div>
             </div>
 
-            {/* Grid pattern */}
-            <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
+            {/* Gradient overlay with floating blobs - same as landing page */}
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-50/80 via-amber-50/70 to-red-50/80">
+                <div className="absolute inset-0 opacity-15">
+                    <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-100 to-amber-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
+                    <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-red-100 to-orange-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
+                    <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-amber-100 to-yellow-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+                </div>
+                <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
+                <div className="absolute inset-0 bg-light-vignette"></div>
+            </div>
 
             {/* Mouse-following spotlight */}
             <div
@@ -210,6 +223,9 @@ const NotFound: React.FC = () => {
             linear-gradient(rgba(100, 100, 100, 0.03) 1px, transparent 1px),
             linear-gradient(90deg, rgba(100, 100, 100, 0.03) 1px, transparent 1px);
           background-size: 50px 50px;
+        }
+        .bg-light-vignette {
+          background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
         }
       `}</style>
         </div>

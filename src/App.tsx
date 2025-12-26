@@ -33,21 +33,30 @@ function App() {
       <motion.div
         initial={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-red-50"
+        className="fixed inset-0 z-50 overflow-hidden"
       >
-        {/* Animated background gradient */}
-        <motion.div
-          className="absolute inset-0"
-          animate={{
-            background: [
-              'radial-gradient(circle at 30% 30%, rgba(249,115,22,0.15) 0%, transparent 50%)',
-              'radial-gradient(circle at 70% 70%, rgba(239,68,68,0.15) 0%, transparent 50%)',
-              'radial-gradient(circle at 30% 70%, rgba(251,191,36,0.15) 0%, transparent 50%)',
-              'radial-gradient(circle at 70% 30%, rgba(249,115,22,0.15) 0%, transparent 50%)',
-            ],
-          }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        />
+        {/* Background image - same as landing page hero */}
+        <div className="absolute inset-0">
+          <img
+            src="/assets/hero.png"
+            alt="Background"
+            className="w-full h-full object-cover"
+            style={{ filter: 'blur(4px)', transform: 'scale(1.1)' }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-900/40 via-red-900/30 to-amber-900/40"></div>
+          <div className="absolute inset-0 bg-white/60"></div>
+        </div>
+
+        {/* Gradient overlay with floating blobs - same as landing page */}
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-50/80 via-amber-50/70 to-red-50/80">
+          <div className="absolute inset-0 opacity-15">
+            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-100 to-amber-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
+            <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-red-100 to-orange-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
+            <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-amber-100 to-yellow-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+          </div>
+          <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
+          <div className="absolute inset-0 bg-light-vignette"></div>
+        </div>
 
         {/* Main content */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center">
@@ -172,6 +181,36 @@ function App() {
             Powered by TensorFlow.js & MoveNet
           </motion.p>
         </div>
+
+        {/* CSS animations - same as landing page */}
+        <style>{`
+          @keyframes float {
+            0%, 100% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(50px, -80px) scale(1.1); }
+            66% { transform: translate(-40px, 60px) scale(0.95); }
+          }
+          @keyframes float-delayed {
+            0%, 100% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(-60px, 70px) scale(1.05); }
+            66% { transform: translate(50px, -50px) scale(0.9); }
+          }
+          @keyframes float-slow {
+            0%, 100% { transform: translate(0px, 0px) scale(1); }
+            50% { transform: translate(30px, -40px) scale(1.08); }
+          }
+          .animate-float { animation: float 15s ease-in-out infinite; }
+          .animate-float-delayed { animation: float-delayed 18s ease-in-out infinite; }
+          .animate-float-slow { animation: float-slow 20s ease-in-out infinite; }
+          .bg-grid-pattern {
+            background-image: 
+              linear-gradient(rgba(100, 100, 100, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(100, 100, 100, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+          }
+          .bg-light-vignette {
+            background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
+          }
+        `}</style>
       </motion.div>
     );
   }

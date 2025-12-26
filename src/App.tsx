@@ -8,12 +8,12 @@ import ProfileSetup from './pages/ProfileSetup';
 import BodyCalibration from './pages/BodyCalibration';
 import Profile from './pages/Profile';
 import WorkoutTrainer from './pages/WorkoutTrainer';
+import NotFound from './pages/NotFound';
 import { UserProvider } from './context/UserContext';
-import { Dumbbell, Zap, Target, TrendingUp, Activity } from 'lucide-react';
+import { Dumbbell } from 'lucide-react';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [progress, setProgress] = useState(0);
   const location = useLocation();
 
   useEffect(() => {
@@ -22,22 +22,9 @@ function App() {
       return;
     }
 
-    const duration = 2500;
-    const steps = 50;
-    const interval = duration / steps;
-
-    let currentStep = 0;
-    const timer = setInterval(() => {
-      currentStep++;
-      setProgress((currentStep / steps) * 100);
-
-      if (currentStep >= steps) {
-        clearInterval(timer);
-        setTimeout(() => setIsLoading(false), 300);
-      }
-    }, interval);
-
-    return () => clearInterval(timer);
+    // Much faster loading - 1.5 seconds
+    const timer = setTimeout(() => setIsLoading(false), 1500);
+    return () => clearTimeout(timer);
   }, [location.pathname]);
 
   // loading screen
@@ -46,154 +33,145 @@ function App() {
       <motion.div
         initial={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 overflow-hidden"
+        className="fixed inset-0 z-50 overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-red-50"
       >
-        {/* background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
-          <div className="absolute inset-0 opacity-40">
-            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-100 to-amber-100 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
-            <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-red-100 to-orange-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
-            <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-amber-100 to-yellow-100 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
-          </div>
-          <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
-          <div className="absolute inset-0 bg-light-vignette"></div>
-        </div>
+        {/* Animated background gradient */}
+        <motion.div
+          className="absolute inset-0"
+          animate={{
+            background: [
+              'radial-gradient(circle at 30% 30%, rgba(249,115,22,0.15) 0%, transparent 50%)',
+              'radial-gradient(circle at 70% 70%, rgba(239,68,68,0.15) 0%, transparent 50%)',
+              'radial-gradient(circle at 30% 70%, rgba(251,191,36,0.15) 0%, transparent 50%)',
+              'radial-gradient(circle at 70% 30%, rgba(249,115,22,0.15) 0%, transparent 50%)',
+            ],
+          }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        />
 
-        {/* main content */}
-        <div className="relative z-10 h-full flex flex-col items-center justify-center px-6">
-          {/* logo */}
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-12"
-          >
+        {/* Main content */}
+        <div className="relative z-10 h-full flex flex-col items-center justify-center">
+          {/* Animated logo container */}
+          <div className="relative">
+            {/* Orbiting dots */}
+            {[0, 1, 2, 3].map((i) => (
+              <motion.div
+                key={i}
+                className="absolute top-1/2 left-1/2 w-3 h-3 rounded-full"
+                style={{
+                  background: `linear-gradient(135deg, ${i === 0 ? '#ea995fff' : i === 1 ? '#e95454ff' : i === 2 ? '#ebd293ff' : '#f1864cff'
+                    }, ${i === 0 ? '#ea580c' : i === 1 ? '#dc2626' : i === 2 ? '#edc98bff' : '#c2410c'
+                    })`,
+                  boxShadow: `0 0 20px ${i === 0 ? 'rgba(249,115,22,0.5)' : i === 1 ? 'rgba(239,68,68,0.5)' : i === 2 ? 'rgba(251,191,36,0.5)' : 'rgba(234,88,12,0.5)'
+                    }`,
+                }}
+                animate={{
+                  x: [
+                    Math.cos((i * Math.PI) / 2) * 60 - 6,
+                    Math.cos((i * Math.PI) / 2 + Math.PI / 2) * 60 - 6,
+                    Math.cos((i * Math.PI) / 2 + Math.PI) * 60 - 6,
+                    Math.cos((i * Math.PI) / 2 + (3 * Math.PI) / 2) * 60 - 6,
+                    Math.cos((i * Math.PI) / 2) * 60 - 6,
+                  ],
+                  y: [
+                    Math.sin((i * Math.PI) / 2) * 60 - 6,
+                    Math.sin((i * Math.PI) / 2 + Math.PI / 2) * 60 - 6,
+                    Math.sin((i * Math.PI) / 2 + Math.PI) * 60 - 6,
+                    Math.sin((i * Math.PI) / 2 + (3 * Math.PI) / 2) * 60 - 6,
+                    Math.sin((i * Math.PI) / 2) * 60 - 6,
+                  ],
+                  scale: [1, 1.2, 1, 0.8, 1],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: i * 0.1,
+                }}
+              />
+            ))}
+
+            {/* Pulsing ring */}
             <motion.div
-              className="inline-flex items-center gap-4 px-8 py-4 bg-white/90 backdrop-blur-xl rounded-2xl border border-orange-200 shadow-2xl mb-6"
-              whileHover={{ scale: 1.02 }}
+              className="absolute top-1/2 left-1/2 w-32 h-32 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-orange-300"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.5, 0.2, 0.5],
+              }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
+            />
+
+            {/* Second pulsing ring */}
+            <motion.div
+              className="absolute top-1/2 left-1/2 w-40 h-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-red-200"
+              animate={{
+                scale: [1.1, 1.3, 1.1],
+                opacity: [0.3, 0.1, 0.3],
+              }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+            />
+
+            {/* Logo */}
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+              className="relative z-10 h-24 w-24 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-2xl"
             >
-              <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg">
-                <Dumbbell className="h-9 w-9 text-white" />
-              </div>
-              <div className="text-left">
-                <h1 className="text-3xl font-black bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                  AI Workout Trainer
-                </h1>
-                <p className="text-sm text-gray-600 font-semibold">Transform Your Fitness Journey</p>
-              </div>
+              <motion.div
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 0.5 }}
+              >
+                <Dumbbell className="h-12 w-12 text-white" />
+              </motion.div>
             </motion.div>
+          </div>
 
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-gray-600 font-medium text-lg"
-            >
-              AI-Powered • Real-Time Analysis • Personalized Coaching
-            </motion.p>
-          </motion.div>
-
-          {/* feature cards */}
-          <motion.div
+          {/* App name */}
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12 max-w-4xl w-full"
+            transition={{ delay: 0.3 }}
+            className="mt-8 text-3xl font-black bg-gradient-to-r from-orange-600 via-red-500 to-amber-500 bg-clip-text text-transparent"
           >
-            {[
-              { icon: Zap, title: 'Instant Feedback', desc: 'Real-time pose correction', color: 'from-orange-500 to-amber-500' },
-              { icon: Target, title: 'Precision Tracking', desc: 'Advanced motion analysis', color: 'from-red-500 to-orange-500' },
-              { icon: TrendingUp, title: 'Progress Insights', desc: 'Data-driven improvements', color: 'from-amber-500 to-yellow-500' }
-            ].map((feature, idx) => (
+            AI Workout Trainer
+          </motion.h1>
+
+          {/* Animated dots loader */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mt-6 flex items-center gap-2"
+          >
+            {[0, 1, 2].map((i) => (
               <motion.div
-                key={idx}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 + idx * 0.1 }}
-                className="bg-white/80 backdrop-blur-md rounded-xl p-5 border border-orange-200 shadow-lg hover:shadow-xl transition-all"
-              >
-                <div className={`h-12 w-12 rounded-lg bg-gradient-to-br ${feature.color} flex items-center justify-center mb-3 shadow-md`}>
-                  <feature.icon className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="font-bold text-gray-900 mb-1">{feature.title}</h3>
-                <p className="text-sm text-gray-600">{feature.desc}</p>
-              </motion.div>
+                key={i}
+                className="w-2 h-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500"
+                animate={{
+                  y: [0, -10, 0],
+                  opacity: [0.5, 1, 0.5],
+                }}
+                transition={{
+                  duration: 0.6,
+                  repeat: Infinity,
+                  delay: i * 0.15,
+                  ease: 'easeInOut',
+                }}
+              />
             ))}
           </motion.div>
 
-          {/* progress bar */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="w-full max-w-md"
-          >
-            <div className="relative w-full h-2 bg-white/60 backdrop-blur-sm rounded-full overflow-hidden mb-3 shadow-inner">
-              <motion.div
-                className="absolute inset-y-0 left-0 bg-gradient-to-r from-orange-500 via-red-500 to-amber-500 rounded-full"
-                style={{ width: `${progress}%` }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-40"
-                  animate={{ x: ['-100%', '200%'] }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                />
-              </motion.div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-orange-600 animate-pulse" />
-                <span className="text-sm font-semibold text-gray-700">
-                  {progress < 30 ? 'Loading AI Models...' :
-                    progress < 70 ? 'Preparing Workspace...' :
-                      'Almost Ready...'}
-                </span>
-              </div>
-              <span className="text-sm font-bold text-orange-600">{Math.round(progress)}%</span>
-            </div>
-          </motion.div>
-
+          {/* Powered by text */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="mt-8 text-xs text-gray-500 font-medium"
+            transition={{ delay: 0.5 }}
+            className="mt-6 text-xs text-gray-400 font-medium"
           >
             Powered by TensorFlow.js & MoveNet
           </motion.p>
         </div>
-
-        {/* css animations */}
-        <style>{`
-          @keyframes float {
-            0%, 100% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(50px, -80px) scale(1.1); }
-            66% { transform: translate(-40px, 60px) scale(0.95); }
-          }
-          @keyframes float-delayed {
-            0%, 100% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(-60px, 70px) scale(1.05); }
-            66% { transform: translate(50px, -50px) scale(0.9); }
-          }
-          @keyframes float-slow {
-            0%, 100% { transform: translate(0px, 0px) scale(1); }
-            50% { transform: translate(30px, -40px) scale(1.08); }
-          }
-          .animate-float { animation: float 15s ease-in-out infinite; }
-          .animate-float-delayed { animation: float-delayed 18s ease-in-out infinite; }
-          .animate-float-slow { animation: float-slow 20s ease-in-out infinite; }
-          .bg-grid-pattern {
-            background-image: 
-              linear-gradient(rgba(100, 100, 100, 0.03) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(100, 100, 100, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-          }
-          .bg-light-vignette {
-            background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
-          }
-        `}</style>
       </motion.div>
     );
   }
@@ -210,6 +188,7 @@ function App() {
           <Route path="/body-calibration" element={<BodyCalibration />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/trainer" element={<WorkoutTrainer />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AnimatePresence>
     </UserProvider>

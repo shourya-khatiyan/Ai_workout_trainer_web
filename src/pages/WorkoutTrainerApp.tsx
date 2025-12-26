@@ -3,7 +3,7 @@ import Webcam from 'react-webcam';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
-import { Play, Upload, Pause, SkipBack, SkipForward, RotateCcw, Camera, CameraOff, Download, Settings, Minimize2, Maximize2, LogOut, User, RefreshCw, Plus, ChevronDown, Menu, X, FolderOpen, Trash2, Mic, MicOff } from 'lucide-react';
+import { Play, Upload, Pause, SkipBack, SkipForward, RotateCcw, Camera, CameraOff, Download, Settings, Minimize2, Maximize2, LogOut, User, RefreshCw, Plus, ChevronDown, Menu, X, FolderOpen, Trash2, Mic, MicOff, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 import { calculateAngles, calculateAccuracy, generateFeedback, calculateOverallAccuracy, initializeDetector } from '../utils';
 import { voiceFeedbackService } from '../services/voiceFeedbackService';
 import { useUser } from '../context/UserContext';
@@ -1472,19 +1472,26 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
             {/* good form feedback */}
             <div>
               <h2 className="text-base font-bold mb-3 text-green-700 flex items-center">
-                <span className="w-2.5 h-2.5 bg-green-500 rounded-full mr-2"></span>
-                Good Form Feedback
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                Good Form
               </h2>
               <div className="max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
-                <ul className="space-y-3">
-                  {feedbackItems
-                    .filter(item => item.status === 'good')
-                    .map((item, index) => (
-                      <li key={index} className="feedback-item good">
-                        {item.text}
-                      </li>
-                    ))}
-                </ul>
+                {feedbackItems.filter(item => item.status === 'good').length > 0 ? (
+                  <ul className="space-y-2">
+                    {feedbackItems
+                      .filter(item => item.status === 'good')
+                      .map((item, index) => (
+                        <li key={index} className="feedback-item good">
+                          <CheckCircle2 className="feedback-icon" />
+                          <span>{item.text}</span>
+                        </li>
+                      ))}
+                  </ul>
+                ) : (
+                  <div className="text-gray-400 text-sm italic py-4 text-center">
+                    Start training to see feedback
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1492,8 +1499,8 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base font-bold text-orange-700 flex items-center">
-                  <span className="w-2.5 h-2.5 bg-orange-500 rounded-full mr-2"></span>
-                  Improvement Feedback
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  Needs Improvement
                 </h2>
                 <button
                   onClick={() => {
@@ -1521,15 +1528,27 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
                 </button>
               </div>
               <div className="max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
-                <ul className="space-y-3">
-                  {feedbackItems
-                    .filter(item => item.status === 'warning' || item.status === 'error')
-                    .map((item, index) => (
-                      <li key={index} className={`feedback-item ${item.status}`}>
-                        {item.text}
-                      </li>
-                    ))}
-                </ul>
+                {feedbackItems.filter(item => item.status === 'warning' || item.status === 'error').length > 0 ? (
+                  <ul className="space-y-2">
+                    {feedbackItems
+                      .filter(item => item.status === 'warning' || item.status === 'error')
+                      .map((item, index) => (
+                        <li key={index} className={`feedback-item ${item.status}`}>
+                          {item.status === 'error' ? (
+                            <XCircle className="feedback-icon" />
+                          ) : (
+                            <AlertTriangle className="feedback-icon" />
+                          )}
+                          <span>{item.text}</span>
+                        </li>
+                      ))}
+                  </ul>
+                ) : (
+                  <div className="text-green-600 text-sm font-medium py-4 text-center flex flex-col items-center gap-2">
+                    <CheckCircle2 className="w-6 h-6" />
+                    <span>Great job! Form looks good</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

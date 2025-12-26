@@ -447,6 +447,11 @@ export function generateFeedback(
       text: 'Move back from the camera',
       status: 'warning'
     });
+  } else if (distanceCheck === 'too_far') {
+    feedback.push({
+      text: 'Move closer to the camera',
+      status: 'warning'
+    });
   }
 
   // back feedback
@@ -477,37 +482,71 @@ export function generateFeedback(
     const severity: 'error' | 'warning' = backAccuracy < 50 ? 'error' : 'warning';
 
     feedback.push({
-      text: `Back Straightness: ${segmentMessages[lowestSegment]}`,
+      text: segmentMessages[lowestSegment],
       status: severity
     });
   }
 
-  // joint feedback
-  const joints = [
-    { name: 'Hip', verb: 'Adjust', direction: 'hip' },
-    { name: 'Knee', verb: 'Bend', direction: 'knee' },
-    { name: 'Elbow', verb: 'Bend', direction: 'elbow' },
-    { name: 'Shoulder', verb: 'Adjust', direction: 'shoulder' }
+  // Context-aware joint feedback configuration
+  // lowAngleAction = when current angle is LESS than ideal (need to open/straighten)
+  // highAngleAction = when current angle is MORE than ideal (need to close/bend)
+  interface JointFeedbackConfig {
+    name: string;
+    lowAngleAction: string;  // Current < Ideal: angle is too small
+    highAngleAction: string; // Current > Ideal: angle is too large
+  }
+
+  const jointConfigs: JointFeedbackConfig[] = [
+    {
+      name: 'Hip',
+      lowAngleAction: 'Open your hips more',
+      highAngleAction: 'Bend at your hips more'
+    },
+    {
+      name: 'Knee',
+      lowAngleAction: 'Straighten your knees more',
+      highAngleAction: 'Bend your knees more'
+    },
+    {
+      name: 'Elbow',
+      lowAngleAction: 'Straighten your elbows more',
+      highAngleAction: 'Bend your elbows more'
+    },
+    {
+      name: 'Shoulder',
+      lowAngleAction: 'Raise your arms higher',
+      highAngleAction: 'Lower your arms slightly'
+    }
   ];
 
-  joints.forEach(joint => {
-    const jointName = joint.name;
+  jointConfigs.forEach(jointConfig => {
+    const jointName = jointConfig.name;
     const accuracyValue = accuracy[jointName];
 
     if (accuracyValue >= 85) {
       feedback.push({
-        text: `${jointName} angle is correct`,
+        text: `${jointName} position is correct`,
         status: 'good'
       });
     } else {
       const actual = angles[jointName];
       const ideal = idealAngles[jointName];
-      const diff = ideal - actual;
-      const direction = diff > 0 ? 'more' : 'less';
+      const diff = ideal - actual;  // positive = need more angle, negative = need less angle
+      const absDiff = Math.abs(Math.round(diff));
       const severity: 'error' | 'warning' = accuracyValue < 50 ? 'error' : 'warning';
 
+      // Choose appropriate action based on whether angle needs to increase or decrease
+      let actionText: string;
+      if (diff > 0) {
+        // Current angle is less than ideal - need to increase angle (open/straighten)
+        actionText = jointConfig.lowAngleAction;
+      } else {
+        // Current angle is more than ideal - need to decrease angle (close/bend)
+        actionText = jointConfig.highAngleAction;
+      }
+
       feedback.push({
-        text: `${joint.verb} your ${joint.direction} ${direction} (${Math.abs(Math.round(diff))}°)`,
+        text: `${actionText} (~${absDiff}° adjustment)`,
         status: severity
       });
     }

@@ -247,6 +247,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    // Clear all auth state immediately
+    setSession(null);
+    setAuthUser(null);
     setUser(null);
   };
 

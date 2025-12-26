@@ -260,7 +260,7 @@ const LandingPage: React.FC = () => {
                             style={{ width: `${((100 - xpToNext) / 100) * 100}%` }}
                           ></div>
                         </div>
-                        <span className="text-xs font-semibold text-gray-600">{xpToNext} XP</span>
+                        <span className="text-xs font-semibold text-gray-600">{100 - xpToNext} XP</span>
                       </div>
                     </div>
                   </div>

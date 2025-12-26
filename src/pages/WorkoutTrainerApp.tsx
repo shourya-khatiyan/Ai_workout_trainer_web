@@ -4,7 +4,7 @@ import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
 import { Play, Upload, Pause, SkipBack, SkipForward, RotateCcw, Camera, CameraOff, Download, Settings, Minimize2, Maximize2, LogOut, User, RefreshCw, Plus, ChevronDown, Menu, X, FolderOpen, Trash2, Mic, MicOff, CheckCircle2, AlertTriangle, XCircle, Volume2, VolumeX, Repeat, Gauge } from 'lucide-react';
-import { calculateAngles, calculateAccuracy, generateFeedback, calculateOverallAccuracy, initializeDetector } from '../utils';
+import { calculateAngles, calculateAccuracy, generateFeedback, calculateOverallAccuracy, initializeDetector, analyzeVideoForSegments, calculateSegmentMatch, SegmentTrainingState, initialSegmentState } from '../utils';
 import { voiceFeedbackService } from '../services/voiceFeedbackService';
 import { useUser } from '../context/UserContext';
 
@@ -90,6 +90,12 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
   const [videoCurrentTime, setVideoCurrentTime] = useState(0);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
+
+  // Segmented Training Mode state
+  const [segmentState, setSegmentState] = useState<SegmentTrainingState>(initialSegmentState);
+  const [lastAnalyzedVideoUrl, setLastAnalyzedVideoUrl] = useState<string | null>(null);
+  const holdStartTimeRef = useRef<number>(0);
+  const HOLD_DURATION_MS = 1500; // 1.5 seconds to hold correct pose
 
   // Training metrics for Supabase
   const [trainingStartTime, setTrainingStartTime] = useState<number | null>(null);
@@ -463,19 +469,25 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
-    // Draw keypoints
+    // Draw keypoints with circles
     pose.keypoints.forEach((keypoint) => {
       if (keypoint.score && keypoint.score > 0.3) {
-        ctx.beginPath();
-
         // For trainee, flip horizontally to correct mirror effect
         let x = keypoint.x;
         if (!isTrainer) {
           x = canvas.width - x;
         }
 
-        ctx.arc(x, keypoint.y, 6, 0, 2 * Math.PI);
-        ctx.fillStyle = isTrainer ? '#f97316' : '#ef4444';
+        // Draw white outline for visibility
+        ctx.beginPath();
+        ctx.arc(x, keypoint.y, isTrainer ? 12 : 7, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
+        // Draw colored circle
+        ctx.beginPath();
+        ctx.arc(x, keypoint.y, isTrainer ? 10 : 6, 0, 2 * Math.PI);
+        ctx.fillStyle = isTrainer ? '#d28249ff' : '#f05757ff';
         ctx.fill();
       }
     });
@@ -699,6 +711,10 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
               };
             }
 
+            // Segment mode: check if trainee matches target pose
+            if (segmentState.isActive && segmentState.segmentStatus === 'waiting') {
+              checkSegmentMatch(angles);
+            }
           } else {
             // no pose detected in frame
             if (isTraining) {
@@ -875,10 +891,168 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Analyze video for segments (runs on video load, before training starts)
+  const startSegmentMode = async () => {
+    if (!trainerVideoRef.current || !detector || !trainerVideoUrl) {
+      return;
+    }
+
+    // Start analysis (but don't activate segment training yet)
+    setSegmentState(prev => ({
+      ...prev,
+      isActive: false, // Not active until training starts
+      isAnalyzing: true,
+      analysisProgress: 0,
+      segments: []
+    }));
+
+    try {
+      const segments = await analyzeVideoForSegments(
+        trainerVideoRef.current,
+        detector,
+        { angleThreshold: 15, minSegmentDuration: 1.0 },
+        (progress) => {
+          setSegmentState(prev => ({ ...prev, analysisProgress: progress }));
+        }
+      );
+
+      if (segments.length === 0) {
+        console.log('No poses detected in video');
+        setSegmentState(initialSegmentState);
+        return;
+      }
+
+      // Analysis complete - store segments but don't activate yet
+      // Training activation will happen when user starts training
+      setSegmentState(prev => ({
+        ...prev,
+        isAnalyzing: false,
+        segments: segments,
+        currentSegmentIndex: 0,
+        segmentStatus: 'idle', // Waiting for training to start
+        holdProgress: 0
+      }));
+
+      // Mark this video as analyzed
+      setLastAnalyzedVideoUrl(trainerVideoUrl);
+    } catch (error) {
+      console.error('Error analyzing video:', error);
+      alert('Error analyzing video. Please try again.');
+      setSegmentState(initialSegmentState);
+    }
+  };
+
+  // Check trainee pose against current segment target
+  const checkSegmentMatch = useCallback((traineeAngles: any) => {
+    if (!segmentState.isActive || segmentState.isAnalyzing || segmentState.segments.length === 0) {
+      return;
+    }
+
+    const currentSegment = segmentState.segments[segmentState.currentSegmentIndex];
+    if (!currentSegment || segmentState.segmentStatus !== 'waiting') {
+      return;
+    }
+
+    // Calculate match
+    const { accuracy, matched } = calculateSegmentMatch(traineeAngles, currentSegment);
+
+    if (matched) {
+      // Start or continue hold timer
+      if (holdStartTimeRef.current === 0) {
+        holdStartTimeRef.current = Date.now();
+      }
+
+      const heldTime = Date.now() - holdStartTimeRef.current;
+      const holdProgress = Math.min(100, (heldTime / HOLD_DURATION_MS) * 100);
+
+      setSegmentState(prev => ({
+        ...prev,
+        matchAccuracy: accuracy,
+        holdProgress
+      }));
+
+      // Check if held long enough
+      if (heldTime >= HOLD_DURATION_MS) {
+        advanceToNextSegment();
+      }
+    } else {
+      // Reset hold timer if pose is not matching
+      holdStartTimeRef.current = 0;
+      setSegmentState(prev => ({
+        ...prev,
+        matchAccuracy: accuracy,
+        holdProgress: 0
+      }));
+    }
+  }, [segmentState]);
+
+  // Advance to next segment
+  const advanceToNextSegment = () => {
+    const nextIndex = segmentState.currentSegmentIndex + 1;
+
+    // Mark current segment as matched
+    const updatedSegments = [...segmentState.segments];
+    updatedSegments[segmentState.currentSegmentIndex].matched = true;
+
+    if (nextIndex >= segmentState.segments.length) {
+      // All segments completed!
+      setSegmentState(prev => ({
+        ...prev,
+        segments: updatedSegments,
+        segmentStatus: 'completed',
+        holdProgress: 0
+      }));
+
+      // Pause video
+      if (trainerVideoRef.current) {
+        trainerVideoRef.current.pause();
+        setIsPlaying(false);
+      }
+
+      return;
+    }
+
+    // Move to next segment
+    const nextSegment = segmentState.segments[nextIndex];
+    holdStartTimeRef.current = 0;
+
+    setSegmentState(prev => ({
+      ...prev,
+      segments: updatedSegments,
+      currentSegmentIndex: nextIndex,
+      segmentStatus: 'playing',
+      holdProgress: 0,
+      matchAccuracy: 0
+    }));
+
+    // Seek to next segment and play
+    if (trainerVideoRef.current) {
+      trainerVideoRef.current.currentTime = nextSegment.startTime;
+      trainerVideoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  // Exit segment mode
+  const exitSegmentMode = () => {
+    setSegmentState(initialSegmentState);
+    holdStartTimeRef.current = 0;
+    if (trainerVideoRef.current) {
+      trainerVideoRef.current.pause();
+      setIsPlaying(false);
+    }
+  };
+
   // begin training session with countdown
   const startTraining = () => {
     if (!trainerVideoUrl) {
       alert('Please load a trainer video first to start training.');
+      return;
+    }
+
+    // Block training if segment analysis is still in progress
+    if (segmentState.isAnalyzing) {
+      alert('Please wait for video analysis to complete before starting training.');
       return;
     }
 
@@ -896,6 +1070,24 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
           setShowCountdown(false);
           setIsTraining(true);
           setTrainingStartTime(Date.now()); // Track start time
+
+          // Activate segment mode training (segments already analyzed on video load)
+          if (segmentState.segments.length > 0 && !segmentState.isActive) {
+            setSegmentState(prev => ({
+              ...prev,
+              isActive: true,
+              segmentStatus: 'playing',
+              currentSegmentIndex: 0
+            }));
+
+            // Seek to first segment start and play
+            if (trainerVideoRef.current) {
+              trainerVideoRef.current.currentTime = segmentState.segments[0].startTime;
+              trainerVideoRef.current.play();
+              setIsPlaying(true);
+            }
+          }
+
           // countdown finished, begin training
           return 0;
         }
@@ -954,59 +1146,6 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
     setFeedbackItems([
       { text: 'Position yourself in front of the camera', status: 'warning' }
     ]);
-  };
-
-  // reset camera and clear all state
-  const resetCamera = () => {
-    // stop current detection
-    setIsDetecting(false);
-    setIsTraining(false);
-
-    // clear all canvases
-    if (canvasRef.current) {
-      const ctx = canvasRef.current.getContext('2d');
-      if (ctx) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    }
-
-    if (trainerJointCanvasRef.current) {
-      const ctx = trainerJointCanvasRef.current.getContext('2d');
-      if (ctx) ctx.clearRect(0, 0, trainerJointCanvasRef.current.width, trainerJointCanvasRef.current.height);
-    }
-
-    if (traineeJointCanvasRef.current) {
-      const ctx = traineeJointCanvasRef.current.getContext('2d');
-      if (ctx) ctx.clearRect(0, 0, traineeJointCanvasRef.current.width, traineeJointCanvasRef.current.height);
-    }
-
-    // reset trainer video
-    if (trainerVideoRef.current) {
-      trainerVideoRef.current.pause();
-      setIsPlaying(false);
-    }
-
-    // reset all state to defaults
-    setTrainerVideoUrl(null);
-    setSelectedVideo(null);
-    setTraineePose(null);
-    setTrainerPose(null);
-    setPostureAccuracy(85);
-    setPostureStatus('CORRECT');
-    setJointAngles([
-      { joint: 'Hip', angle: 120, accuracy: 85 },
-      { joint: 'Knee', angle: 145, accuracy: 45 },
-      { joint: 'Elbow', angle: 90, accuracy: 65 },
-      { joint: 'Shoulder', angle: 180, accuracy: 75 },
-      { joint: 'Back', angle: 180, accuracy: 100 }
-    ]);
-
-    setFeedbackItems([
-      { text: 'Position yourself in front of the camera', status: 'warning' }
-    ]);
-
-    // restart detection after a short pause
-    setTimeout(() => {
-      setIsDetecting(true);
-    }, 500);
   };
 
   // create new exercise category
@@ -1074,16 +1213,6 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
     }
   };
 
-  // portal component for rendering dropdowns outside dom hierarchy
-  const DropdownPortal: React.FC<{ children: React.ReactNode; isOpen: boolean }> = ({ children, isOpen }) => {
-    if (!isOpen) return null;
-
-    return createPortal(
-      children,
-      document.getElementById('portal-root') || document.body
-    );
-  };
-
   // close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -1144,8 +1273,14 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
               <div className="dropdown-container">
                 <button
                   ref={videoBtnRef}
-                  onClick={() => setShowVideoDropdown(!showVideoDropdown)}
-                  className="trainer-button flex items-center justify-center transition-all text-xs sm:text-sm"
+                  onClick={() => {
+                    if (isTraining || segmentState.isAnalyzing) return;
+                    setShowVideoDropdown(!showVideoDropdown);
+                  }}
+                  disabled={isTraining || segmentState.isAnalyzing}
+                  className={`trainer-button flex items-center justify-center transition-all text-xs sm:text-sm ${(isTraining || segmentState.isAnalyzing) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  title={isTraining ? "Stop training to change video" : segmentState.isAnalyzing ? "Wait for analysis to complete" : ""}
                 >
                   <Upload size={14} className="mr-1.5" />
                   <span className="hidden sm:inline">{selectedVideo ? "Change Video" : "Upload Video"}</span>
@@ -1216,8 +1351,14 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
               <div className="dropdown-container">
                 <button
                   ref={categoryBtnRef}
-                  className="trainer-button flex items-center justify-center transition-all text-xs sm:text-sm"
-                  onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                  className={`trainer-button flex items-center justify-center transition-all text-xs sm:text-sm ${(isTraining || segmentState.isAnalyzing) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  onClick={() => {
+                    if (isTraining || segmentState.isAnalyzing) return;
+                    setShowCategoryDropdown(!showCategoryDropdown);
+                  }}
+                  disabled={isTraining || segmentState.isAnalyzing}
+                  title={isTraining ? "Stop training to change category" : segmentState.isAnalyzing ? "Wait for analysis to complete" : ""}
                 >
                   <FolderOpen size={14} className="mr-1.5" />
                   <span className="hidden sm:inline">{selectedCategory || "Select Category"}</span>
@@ -1291,13 +1432,6 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
                   onClick={isTraining ? stopTraining : startTraining}
                 >
                   {isTraining ? "Stop Training" : "Start Training"}
-                </button>
-                <button
-                  className="trainer-button-secondary py-2 px-4 rounded-lg flex items-center justify-center transition-all font-semibold text-sm"
-                  onClick={resetCamera}
-                >
-                  <RefreshCw size={14} className="mr-1.5" />
-                  Reset
                 </button>
               </div>
             </div>
@@ -1376,11 +1510,33 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
                       if (trainerVideoRef.current) {
                         trainerVideoRef.current.playbackRate = playbackRate;
                       }
+                      // Auto-start segment analysis when a NEW video loads
+                      // Skip if same video already analyzed, or if currently analyzing
+                      if (detector && trainerVideoUrl && trainerVideoUrl !== lastAnalyzedVideoUrl && !segmentState.isAnalyzing) {
+                        // Clear previous segments for new video
+                        setSegmentState(initialSegmentState);
+                        startSegmentMode();
+                      }
                     }}
                     onTimeUpdate={() => {
                       if (trainerVideoRef.current) {
-                        setVideoCurrentTime(trainerVideoRef.current.currentTime);
-                        setVideoProgress((trainerVideoRef.current.currentTime / trainerVideoRef.current.duration) * 100);
+                        const currentTime = trainerVideoRef.current.currentTime;
+                        setVideoCurrentTime(currentTime);
+                        setVideoProgress((currentTime / trainerVideoRef.current.duration) * 100);
+
+                        // Segment mode: pause at segment end
+                        if (segmentState.isActive && segmentState.segmentStatus === 'playing') {
+                          const currentSegment = segmentState.segments[segmentState.currentSegmentIndex];
+                          if (currentSegment && currentTime >= currentSegment.endTime - 0.1) {
+                            // Pause and wait for trainee to match
+                            trainerVideoRef.current.pause();
+                            setIsPlaying(false);
+                            setSegmentState(prev => ({
+                              ...prev,
+                              segmentStatus: 'waiting'
+                            }));
+                          }
+                        }
                       }
                     }}
                   />
@@ -1388,9 +1544,23 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
                     ref={trainerCanvasRef}
                     className="absolute top-0 left-0 w-full h-full object-contain"
                   />
-                  {!isTrainerReady && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 rounded-xl">
-                      <p className="text-white">Analyzing trainer pose...</p>
+                  {(!isTrainerReady || segmentState.isAnalyzing) && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 rounded-xl">
+                      <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                      <p className="text-white text-sm font-medium">
+                        {segmentState.isAnalyzing
+                          ? `Analyzing video segments... ${Math.round(segmentState.analysisProgress)}%`
+                          : 'Analyzing trainer pose...'
+                        }
+                      </p>
+                      {segmentState.isAnalyzing && (
+                        <div className="w-48 bg-white/20 rounded-full h-2 mt-3 overflow-hidden">
+                          <div
+                            className="h-full bg-orange-500 transition-all duration-200"
+                            style={{ width: `${segmentState.analysisProgress}%` }}
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1592,165 +1762,249 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
         </div>
 
         {/* feedback and metrics section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
-          {/* feedback panel */}
-          <div className="trainer-card rounded-2xl p-4 lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* good form feedback */}
-            <div>
-              <h2 className="text-base font-bold mb-3 text-green-700 flex items-center">
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                Good Form
-              </h2>
-              <div className="max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
-                {feedbackItems.filter(item => item.status === 'good').length > 0 ? (
-                  <ul className="space-y-2">
-                    {feedbackItems
-                      .filter(item => item.status === 'good')
-                      .map((item, index) => (
-                        <li key={index} className="feedback-item good">
-                          <CheckCircle2 className="feedback-icon" />
-                          <span>{item.text}</span>
-                        </li>
-                      ))}
-                  </ul>
-                ) : (
-                  <div className="text-gray-400 text-sm italic py-4 text-center">
-                    Start training to see feedback
-                  </div>
-                )}
+        <div className="relative">
+          {/* Blur overlay when not training */}
+          {!isTraining && (
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 rounded-2xl flex items-center justify-center">
+              <div className="text-center px-4">
+                <div className="mb-3">
+                  <Play className="h-16 w-16 text-gray-400 mx-auto" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-700 mb-1">Start Training to Unlock</h3>
+                <p className="text-sm text-gray-500">Click "Start Training" to access feedback, segment training, and metrics</p>
               </div>
             </div>
+          )}
 
-            {/* improvement feedback */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-bold text-orange-700 flex items-center">
-                  <AlertTriangle className="w-4 h-4 mr-2" />
-                  Needs Improvement
-                </h2>
-                <button
-                  onClick={() => {
-                    const newState = !voiceFeedbackActive;
-                    setVoiceFeedbackActive(newState);
-                    voiceFeedbackService.setEnabled(newState);
-                  }}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all ${voiceFeedbackActive
-                    ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
-                    }`}
-                  title={voiceFeedbackActive ? 'Voice Feedback ON' : 'Voice Feedback OFF'}
-                >
-                  {voiceFeedbackActive ? (
-                    <>
-                      <Mic className="h-3 w-3" />
-                      <span>VOICE ON</span>
-                    </>
-                  ) : (
-                    <>
-                      <MicOff className="h-3 w-3" />
-                      <span>VOICE OFF</span>
-                    </>
-                  )}
-                </button>
-              </div>
-              <div className="max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
-                {feedbackItems.filter(item => item.status === 'warning' || item.status === 'error').length > 0 ? (
-                  <ul className="space-y-2">
-                    {feedbackItems
-                      .filter(item => item.status === 'warning' || item.status === 'error')
-                      .map((item, index) => (
-                        <li key={index} className={`feedback-item ${item.status}`}>
-                          {item.status === 'error' ? (
-                            <XCircle className="feedback-icon" />
-                          ) : (
-                            <AlertTriangle className="feedback-icon" />
-                          )}
-                          <span>{item.text}</span>
-                        </li>
-                      ))}
-                  </ul>
-                ) : (
-                  <div className="text-green-600 text-sm font-medium py-4 text-center flex flex-col items-center gap-2">
-                    <CheckCircle2 className="w-6 h-6" />
-                    <span>Great job! Form looks good</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* metrics panel - compact */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
-            {/* blur overlay when not training */}
-            {!isTraining && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center">
-                <div className="text-center px-4">
-                  <div className="mb-3">
-                    <Play className="h-12 w-12 text-gray-400 mx-auto" />
-                  </div>
-                  <h3 className="text-sm font-bold text-gray-700 mb-1">Start Training First</h3>
-                  <p className="text-xs text-gray-500">Click "Start Training" to view live metrics</p>
-                </div>
-              </div>
-            )}
-
-            {/* overall posture accuracy */}
-            <div className="p-3 border-b border-gray-100">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Overall</div>
-                  <div className={`text-2xl font-black leading-none ${postureAccuracy >= 85 ? 'text-green-600' :
-                    postureAccuracy >= 70 ? 'text-orange-500' : 'text-red-500'
-                    }`}>
-                    {postureAccuracy}%
-                  </div>
-                </div>
-                <div className={`px-2.5 py-1 rounded text-[10px] font-bold border ${postureStatus === 'CORRECT'
-                  ? 'bg-green-50 text-green-700 border-green-300'
-                  : 'bg-red-50 text-red-700 border-red-300'
-                  }`}>
-                  {postureStatus}
-                </div>
-              </div>
-            </div>
-
-            {/* joint accuracy list */}
-            <div className="p-2.5">
-              <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2 px-0.5">Joint Accuracy</div>
-
-              <div className="space-y-2">
-                {jointAngles.map((item, index) => {
-                  const getColor = (accuracy: number) => {
-                    if (accuracy >= 85) return { text: 'text-green-700', bg: 'bg-green-500', light: 'bg-green-100' };
-                    if (accuracy >= 70) return { text: 'text-orange-700', bg: 'bg-orange-500', light: 'bg-orange-100' };
-                    if (accuracy >= 50) return { text: 'text-amber-700', bg: 'bg-amber-500', light: 'bg-amber-100' };
-                    return { text: 'text-red-700', bg: 'bg-red-500', light: 'bg-red-100' };
-                  };
-
-                  const color = getColor(item.accuracy);
-
-                  return (
-                    <div key={index} className="bg-gray-50 rounded px-2 py-1.5 border border-gray-100">
-                      {/* joint name and values */}
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] font-bold text-gray-700 uppercase">{item.joint}</span>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xs font-bold ${color.text}`}>{item.accuracy}%</span>
-                          <span className="text-[10px] text-gray-500">•</span>
-                          <span className="text-xs font-semibold text-gray-600">{item.angle}°</span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+            {/* feedback panel */}
+            <div className="trainer-card rounded-2xl p-4 lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Left panel: Segment Mode info OR Good Form feedback */}
+              <div>
+                {segmentState.isActive && segmentState.segments.length > 0 ? (
+                  <>
+                    {/* SEGMENT MODE INFO */}
+                    <h2 className="text-base font-bold mb-3 text-purple-700 flex items-center">
+                      🎯 Segment Training
+                    </h2>
+                    <div className="space-y-3">
+                      {/* Segment progress indicators */}
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1.5">Progress</div>
+                        <div className="flex items-center gap-1">
+                          {segmentState.segments.map((segment, idx) => (
+                            <div
+                              key={segment.id}
+                              className={`h-2 flex-1 rounded-full transition-all ${segment.matched
+                                ? 'bg-green-500'
+                                : idx === segmentState.currentSegmentIndex
+                                  ? 'bg-orange-500'
+                                  : 'bg-gray-200'
+                                }`}
+                            />
+                          ))}
                         </div>
                       </div>
 
-                      {/* accuracy progress bar */}
-                      <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className={`${color.bg} h-full rounded-full transition-all duration-300`}
-                          style={{ width: `${item.accuracy}%` }}
-                        />
+                      {/* Current segment info */}
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="text-sm font-semibold text-gray-800">
+                          Segment {segmentState.currentSegmentIndex + 1} of {segmentState.segments.length}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {segmentState.segments[segmentState.currentSegmentIndex]?.description || 'Match this pose'}
+                        </div>
                       </div>
+
+                      {/* Status */}
+                      {segmentState.segmentStatus === 'waiting' && (
+                        <div className="bg-orange-50 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-medium text-gray-600">Match Accuracy</span>
+                            <span className={`text-sm font-bold ${segmentState.matchAccuracy >= 75 ? 'text-green-600' : 'text-yellow-600'}`}>
+                              {Math.round(segmentState.matchAccuracy)}%
+                            </span>
+                          </div>
+                          {segmentState.holdProgress > 0 && (
+                            <>
+                              <div className="bg-white/50 rounded-full h-3 overflow-hidden">
+                                <div
+                                  className="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-100"
+                                  style={{ width: `${segmentState.holdProgress}%` }}
+                                />
+                              </div>
+                              <div className="text-xs text-green-600 mt-1 text-center font-medium">Hold the pose...</div>
+                            </>
+                          )}
+                        </div>
+                      )}
+
+                      {segmentState.segmentStatus === 'completed' && (
+                        <div className="bg-green-50 rounded-lg p-3 text-center">
+                          <div className="text-lg font-bold text-green-600">🎉 Complete!</div>
+                          <button
+                            className="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium"
+                            onClick={exitSegmentMode}
+                          >
+                            Exit Segment Mode
+                          </button>
+                        </div>
+                      )}
+
+                      {segmentState.segmentStatus === 'playing' && (
+                        <div className="text-xs text-gray-500 italic text-center py-2">
+                          Video playing... wait for segment end
+                        </div>
+                      )}
                     </div>
-                  );
-                })}
+                  </>
+                ) : (
+                  <>
+                    {/* GOOD FORM FEEDBACK (default) */}
+                    <h2 className="text-base font-bold mb-3 text-green-700 flex items-center">
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Good Form
+                    </h2>
+                    <div className="max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
+                      {feedbackItems.filter(item => item.status === 'good').length > 0 ? (
+                        <ul className="space-y-2">
+                          {feedbackItems
+                            .filter(item => item.status === 'good')
+                            .map((item, index) => (
+                              <li key={index} className="feedback-item good">
+                                <CheckCircle2 className="feedback-icon" />
+                                <span>{item.text}</span>
+                              </li>
+                            ))}
+                        </ul>
+                      ) : (
+                        <div className="text-gray-400 text-sm italic py-4 text-center">
+                          Start training to see feedback
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Right panel: Improvement feedback */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-base font-bold text-orange-700 flex items-center">
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    Needs Improvement
+                  </h2>
+                  <button
+                    onClick={() => {
+                      const newState = !voiceFeedbackActive;
+                      setVoiceFeedbackActive(newState);
+                      voiceFeedbackService.setEnabled(newState);
+                    }}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all ${voiceFeedbackActive
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                      }`}
+                    title={voiceFeedbackActive ? 'Voice Feedback ON' : 'Voice Feedback OFF'}
+                  >
+                    {voiceFeedbackActive ? (
+                      <>
+                        <Mic className="h-3 w-3" />
+                        <span>VOICE ON</span>
+                      </>
+                    ) : (
+                      <>
+                        <MicOff className="h-3 w-3" />
+                        <span>VOICE OFF</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
+                  {feedbackItems.filter(item => item.status === 'warning' || item.status === 'error').length > 0 ? (
+                    <ul className="space-y-2">
+                      {feedbackItems
+                        .filter(item => item.status === 'warning' || item.status === 'error')
+                        .map((item, index) => (
+                          <li key={index} className={`feedback-item ${item.status}`}>
+                            {item.status === 'error' ? (
+                              <XCircle className="feedback-icon" />
+                            ) : (
+                              <AlertTriangle className="feedback-icon" />
+                            )}
+                            <span>{item.text}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  ) : (
+                    <div className="text-green-600 text-sm font-medium py-4 text-center flex flex-col items-center gap-2">
+                      <CheckCircle2 className="w-6 h-6" />
+                      <span>Great job! Form looks good</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* metrics panel - compact */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
+              {/* overall posture accuracy */}
+              <div className="p-3 border-b border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-0.5">Overall</div>
+                    <div className={`text-2xl font-black leading-none ${postureAccuracy >= 85 ? 'text-green-600' :
+                      postureAccuracy >= 70 ? 'text-orange-500' : 'text-red-500'
+                      }`}>
+                      {postureAccuracy}%
+                    </div>
+                  </div>
+                  <div className={`px-2.5 py-1 rounded text-[10px] font-bold border ${postureStatus === 'CORRECT'
+                    ? 'bg-green-50 text-green-700 border-green-300'
+                    : 'bg-red-50 text-red-700 border-red-300'
+                    }`}>
+                    {postureStatus}
+                  </div>
+                </div>
+              </div>
+
+              {/* joint accuracy list */}
+              <div className="p-2.5">
+                <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2 px-0.5">Joint Accuracy</div>
+
+                <div className="space-y-2">
+                  {jointAngles.map((item, index) => {
+                    const getColor = (accuracy: number) => {
+                      if (accuracy >= 85) return { text: 'text-green-700', bg: 'bg-green-500', light: 'bg-green-100' };
+                      if (accuracy >= 70) return { text: 'text-orange-700', bg: 'bg-orange-500', light: 'bg-orange-100' };
+                      if (accuracy >= 50) return { text: 'text-amber-700', bg: 'bg-amber-500', light: 'bg-amber-100' };
+                      return { text: 'text-red-700', bg: 'bg-red-500', light: 'bg-red-100' };
+                    };
+
+                    const color = getColor(item.accuracy);
+
+                    return (
+                      <div key={index} className="bg-gray-50 rounded px-2 py-1.5 border border-gray-100">
+                        {/* joint name and values */}
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[11px] font-bold text-gray-700 uppercase">{item.joint}</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-bold ${color.text}`}>{item.accuracy}%</span>
+                            <span className="text-[10px] text-gray-500">•</span>
+                            <span className="text-xs font-semibold text-gray-600">{item.angle}°</span>
+                          </div>
+                        </div>
+
+                        {/* accuracy progress bar */}
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className={`${color.bg} h-full rounded-full transition-all duration-300`}
+                            style={{ width: `${item.accuracy}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

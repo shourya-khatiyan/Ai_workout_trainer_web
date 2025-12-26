@@ -5,7 +5,7 @@ import * as poseDetection from '@tensorflow-models/pose-detection';
 import { Dumbbell } from 'lucide-react';
 
 interface ModelPreloaderProps {
-  onComplete: () => void;
+  onComplete: (cameraStream: MediaStream | null, detector: poseDetection.PoseDetector | null) => void;
 }
 
 export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
@@ -13,31 +13,54 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    let cameraStream: MediaStream | null = null;
+    let detector: poseDetection.PoseDetector | null = null;
+
     const loadModels = async () => {
       try {
         setLoadingText('Setting up TensorFlow...');
-        setProgress(20);
+        setProgress(15);
         await tf.setBackend('webgl');
         await tf.ready();
 
         setLoadingText('Loading Pose Detection Model...');
-        setProgress(50);
+        setProgress(35);
         const model = poseDetection.SupportedModels.MoveNet;
         const detectorConfig = {
           modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
         };
 
-        await poseDetection.createDetector(model, detectorConfig);
+        detector = await poseDetection.createDetector(model, detectorConfig);
+
+        setLoadingText('Requesting Camera Access...');
+        setProgress(60);
+
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+              facingMode: 'user'
+            }
+          });
+          setLoadingText('Camera Connected!');
+          setProgress(85);
+        } catch (cameraError) {
+          console.warn('Camera access denied or unavailable:', cameraError);
+          setLoadingText('Camera access denied. Continuing...');
+          setProgress(85);
+          cameraStream = null;
+        }
 
         setLoadingText('Preparing AI Engine...');
-        setProgress(80);
+        setProgress(95);
         await new Promise(resolve => setTimeout(resolve, 300));
 
         setLoadingText('Ready!');
         setProgress(100);
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 400));
 
-        onComplete();
+        onComplete(cameraStream, detector);
       } catch (error) {
         console.error('Error loading models:', error);
         setTimeout(() => loadModels(), 2000);
@@ -45,6 +68,14 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
     };
 
     loadModels();
+
+    // Cleanup function to stop camera if component unmounts before completion
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+      // Don't dispose detector here as it's passed to WorkoutTrainerApp
+    };
   }, [onComplete]);
 
   // Animated skeleton keypoints

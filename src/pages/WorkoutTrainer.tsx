@@ -1,16 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import WorkoutTrainerApp from './WorkoutTrainerApp';
 import { useUser } from '../context/UserContext';
 import ModelPreloader from '../components/ModelPreloader';
+import * as poseDetection from '@tensorflow-models/pose-detection';
+
+interface PreloadedAssets {
+  cameraStream: MediaStream | null;
+  detector: poseDetection.PoseDetector | null;
+}
 
 const WorkoutTrainer: React.FC = () => {
   const { isLoggedIn, isLoading: isAuthLoading } = useUser();
   const navigate = useNavigate();
   const [isModelLoading, setIsModelLoading] = useState(true);
+  const [preloadedAssets, setPreloadedAssets] = useState<PreloadedAssets>({
+    cameraStream: null,
+    detector: null
+  });
 
-  // redirect to signin if not logged in (only after auth check is complete)
+  // Track if loading is complete (waiting for both auth and models)
+  const [isReadyToShow, setIsReadyToShow] = useState(false);
+  const assetsLoadedRef = useRef(false);
+
+  // Redirect to signin if not logged in (checked after auth loading completes)
   useEffect(() => {
     if (!isAuthLoading && !isLoggedIn) {
       navigate('/signin');
@@ -18,39 +32,51 @@ const WorkoutTrainer: React.FC = () => {
     document.title = 'AI Workout Trainer';
   }, [isLoggedIn, isAuthLoading, navigate]);
 
-  // called when models finish loading
-  const handleModelsLoaded = () => {
-    setTimeout(() => {
+  // When both auth is complete AND models are loaded, show the app
+  useEffect(() => {
+    if (!isAuthLoading && isLoggedIn && assetsLoadedRef.current) {
+      setIsReadyToShow(true);
       setIsModelLoading(false);
-    }, 500);
-  };
+    }
+  }, [isAuthLoading, isLoggedIn]);
 
-  // Show nothing while checking auth state
-  if (isAuthLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-        <ModelPreloader onComplete={() => { }} />
-      </div>
-    );
+  // Called when models and camera finish loading
+  const handleModelsLoaded = useCallback((cameraStream: MediaStream | null, detector: poseDetection.PoseDetector | null) => {
+    setPreloadedAssets({ cameraStream, detector });
+    assetsLoadedRef.current = true;
+
+    // If auth is already complete and user is logged in, show the app
+    if (!isAuthLoading && isLoggedIn) {
+      setTimeout(() => {
+        setIsReadyToShow(true);
+        setIsModelLoading(false);
+      }, 400);
+    }
+  }, [isAuthLoading, isLoggedIn]);
+
+  // If not logged in and auth check is complete, return null (redirect will happen)
+  if (!isAuthLoading && !isLoggedIn) {
+    return null;
   }
 
-  // If not logged in, don't render anything (redirect will happen)
-  if (!isLoggedIn) {
-    return null;
+  // Show ModelPreloader immediately - auth runs in parallel
+  if (isModelLoading || !isReadyToShow) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+        <ModelPreloader onComplete={handleModelsLoaded} />
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <Navbar />
-      {isModelLoading ? (
-        <div className="flex items-center justify-center min-h-[80vh] pt-20">
-          <ModelPreloader onComplete={handleModelsLoaded} />
-        </div>
-      ) : (
-        <div className="pt-16">
-          <WorkoutTrainerApp />
-        </div>
-      )}
+      <div className="pt-16">
+        <WorkoutTrainerApp
+          preloadedCameraStream={preloadedAssets.cameraStream}
+          preloadedDetector={preloadedAssets.detector}
+        />
+      </div>
     </div>
   );
 };

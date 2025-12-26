@@ -11,17 +11,24 @@ import { useUser } from '../context/UserContext';
 import './WorkoutTrainerApp.css';
 import { createPortal } from 'react-dom';
 
-export default function WorkoutTrainerApp() {
+interface WorkoutTrainerAppProps {
+  preloadedCameraStream?: MediaStream | null;
+  preloadedDetector?: poseDetection.PoseDetector | null;
+}
+
+export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDetector }: WorkoutTrainerAppProps) {
   // refs and state for webcam and pose detection
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const trainerJointCanvasRef = useRef<HTMLCanvasElement>(null);
   const traineeJointCanvasRef = useRef<HTMLCanvasElement>(null);
-  const [detector, setDetector] = useState<poseDetection.PoseDetector | null>(null);
-  const [isDetecting, setIsDetecting] = useState<boolean>(false);
-  const [cameraActive, setCameraActive] = useState<boolean>(false);
+  const [detector, setDetector] = useState<poseDetection.PoseDetector | null>(preloadedDetector || null);
+  const [isDetecting, setIsDetecting] = useState<boolean>(!!preloadedCameraStream && !!preloadedDetector);
+  const [cameraActive, setCameraActive] = useState<boolean>(!!preloadedCameraStream);
   const [voiceFeedbackActive, setVoiceFeedbackActive] = useState<boolean>(false);
   const [isTrainerReady, setIsTrainerReady] = useState<boolean>(false);
+  const [isPoseReady, setIsPoseReady] = useState<boolean>(false);
+  const [preloadedStream] = useState<MediaStream | null>(preloadedCameraStream || null);
 
   // trainer video element and related state
   const trainerVideoRef = useRef<HTMLVideoElement>(null);
@@ -140,8 +147,17 @@ export default function WorkoutTrainerApp() {
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
 
-  // setup tensorflow and movenet detector on mount
+  // setup tensorflow and movenet detector on mount (only if not preloaded)
   useEffect(() => {
+    // If detector was preloaded, use it directly
+    if (preloadedDetector) {
+      setDetector(preloadedDetector);
+      setCameraActive(true);
+      setIsDetecting(true);
+      return;
+    }
+
+    // Otherwise initialize detector
     const initDetector = async () => {
       try {
         const initializedDetector = await initializeDetector();
@@ -155,11 +171,22 @@ export default function WorkoutTrainerApp() {
     initDetector();
 
     return () => {
-      if (detector) {
+      if (detector && !preloadedDetector) {
         detector.dispose?.();
       }
     };
-  }, []);
+  }, [preloadedDetector]);
+
+  // Apply preloaded stream to webcam video element when ready
+  useEffect(() => {
+    if (preloadedStream && webcamRef.current?.video) {
+      const video = webcamRef.current.video;
+      if (video.srcObject !== preloadedStream) {
+        video.srcObject = preloadedStream;
+        video.play().catch(err => console.warn('Video play error:', err));
+      }
+    }
+  }, [preloadedStream, cameraActive]);
 
   // cleanup voice service when component unmounts
   useEffect(() => {
@@ -646,6 +673,10 @@ export default function WorkoutTrainerApp() {
             // update trainee joint visualization
             if (traineeJointCanvasRef.current) {
               drawJointLinesOnCanvas(pose, traineeJointCanvasRef.current, false, accuracy);
+              // Mark pose as ready once we've drawn the first pose
+              if (!isPoseReady) {
+                setIsPoseReady(true);
+              }
             }
 
             // only update ui during active training
@@ -1358,11 +1389,18 @@ export default function WorkoutTrainerApp() {
 
               {/* trainee joint lines */}
               <div className="bg-white rounded-xl flex items-center justify-center relative border-2 border-gray-100">
-                <p className="text-red-600 absolute top-2 left-2 text-xs font-semibold">Trainee Joint Lines</p>
+                <p className="text-red-600 absolute top-2 left-2 text-xs font-semibold z-10">Trainee Joint Lines</p>
                 <canvas
                   ref={traineeJointCanvasRef}
                   className="w-full h-full object-contain"
                 />
+                {/* Loading overlay until pose is detected */}
+                {!isPoseReady && cameraActive && (
+                  <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center rounded-xl">
+                    <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                    <p className="text-xs text-gray-500 font-medium">Detecting pose...</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

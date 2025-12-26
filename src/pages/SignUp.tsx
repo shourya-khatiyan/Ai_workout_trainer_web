@@ -79,7 +79,7 @@ export default function SignUp() {
           className="hidden lg:flex flex-col justify-center space-y-8 p-12"
         >
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300 group-hover:scale-105">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-300">
               <Dumbbell className="h-8 w-8 text-white" />
             </div>
             <span className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
@@ -244,7 +244,7 @@ export default function SignUp() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl hover:from-orange-600 hover:to-red-600 focus:ring-4 focus:ring-orange-200 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 group"
+                className="w-full py-4 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 focus:ring-4 focus:ring-orange-200 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 group"
               >
                 {isLoading ? (
                   <>

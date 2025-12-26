@@ -64,7 +64,7 @@
 
 /* button styles */
 .trainer-button {
-  background: linear-gradient(135deg, rgb(249, 115, 22), rgb(239, 68, 68));
+  background-color: #fd7f25;
   color: white;
   border: none;
   border-radius: 12px;
@@ -76,7 +76,7 @@
 }
 
 .trainer-button:hover {
-  transform: translateY(-2px);
+  background-color: #d8682b;
   box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.4);
 }
 
@@ -130,7 +130,6 @@
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
   box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.1);
 }
 
@@ -146,10 +145,6 @@
   font-weight: 500;
   transition: all 0.2s ease;
   animation: feedbackSlideIn 0.25s ease-out;
-}
-
-.feedback-item:hover {
-  transform: translateX(4px);
 }
 
 .feedback-icon {
@@ -194,6 +189,7 @@
     opacity: 0;
     transform: translateX(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -450,7 +446,6 @@
 }
 
 .circular-progress-item:hover {
-  transform: translateY(-4px);
   box-shadow: 0 8px 20px rgba(249, 115, 22, 0.15);
   border-color: rgba(251, 146, 60, 0.8);
 }

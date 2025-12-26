@@ -458,9 +458,9 @@ const Profile: React.FC = () => {
                 <div className="px-6 pb-6">
                   <button
                     onClick={() => navigate('/body-calibration')}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 text-red-600 rounded-xl font-semibold hover:from-red-100 hover:to-orange-100 hover:border-red-300 transition-all group"
+                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-red-50 border-2 border-red-200 text-red-600 rounded-xl font-semibold hover:bg-red-100 hover:border-red-300 transition-all group"
                   >
-                    <Ruler className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                    <Ruler className="h-4 w-4" />
                     Update Measurements
                   </button>
                 </div>
@@ -579,7 +579,7 @@ const Profile: React.FC = () => {
                     </div>
                     <label
                       htmlFor="editProfileImage"
-                      className="absolute bottom-0 right-0 h-10 w-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:shadow-xl transition-all hover:scale-110"
+                      className="absolute bottom-0 right-0 h-10 w-10 bg-orange-500 rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:shadow-xl hover:bg-orange-600 transition-all"
                     >
                       <Camera className="h-5 w-5 text-white" />
                       <input
@@ -628,7 +628,7 @@ const Profile: React.FC = () => {
                         type="button"
                         onClick={() => setEditForm(prev => ({ ...prev, fitnessLevel: level }))}
                         className={`py-3 px-4 rounded-xl font-semibold transition-all ${editForm.fitnessLevel === level || editForm.fitnessLevel === level.toLowerCase()
-                          ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
+                          ? 'bg-orange-500 text-white shadow-lg'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                       >
@@ -648,7 +648,7 @@ const Profile: React.FC = () => {
                         type="button"
                         onClick={() => setEditForm(prev => ({ ...prev, fitnessGoal: goal }))}
                         className={`py-3 px-4 rounded-xl font-semibold transition-all text-left ${editForm.fitnessGoal === goal || editForm.fitnessGoal === goal.toLowerCase().replace(/ /g, '_')
-                          ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
+                          ? 'bg-orange-500 text-white shadow-lg'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                       >
@@ -670,7 +670,7 @@ const Profile: React.FC = () => {
                 <button
                   onClick={handleSaveProfile}
                   disabled={isSubmitting}
-                  className="flex-1 py-3 px-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-red-600 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 py-3 px-4 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

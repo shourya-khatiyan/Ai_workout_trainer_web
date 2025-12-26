@@ -221,28 +221,16 @@ body {
   transition: all 0.3s ease;
 }
 
-.glow-border:hover {
-  transform: translateY(-1px);
-}
-
 .glow-button {
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
-.glow-button:hover {
-  transform: translateY(-1px);
-}
-
 .glow-button-red {
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
-}
-
-.glow-button-red:hover {
-  transform: translateY(-1px);
 }
 
 /* animations */
@@ -295,26 +283,24 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(to right, #F97316, #EF4444);
+  background-color: #F97316;
   color: white;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(to right, #EA580C, #DC2626);
+  background-color: #EA580C;
   box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
-  transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background: linear-gradient(to right, #EF4444, #F97316);
+  background-color: #EF4444;
   color: white;
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
 }
 
 .btn-secondary:hover {
-  background: linear-gradient(to right, #DC2626, #EA580C);
+  background-color: #DC2626;
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
-  transform: translateY(-1px);
 }
 
 .btn-outline {

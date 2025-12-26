@@ -213,9 +213,9 @@ const LandingPage: React.FC = () => {
             <div className="mb-12">
               <Link
                 to={isLoggedIn ? '/trainer' : '/signin'}
-                className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold text-base hover:from-orange-600 hover:to-red-600 hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl"
+                className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-orange-500 text-white font-bold text-base hover:bg-orange-600 transition-all duration-300 shadow-xl hover:shadow-2xl"
               >
-                <Play className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                <Play className="h-5 w-5" />
                 {isLoggedIn ? 'Start Training Now' : 'Get Started Free'}
               </Link>
             </div>
@@ -424,7 +424,7 @@ const LandingPage: React.FC = () => {
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Link
                       to="/trainer"
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-orange-700 font-bold hover:scale-105 transition-transform shadow-xl"
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-orange-700 font-bold hover:bg-orange-50 transition-colors shadow-xl"
                     >
                       <Play className="h-5 w-5" /> Start Training
                     </Link>

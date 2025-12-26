@@ -109,7 +109,7 @@ export default function BodyCalibration() {
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, gender: option.value }))}
                       className={`py-3 px-4 rounded-xl font-semibold transition-all ${formData.gender === option.value
-                        ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
+                        ? 'bg-orange-500 text-white shadow-lg'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                     >
@@ -124,7 +124,7 @@ export default function BodyCalibration() {
                   type="button"
                   onClick={nextStep}
                   disabled={!formData.age || !formData.gender}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold rounded-xl hover:from-orange-600 hover:to-red-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next <ArrowRight className="h-5 w-5" />
                 </button>
@@ -201,7 +201,7 @@ export default function BodyCalibration() {
                   type="button"
                   onClick={nextStep}
                   disabled={!formData.height || !formData.weight}
-                  className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold rounded-xl hover:from-orange-600 hover:to-red-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Next <ArrowRight className="h-5 w-5" />
                 </button>
@@ -300,7 +300,7 @@ export default function BodyCalibration() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={isLoading}
-                  className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-all shadow-lg disabled:opacity-50"
                 >
                   {isLoading ? (
                     <>

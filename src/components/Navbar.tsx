@@ -61,7 +61,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* logo */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-md group-hover:shadow-xl transition-all duration-300">
               <Dumbbell className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold text-gray-900 hidden sm:block">
@@ -156,7 +156,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   to="/signup"
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-bold hover:from-orange-600 hover:to-red-600 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                  className="px-6 py-2.5 rounded-xl bg-orange-500 text-white text-sm font-bold hover:bg-orange-600 transition-all duration-300 shadow-md hover:shadow-lg"
                 >
                   Sign Up
                 </Link>

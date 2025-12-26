@@ -158,15 +158,15 @@ const NotFound: React.FC = () => {
                 >
                     <Link
                         to="/"
-                        className="group inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold text-base hover:from-orange-600 hover:to-red-600 hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl"
+                        className="group inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-orange-500 text-white font-bold text-base hover:bg-orange-600 transition-all duration-300 shadow-xl hover:shadow-2xl"
                     >
-                        <Home className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                        <Home className="h-5 w-5" />
                         Back to Home
                     </Link>
 
                     <button
                         onClick={() => window.history.back()}
-                        className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-white text-gray-700 font-bold text-base border border-orange-200 hover:border-orange-400 hover:bg-orange-50 hover:scale-105 transition-all duration-300 shadow-lg"
+                        className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-white text-gray-700 font-bold text-base border border-orange-200 hover:border-orange-400 hover:bg-orange-50 transition-all duration-300 shadow-lg"
                     >
                         <ArrowLeft className="h-5 w-5" />
                         Go Back

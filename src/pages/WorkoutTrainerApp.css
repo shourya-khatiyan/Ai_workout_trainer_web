@@ -602,3 +602,88 @@
     font-size: 0.75rem;
   }
 }
+
+/* Fixed height video panels - prevents trainer video from resizing other sections */
+.video-panel {
+  min-height: 280px;
+  max-height: 350px;
+  height: 300px;
+}
+
+.video-panel-inner {
+  height: 100%;
+}
+
+/* Mobile-first responsive adjustments */
+@media (max-width: 1024px) {
+  .video-panel {
+    min-height: 220px;
+    max-height: 280px;
+    height: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .video-panel {
+    min-height: 200px;
+    max-height: 250px;
+    height: 220px;
+  }
+
+  /* Improve header layout on mobile */
+  .trainer-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .trainer-button-secondary {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .video-panel {
+    min-height: 180px;
+    max-height: 220px;
+    height: 200px;
+  }
+
+  /* Even more compact header buttons for small screens */
+  .trainer-button {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.7rem;
+  }
+
+  .trainer-button-secondary {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.7rem;
+  }
+}
+
+/* Mobile header layout - prevent overflow */
+@media (max-width: 480px) {
+  .mobile-header-controls {
+    width: 100%;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+  }
+
+  .mobile-header-controls>* {
+    flex-shrink: 1;
+  }
+
+  .trainer-button,
+  .trainer-button-secondary {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.65rem;
+    min-width: auto;
+  }
+
+  /* Ensure dropdowns fit on mobile */
+  .dropdown-menu {
+    max-width: calc(100vw - 20px);
+    width: auto;
+  }
+}

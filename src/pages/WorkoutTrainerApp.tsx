@@ -778,6 +778,11 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Revoke old blob URL to prevent memory leak
+      if (trainerVideoUrl) {
+        URL.revokeObjectURL(trainerVideoUrl);
+      }
+
       const url = URL.createObjectURL(file);
 
       // add video to current category
@@ -792,6 +797,22 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
       });
 
       setExerciseCategories(updatedCategories);
+
+      // Reset trainer state for new video
+      setIsTrainerReady(false);
+      setTrainerPose(null);
+
+      // Auto-load the newly uploaded video
+      setTrainerVideoUrl(url);
+      setSelectedVideo({ name: file.name, url });
+      setIsPlaying(false);
+
+      // Reset video element
+      if (trainerVideoRef.current) {
+        trainerVideoRef.current.load();
+        trainerVideoRef.current.currentTime = 0;
+      }
+
       setShowVideoDropdown(false);
     }
   };
@@ -1100,9 +1121,9 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
         <div className="absolute -top-10 right-1/4 w-40 h-40 bg-amber-100 rounded-full filter blur-[80px] opacity-10"></div>
 
         <div className="container mx-auto py-2 px-3 sm:px-4">
-          <div className="flex items-center justify-end relative z-[100] gap-4">
+          <div className="flex flex-wrap items-center justify-center lg:justify-end relative z-[100] gap-2 sm:gap-4 mobile-header-controls">
             {/* controls section */}
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 mobile-header-controls">
               <div className="dropdown-container">
                 <button
                   ref={videoBtnRef}
@@ -1306,7 +1327,7 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
         {/* video panels grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
           {/* left panel - trainer video */}
-          <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
+          <div className="trainer-card rounded-2xl overflow-hidden flex flex-col video-panel order-2 lg:order-1">
             <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
               <p className="text-xs text-center font-semibold text-gray-700">
                 {selectedVideo ? `Trainer Video: ${selectedVideo.name}` : "Trainer Video Preview"}
@@ -1373,7 +1394,7 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
           </div>
 
           {/* middle panel - joint line comparison */}
-          <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
+          <div className="trainer-card rounded-2xl overflow-hidden flex flex-col video-panel order-3 lg:order-2">
             <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
               <p className="text-xs text-center font-semibold text-gray-700">Joint Line Comparison</p>
             </div>
@@ -1405,8 +1426,8 @@ export default function WorkoutTrainerApp({ preloadedCameraStream, preloadedDete
             </div>
           </div>
 
-          {/* right panel - trainee camera */}
-          <div className="trainer-card rounded-2xl overflow-hidden flex flex-col">
+          {/* right panel - trainee camera - shows FIRST on mobile */}
+          <div className="trainer-card rounded-2xl overflow-hidden flex flex-col video-panel order-1 lg:order-3">
             <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-amber-50">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold text-gray-700">Trainee's Cam</p>

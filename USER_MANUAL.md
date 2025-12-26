@@ -65,14 +65,31 @@ The trainer interface has several sections:
 3. The video will appear in the trainer panel
 4. Videos are organized by categories (Squats, Strength Training, Cardio)
 
+**Note**: When you load a new video, the AI will automatically analyze it for key poses. Wait for the analysis to complete before starting training.
+
+### Segment Training Mode
+
+The app uses **Segment Training** to guide you through exercises:
+
+1. **Video Analysis**: When you load a video, the AI identifies key pose positions
+2. **Guided Practice**: During training, the video plays to each key pose
+3. **Pose Matching**: Match the trainer's pose and hold it
+4. **Hold Duration**: Hold the correct position for 1.5 seconds to progress
+5. **Auto-Advance**: Once matched, the video moves to the next segment
+6. **Completion**: After all segments are matched, training is complete
+
+The progress bar shows how long you've held the pose. Keep your form correct until it fills completely.
+
 ### Starting Training
 
 1. Load a trainer video
-2. Ensure your full body is visible in the camera
-3. Click **"Start Training"**
-4. A countdown (3, 2, 1) will appear
-5. Follow along with the trainer video
-6. Watch the feedback panel for real-time corrections
+2. Wait for video analysis to complete (progress indicator will show)
+3. Ensure your full body is visible in the camera
+4. Click **"Start Training"**
+5. A countdown (3, 2, 1) will appear
+6. Follow along with the trainer video
+7. Match each pose and hold until the progress indicator fills
+8. Watch the feedback panel for real-time corrections
 
 ### Understanding Accuracy Metrics
 
@@ -85,10 +102,12 @@ The app tracks accuracy for these joints:
 - **Back** - Spine straightness
 
 **Accuracy Levels:**
-- 🟢 **85-100%** - Excellent (green)
-- 🟠 **70-84%** - Good (orange)
-- 🟡 **50-69%** - Fair (yellow)
-- 🔴 **0-49%** - Needs improvement (red)
+- **85-100%** - Excellent (green)
+- **70-84%** - Good (orange)
+- **50-69%** - Fair (yellow)
+- **0-49%** - Needs improvement (red)
+
+**Note**: The overall accuracy uses a weighted calculation that prioritizes critical joints (hip, knee, back) over support joints (elbow, shoulder). Poor form in any joint will affect your overall score more significantly.
 
 ### Voice Feedback
 
@@ -99,26 +118,51 @@ Enable voice feedback for hands-free corrections:
 3. Different phrases are used to avoid repetition
 4. For persistent issues, detailed guidance is provided
 
+### Context-Aware Corrections
+
+The feedback system knows whether your angles are too high or too low:
+
+| Joint | If Angle Too Low | If Angle Too High |
+|-------|------------------|-------------------|
+| Hip | "Open up your hips more" | "Bend at the hips more" |
+| Knee | "Straighten your knees more" | "Bend your knees more" |
+| Elbow | "Extend your arms more" | "Bend your elbows more" |
+| Shoulder | "Raise your shoulders higher" | "Lower your shoulders" |
+| Back | "Stand more upright" | "Keep your back straight" |
+
 ---
 
-## Controls
+## Video Controls
 
-### Video Controls
+### Playback Controls
 
 | Button | Action |
 |--------|--------|
-| ▶️ Play | Start/resume trainer video |
-| ⏸️ Pause | Pause video playback |
-| ⏪ Rewind | Go back 5 seconds |
-| ⏩ Forward | Skip forward 5 seconds |
-| 🔄 Restart | Return to beginning |
+| Play | Start/resume trainer video |
+| Pause | Pause video playback |
+| Rewind | Go back 5 seconds |
+| Forward | Skip forward 5 seconds |
+| Restart | Return to beginning |
+
+### Speed Control
+
+You can adjust video playback speed:
+
+1. Click the **speed button** (shows current speed like "1x")
+2. Select from available speeds: 0.25x, 0.5x, 0.75x, 1x, 1.25x, 1.5x, 2x
+3. Slower speeds help you study the movement
+4. Faster speeds are useful for review
+
+### Loop Toggle
+
+Click the **loop icon** to make the video repeat automatically.
 
 ### Camera Controls
 
 | Button | Action |
 |--------|--------|
-| 📷 Toggle Camera | Turn webcam on/off |
-| 🎤 Voice Feedback | Enable/disable spoken corrections |
+| Toggle Camera | Turn webcam on/off |
+| Voice Feedback | Enable/disable spoken corrections |
 
 ---
 
@@ -129,18 +173,51 @@ Enable voice feedback for hands-free corrections:
 View your progress on the landing page:
 
 - **Current Streak** - Consecutive workout days
+- **Longest Streak** - Best streak achieved
 - **Total Workouts** - Lifetime session count
 - **Average Accuracy** - Overall form rating
 - **Total Time** - Hours spent training
 - **Most Practiced** - Your favorite exercise
+- **Level** - Your current level
+- **Experience** - XP earned towards next level
 
-### Achievements
+### Experience and Levels
 
-Earn badges for milestones:
+Earn XP (experience points) by completing workouts:
 
-- 🏆 **First Workout** - Complete your first session
-- 🎯 **Perfect Form** - Achieve 95%+ accuracy
-- 🔥 **3-Day Streak** - Work out 3 days in a row
+- **Base XP**: 10 XP per minute of training
+- **Accuracy Bonus**: Higher accuracy earns bonus XP
+- **Leveling Up**: Each level requires more XP than the previous
+
+Your level is displayed on your profile and dashboard.
+
+### Achievements (Badges)
+
+Earn badges for completing milestones:
+
+| Badge | Requirement |
+|-------|-------------|
+| Beginner | Welcome to AI Workout Trainer |
+| First Steps | Complete your first workout |
+| Week Warrior | Maintain a 7-day streak |
+| Month Master | Maintain a 30-day streak |
+| Getting Good | Achieve 70% average accuracy |
+| Form Master | Score 80%+ accuracy in a session |
+| Perfect Form | Score 95%+ accuracy in a session |
+| Consistent | Complete 10 workouts |
+| Dedicated | Complete 50 workouts |
+| Marathon | Train for 10+ hours total |
+| Variety | Try 5 different exercises |
+
+Badges are displayed on your profile page.
+
+### Streak Tracking
+
+Your streak tracks consecutive days of training:
+
+- Work out at least once per day to maintain your streak
+- Miss a day and your streak resets to zero
+- Your longest streak is saved for reference
 
 ---
 
@@ -156,14 +233,45 @@ Earn badges for milestones:
 On your profile page, you can update:
 
 - Profile picture
-- Personal information
-- Body measurements
+- Personal information (name, age, gender)
+- Body measurements (height, weight)
+- Body calibration (hip, chest, neck, arm, leg measurements)
 - Fitness goals
+
+### Body Calibration
+
+For more personalized feedback, enter your body measurements:
+
+1. Navigate to **Calibration** from your profile
+2. Enter measurements in centimeters
+3. Save your calibration data
 
 ### Signing Out
 
 1. Click your profile icon
 2. Select **"Sign Out"**
+
+---
+
+## Navigation
+
+### Available Pages
+
+| Page | Description |
+|------|-------------|
+| Home | Landing page with overview and stats |
+| Trainer | The workout training interface |
+| Profile | Your profile and settings |
+| Calibration | Body measurement entry |
+
+### If You Get Lost (404 Page)
+
+If you navigate to a page that doesn't exist:
+
+1. You'll see a friendly "404 - Page Not Found" message
+2. Click **"Back to Home"** to return to the homepage
+3. Or click **"Go Back"** to return to the previous page
+4. The page also shows a link to the trainer
 
 ---
 
@@ -189,6 +297,15 @@ On your profile page, you can update:
 - Wear fitted clothing for better detection
 - Move at a moderate pace
 - Face the camera directly
+- Hold poses steadily for accurate matching
+
+### During Segment Training
+
+- Watch the video first to understand the movement
+- Use slower playback speed to study poses
+- Focus on one joint at a time if struggling
+- Hold the pose until the progress bar fills
+- Listen to voice feedback for corrections
 
 ---
 
@@ -214,6 +331,18 @@ On your profile page, you can update:
 2. Try a smaller file size
 3. Refresh the page and try again
 
+### Video Analysis Taking Too Long
+
+1. Shorter videos analyze faster
+2. Ensure the video shows clear movements
+3. Wait for the progress indicator to complete
+
+### Training Won't Start
+
+1. Make sure a video is loaded
+2. Wait for video analysis to complete
+3. Ensure camera is enabled and detecting poses
+
 ### Slow Performance
 
 1. Close unnecessary browser tabs
@@ -221,14 +350,22 @@ On your profile page, you can update:
 3. Ensure stable internet connection
 4. Restart your browser
 
+### Voice Feedback Not Working
+
+1. Check your device volume
+2. Ensure browser has audio permissions
+3. Try refreshing the page
+4. Check if voice feedback is enabled (microphone icon)
+
 ---
 
-## Privacy & Data
+## Privacy and Data
 
 - **Camera data** is processed locally in your browser (video never leaves your device)
 - **Profile data** is stored securely in the cloud via Supabase
 - **No video** is uploaded to servers
 - **Authentication** ensures only you can access your data
+- **XP and badges** are saved to your account
 - Sign out to clear your session data
 
 ---
@@ -242,4 +379,5 @@ For issues or feedback:
 
 ---
 
-*AI Workout Trainer v0.1.0 - Created by Shourya Singh Khatiyan*
+*AI Workout Trainer v0.2.0 - Created by Shourya Singh Khatiyan*
+*Last Updated: December 2025*

@@ -4,6 +4,8 @@
 
 AI Workout Trainer is a React-based web application that uses TensorFlow.js and MoveNet pose detection to provide real-time exercise form analysis. The application compares user poses against trainer videos and provides instant feedback.
 
+For detailed implementation guides on major features, see [IMPLEMENTATION_MANUAL.md](./IMPLEMENTATION_MANUAL.md).
+
 ---
 
 ## Technology Stack
@@ -28,38 +30,45 @@ AI Workout Trainer is a React-based web application that uses TensorFlow.js and 
 project/
 ├── src/
 │   ├── components/          # reusable ui components
-│   │   ├── LoadingTransition.tsx
-│   │   ├── Logo.tsx
-│   │   ├── ModelLoadingIndicator.tsx
-│   │   ├── ModelPreloader.tsx
-│   │   └── Navbar.tsx
+│   │   ├── LoadingTransition.tsx   # page transition animations
+│   │   ├── Logo.tsx                # app logo component
+│   │   ├── ModelLoadingIndicator.tsx # small loading spinner
+│   │   ├── ModelPreloader.tsx      # ai model preloading screen
+│   │   ├── Navbar.tsx              # navigation bar
+│   │   ├── VideoPlayer.tsx         # custom video player
+│   │   └── VideoPlayer.css         # video player styles
 │   │
 │   ├── context/             # react context providers
-│   │   ├── ThemeContext.tsx
-│   │   └── UserContext.tsx
+│   │   ├── ThemeContext.tsx        # dark/light theme
+│   │   └── UserContext.tsx         # auth and user data
 │   │
 │   ├── pages/               # page components
-│   │   ├── BodyCalibration.tsx
-│   │   ├── LandingPage.tsx
-│   │   ├── Profile.tsx
-│   │   ├── ProfileSetup.tsx
-│   │   ├── SignIn.tsx
-│   │   ├── SignUp.tsx
-│   │   ├── WorkoutTrainer.tsx
-│   │   ├── WorkoutTrainerApp.tsx
-│   │   └── WorkoutTrainerApp.css
+│   │   ├── BodyCalibration.tsx     # body measurement entry
+│   │   ├── LandingPage.tsx         # homepage
+│   │   ├── NotFound.tsx            # 404 error page
+│   │   ├── Profile.tsx             # user profile page
+│   │   ├── ProfileSetup.tsx        # initial profile setup
+│   │   ├── SignIn.tsx              # login page
+│   │   ├── SignUp.tsx              # registration page
+│   │   ├── WorkoutTrainer.tsx      # trainer wrapper (preloading)
+│   │   ├── WorkoutTrainerApp.tsx   # main trainer application
+│   │   └── WorkoutTrainerApp.css   # trainer styles
 │   │
 │   ├── services/            # business logic services
-│   │   ├── authService.ts       # supabase auth & profiles
-│   │   ├── gamificationService.ts # xp & leveling logic
-│   │   ├── supabase.ts          # client initialization
-│   │   └── voiceFeedbackService.ts
+│   │   ├── authService.ts          # supabase auth and profiles
+│   │   ├── gamificationService.ts  # xp, levels, badges, streaks
+│   │   ├── supabase.ts             # client initialization
+│   │   └── voiceFeedbackService.ts # speech synthesis
 │   │
 │   ├── utils/               # utility functions
-│   │   ├── index.ts
-│   │   ├── modelUtils.ts
-│   │   ├── navigationUtils.ts
-│   │   └── poseUtils.ts
+│   │   ├── index.ts                # barrel export
+│   │   ├── modelUtils.ts           # tensorflow initialization
+│   │   ├── navigationUtils.ts      # navigation helpers
+│   │   ├── poseUtils.ts            # angle and accuracy calculations
+│   │   └── segmentAnalyzer.ts      # video segment analysis
+│   │
+│   ├── types/               # typescript definitions
+│   │   └── index.ts
 │   │
 │   ├── App.tsx              # main app with routing
 │   ├── main.tsx             # entry point
@@ -81,7 +90,7 @@ project/
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
@@ -122,7 +131,7 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 
 ## Core Architecture
 
-### App Component (`App.tsx`)
+### App Component (App.tsx)
 
 The main app handles:
 - Initial loading animation
@@ -139,6 +148,7 @@ The main app handles:
   <Route path="/profile-setup" element={<ProfileSetup />} />
   <Route path="/trainer" element={<WorkoutTrainer />} />
   <Route path="/calibration" element={<BodyCalibration />} />
+  <Route path="*" element={<NotFound />} />
 </Routes>
 ```
 
@@ -152,17 +162,19 @@ Manages user authentication and profile data:
 interface UserContextType {
   user: UserData | null;
   isLoggedIn: boolean;
+  isLoading: boolean;
   login: (userData: UserData) => void;
   logout: () => void;
   updateUser: (data: Partial<UserData>) => void;
   updateStats: (stats: Partial<UserStats>) => void;
   updateStreak: (streak: Partial<UserStreak>) => void;
+  completeWorkout: (accuracy: number, duration: number, exercise: string) => Promise<void>;
 }
 ```
 
 **Usage:**
 ```tsx
-const { user, isLoggedIn, login, logout, updateUser } = useUser();
+const { user, isLoggedIn, completeWorkout } = useUser();
 ```
 
 ### ThemeContext
@@ -188,25 +200,54 @@ The application uses Supabase for authentication and data persistence. The clien
 ### Database Schema
 
 #### `profiles` Table
+
 Stores user data, stats, and progression.
 
 ```typescript
 interface Profile {
-  id: string;               // References auth.users.id
+  id: string;               // references auth.users.id
   email: string;
-  full_name: string;
-  // Stats
+  full_name: string | null;
+  avatar_url: string | null;
+  
+  // physical stats
+  age: number | null;
+  gender: string | null;
+  height: number | null;
+  weight: number | null;
+  
+  // body calibration
+  hip_size: number | null;
+  chest_size: number | null;
+  neck_size: number | null;
+  arm_length: number | null;
+  leg_length: number | null;
+  
+  // gamification
   level: number;
   experience: number;
-  badges: text[];           // Array of badge names
+  badges: string[];
+  
+  // streaks
   streak_current: number;
+  streak_longest: number;
+  last_workout_date: string | null;
+  
+  // workout stats
   total_workouts: number;
   average_accuracy: number;
-  // ...other physical stats
+  total_time_hours: number;
+  most_practiced: string | null;
+  most_practiced_sessions: number;
+  
+  // timestamps
+  created_at: string;
+  updated_at: string | null;
 }
 ```
 
 #### `workout_sessions` Table
+
 Logs individual workout history.
 
 ```typescript
@@ -222,15 +263,61 @@ interface WorkoutSession {
 
 ### Authentication Flow
 
-1. **Sign Up**: `authService.signUp` creates auth user + `profiles` row.
-2. **Session**: `UserContext` listens to `onAuthStateChange`.
-3. **Protection**: Protected routes check `useUser().isLoggedIn`.
+1. **Sign Up**: `authService.signUp` creates auth user + `profiles` row
+2. **Session**: `UserContext` listens to `onAuthStateChange`
+3. **Protection**: Protected routes check `useUser().isLoggedIn`
+
+---
+
+## Services Reference
+
+### authService.ts
+
+Handles authentication and profile management.
+
+| Function | Description |
+|----------|-------------|
+| `signUp(email, password, fullName)` | Register new user |
+| `signIn(email, password)` | Login existing user |
+| `signOut()` | Logout current user |
+| `getSession()` | Get current session |
+| `getCurrentUser()` | Get current user |
+| `getProfile(userId)` | Fetch user profile |
+| `updateProfile(userId, updates)` | Update profile fields |
+| `updateWorkoutStats(userId, accuracy, duration, exercise)` | Update after workout |
+| `getWorkoutHistory(userId, limit)` | Get workout history |
+
+### gamificationService.ts
+
+Handles XP, levels, badges, and streaks.
+
+| Function | Description |
+|----------|-------------|
+| `calculateStreak(lastDate, current)` | Calculate new streak |
+| `wouldExtendStreak(lastDate)` | Check if workout today extends streak |
+| `checkBadgeEligibility(badges, stats, accuracy)` | Get newly earned badges |
+| `calculateExperience(minutes, accuracy)` | Calculate XP earned |
+| `calculateLevel(totalXP)` | Get level from total XP |
+| `xpToNextLevel(totalXP)` | XP needed for next level |
+| `getLevelProgress(totalXP)` | Progress percentage (0-100) |
+| `processWorkoutCompletion(stats, workout)` | Process complete workout |
+
+### voiceFeedbackService.ts
+
+Handles spoken feedback using Web Speech API.
+
+| Method | Description |
+|--------|-------------|
+| `setEnabled(enabled)` | Toggle voice on/off |
+| `isActive()` | Check if enabled |
+| `addFeedback(items)` | Queue feedback for speaking |
+| `cleanup()` | Stop and cleanup |
 
 ---
 
 ## Pose Detection System
 
-### Model Initialization (`modelUtils.ts`)
+### Model Initialization (modelUtils.ts)
 
 ```tsx
 import * as poseDetection from '@tensorflow-models/pose-detection';
@@ -250,7 +337,7 @@ export const initializeDetector = async () => {
 };
 ```
 
-### Pose Utilities (`poseUtils.ts`)
+### Pose Utilities (poseUtils.ts)
 
 #### Key Functions
 
@@ -258,119 +345,126 @@ export const initializeDetector = async () => {
 |----------|---------|
 | `calculateAngles(keypoints)` | Calculate joint angles from keypoints |
 | `calculateAccuracy(angles, idealAngles)` | Compare angles to ideal positions |
-| `calculateOverallAccuracy(accuracy)` | Compute weighted overall score |
-| `generateFeedback(angles, ideal, accuracy, keypoints)` | Generate correction messages |
-
-#### Angle Calculation
-
-The system calculates angles between three connected keypoints:
-
-```tsx
-function calculateAngle(a: Keypoint, b: Keypoint, c: Keypoint): number {
-  const radians = Math.atan2(c.y - b.y, c.x - b.x) - 
-                  Math.atan2(a.y - b.y, a.x - b.x);
-  let angle = Math.abs(radians * 180.0 / Math.PI);
-  if (angle > 180.0) angle = 360 - angle;
-  return angle;
-}
-```
+| `calculateOverallAccuracy(accuracy)` | Compute weighted overall score (harmonic mean) |
+| `generateFeedback(angles, ideal, accuracy, keypoints)` | Generate context-aware correction messages |
+| `calculateSpineAngles(keypoints)` | Calculate three-segment spine angles |
+| `isPersonProperlyVisible(keypoints)` | Check if person is visible enough |
+| `checkPersonDistance(keypoints)` | Check if too close/far |
 
 #### Tracked Joints
 
 | Joint | Keypoints Used |
 |-------|----------------|
-| Hip | shoulder → hip → knee |
-| Knee | hip → knee → ankle |
-| Elbow | shoulder → elbow → wrist |
-| Shoulder | hip → shoulder → elbow |
-| Back | nose → shoulders → hips → knees |
+| Hip | shoulder, hip, knee |
+| Knee | hip, knee, ankle |
+| Elbow | shoulder, elbow, wrist |
+| Shoulder | hip, shoulder, elbow |
+| Back | Three segments: upper, mid, lower |
 
-### Accuracy Calculation
+### Segment Analyzer (segmentAnalyzer.ts)
 
-Uses harmonic mean with critical joint penalties:
+Analyzes trainer videos to extract key pose segments.
 
-```tsx
-// critical joints have higher weight
-const criticalJoints = {
-  Hip: 0.20,
-  Knee: 0.20,
-  BackStraightness: 0.40
-};
+#### Key Interfaces
 
-const supportJoints = {
-  Elbow: 0.10,
-  Shoulder: 0.10
-};
+```typescript
+interface PoseSegment {
+  id: number;
+  startTime: number;
+  endTime: number;
+  targetPose: poseDetection.Pose;
+  targetAngles: { Hip, Knee, Elbow, Shoulder, BackStraightness };
+  description: string;
+  matched: boolean;
+}
+
+interface SegmentConfig {
+  angleThreshold: number;      // degrees change to trigger new segment
+  minSegmentDuration: number;  // minimum seconds between segments
+  sampleInterval: number;      // how often to sample (seconds)
+  matchAccuracyThreshold: number; // accuracy needed to match
+  holdDuration: number;        // seconds to hold pose
+}
+
+interface SegmentTrainingState {
+  isActive: boolean;
+  isAnalyzing: boolean;
+  analysisProgress: number;
+  segments: PoseSegment[];
+  currentSegmentIndex: number;
+  segmentStatus: 'idle' | 'playing' | 'waiting' | 'matched' | 'completed';
+  holdProgress: number;
+  matchAccuracy: number;
+}
 ```
+
+#### Key Functions
+
+| Function | Purpose |
+|----------|---------|
+| `analyzeVideoForSegments(video, detector, config, onProgress)` | Extract segments from video |
+| `calculateSegmentMatch(traineeAngles, segment)` | Check if trainee matches target |
+| `isSignificantChange(oldAngles, newAngles, threshold)` | Detect pose change |
+| `generatePoseDescription(angles, segmentNumber)` | Create readable description |
 
 ---
 
-## Voice Feedback Service
+## Preloaded Assets Architecture
 
-### Overview
+The `WorkoutTrainer.tsx` wrapper preloads camera and AI model before showing the trainer.
 
-`voiceFeedbackService.ts` provides spoken feedback using Web Speech API.
+### Flow
 
-### Key Features
-
-- **Voting system**: Only speaks feedback that persists for 1.5+ seconds
-- **Variation**: Multiple phrases for same correction to avoid repetition
-- **Detailed guidance**: Extended help for persistent issues (10+ seconds)
-
-### Usage
-
-```tsx
-import { voiceFeedbackService } from '../services/voiceFeedbackService';
-
-// enable/disable
-voiceFeedbackService.setEnabled(true);
-
-// add feedback items
-voiceFeedbackService.addFeedback([
-  { text: 'Bend your knees more', status: 'warning' }
-]);
-
-// cleanup
-voiceFeedbackService.cleanup();
 ```
+User navigates to /trainer
+        |
+        v
+WorkoutTrainer.tsx renders
+        |
+        v
+ModelPreloader.tsx shown
+  - Initializes TensorFlow
+  - Creates pose detector
+  - Requests camera access
+  - Gets MediaStream
+        |
+        v
+Assets passed to WorkoutTrainerApp
+  - preloadedCameraStream: MediaStream
+  - preloadedDetector: PoseDetector
+        |
+        v
+Pose detection starts immediately
+```
+
+### Benefits
+
+- No re-initialization on page entry
+- Instant pose detection lines
+- Camera already streaming
+- Faster perceived performance
 
 ---
 
-## Workout Trainer Component
+## 404 Page (NotFound.tsx)
 
-### State Management
+A themed error page for unknown routes.
+
+### Features
+
+- Matches app theme (orange/amber gradients)
+- Animated elements using Framer Motion
+- Mouse-following spotlight effect
+- Shows attempted path
+- Links to home and trainer pages
+- "Go Back" button using history API
+
+### Integration
+
+Added to `App.tsx` routes as catch-all:
 
 ```tsx
-// main states in WorkoutTrainerApp.tsx
-const [detector, setDetector] = useState<PoseDetector | null>(null);
-const [isDetecting, setIsDetecting] = useState(false);
-const [trainerPose, setTrainerPose] = useState<Pose | null>(null);
-const [traineePose, setTraineePose] = useState<Pose | null>(null);
-const [postureAccuracy, setPostureAccuracy] = useState(85);
-const [feedbackItems, setFeedbackItems] = useState([]);
-```
-
-### Detection Loop
-
-```tsx
-const detectPose = async () => {
-  if (!detector || !webcamRef.current) return;
-  
-  const video = webcamRef.current.video;
-  const poses = await detector.estimatePoses(video);
-  
-  if (poses.length > 0) {
-    const traineeAngles = calculateAngles(poses[0].keypoints);
-    const accuracy = calculateAccuracy(traineeAngles, trainerAngles);
-    const feedback = generateFeedback(traineeAngles, trainerAngles, accuracy);
-    
-    setTraineePose(poses[0]);
-    setPostureAccuracy(calculateOverallAccuracy(accuracy));
-    setFeedbackItems(feedback);
-  }
-  
-  requestAnimationFrame(detectPose);
-};
+<Route path="*" element={<NotFound />} />
 ```
 
 ---
@@ -395,6 +489,7 @@ const detectPose = async () => {
 |------|---------|
 | `index.css` | Global styles, CSS variables, utilities |
 | `WorkoutTrainerApp.css` | Trainer-specific styles |
+| `VideoPlayer.css` | Video player component styles |
 
 ### Tailwind Config
 
@@ -431,6 +526,20 @@ private dialogues = {
 };
 ```
 
+### Adding New Badges
+
+1. Add badge definition in `gamificationService.ts`:
+```tsx
+{ id: 'new_badge', name: 'Badge Name', description: 'How to earn', icon: 'icon' }
+```
+
+2. Add eligibility check in `checkBadgeEligibility()`:
+```tsx
+if (stats.someCondition && !currentBadges.includes('new_badge')) {
+  newBadges.push('new_badge');
+}
+```
+
 ---
 
 ## Performance Optimization
@@ -440,13 +549,16 @@ private dialogues = {
 - **WebGL backend**: TensorFlow uses GPU acceleration
 - **SINGLEPOSE_LIGHTNING**: Fastest MoveNet variant
 - **Pose smoothing**: Reduces jitter in detection
-- **Debounced updates**: UI updates are throttled
+- **Debounced updates**: UI updates throttled to 500ms
+- **Harmonic mean**: Efficient overall accuracy calculation
+- **Preloaded assets**: No re-initialization on page entry
 
 ### Tips for Better Performance
 
 1. Use production builds (`npm run build`)
 2. Close unnecessary browser tabs
-3. Ensure WebGL is enabled 4. Use Chrome for best TensorFlow.js performance
+3. Ensure WebGL is enabled
+4. Use Chrome for best TensorFlow.js performance
 
 ---
 
@@ -457,19 +569,24 @@ private dialogues = {
 - [ ] User registration and login
 - [ ] Profile creation and editing
 - [ ] Video loading and playback
+- [ ] Video segment analysis
 - [ ] Pose detection accuracy
+- [ ] Segment training flow
 - [ ] Voice feedback functionality
+- [ ] XP and badge earning
+- [ ] Streak tracking
 - [ ] Theme switching
 - [ ] Responsive design
+- [ ] 404 page navigation
 
 ### Browser Compatibility
 
 | Browser | Support |
 |---------|---------|
-| Chrome | ✅ Full |
-| Firefox | ✅ Full |
-| Edge | ✅ Full |
-| Safari | ⚠️ Limited WebGL |
+| Chrome | Full |
+| Firefox | Full |
+| Edge | Full |
+| Safari | Limited WebGL |
 
 ---
 
@@ -488,6 +605,13 @@ Output is in `/dist` folder.
 - Ensure HTTPS for webcam access
 - Configure CORS if using external APIs
 - Optimize assets for production
+- Set Supabase environment variables
+
+### Vercel Deployment
+
+1. Connect GitHub repository
+2. Set environment variables in Vercel dashboard
+3. Deploy
 
 ---
 
@@ -517,6 +641,14 @@ useEffect(() => {
 }, [detector]);
 ```
 
+Revoke blob URLs when done:
+
+```tsx
+if (videoUrl) {
+  URL.revokeObjectURL(videoUrl);
+}
+```
+
 ---
 
 ## Contributing
@@ -526,6 +658,13 @@ useEffect(() => {
 3. Commit changes: `git commit -m 'Add new feature'`
 4. Push to branch: `git push origin feature/new-feature`
 5. Open Pull Request
+
+---
+
+## Related Documentation
+
+- [USER_MANUAL.md](./USER_MANUAL.md) - End-user guide
+- [IMPLEMENTATION_MANUAL.md](./IMPLEMENTATION_MANUAL.md) - Feature implementation details
 
 ---
 

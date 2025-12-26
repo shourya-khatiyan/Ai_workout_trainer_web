@@ -28,22 +28,23 @@
 
 ---
 
-## 📖 About
+## About
 
-AI Workout Trainer is a web application that uses **TensorFlow.js** and **MoveNet** pose detection to analyze your exercise form in real-time. Simply load a trainer video, enable your webcam, and get instant feedback on your posture and joint angles.
+AI Workout Trainer is a web application that uses **TensorFlow.js** and **MoveNet** pose detection to analyze your exercise form in real-time. Load a trainer video, enable your webcam, and get instant feedback on your posture and joint angles.
 
 ### Why AI Workout Trainer?
 
-- 🎯 **Real-time Analysis** - Get instant feedback as you exercise
-- 🤖 **AI-Powered** - Uses Google's MoveNet for accurate pose detection
-- 🔊 **Voice Feedback** - Hands-free corrections while you work out
-- 📊 **Progress Tracking** - Track your accuracy, streaks, and achievements
-- ☁️ **Cloud Sync** - Save your progress across devices securely
-- 🔒 **Privacy Focused** - Video processing happens locally; only stats are synced
+- **Real-time Analysis** - Get instant feedback as you exercise
+- **AI-Powered** - Uses Google's MoveNet for accurate pose detection
+- **Segment Training** - AI identifies key poses in videos for guided practice
+- **Voice Feedback** - Hands-free corrections while you work out
+- **Progress Tracking** - Track your accuracy, streaks, XP, and achievements
+- **Cloud Sync** - Save your progress across devices securely
+- **Privacy Focused** - Video processing happens locally; only stats are synced
 
 ---
 
-## ✨ Features
+## Features
 
 ### Core Features
 
@@ -51,7 +52,8 @@ AI Workout Trainer is a web application that uses **TensorFlow.js** and **MoveNe
 |---------|-------------|
 | **Pose Detection** | Real-time body keypoint detection using MoveNet |
 | **Joint Accuracy** | Track accuracy for hip, knee, elbow, shoulder, and back |
-| **Form Feedback** | Instant tips to correct your posture |
+| **Segment Mode** | Auto-analyze videos and train on key pose segments |
+| **Form Feedback** | Context-aware tips based on angle direction |
 | **Voice Coaching** | Spoken feedback using Web Speech API |
 | **Video Comparison** | Follow along with trainer demonstration videos |
 
@@ -63,21 +65,23 @@ AI Workout Trainer is a web application that uses **TensorFlow.js** and **MoveNe
 | **Cloud Storage** | Sync stats, streaks, and history across devices |
 | **Body Calibration** | Enter measurements for personalized analysis |
 | **Dashboard** | View workout statistics and progress |
-| **Achievements** | Earn badges for milestones |
+| **Achievements** | Earn 11 badges for milestones |
+| **XP and Levels** | Gain experience and level up |
 | **Streak Tracking** | Maintain workout consistency |
 
 ### Technical Features
 
-- ⚡ **Supabase Backend** - Secure authentication and database
-- ⚡ **WebGL Acceleration** - GPU-powered pose detection
-- 📱 **Responsive Design** - Works on desktop and tablets
-- 🎨 **Hot Color Theme** - Vibrant orange/red/amber design
-- 🌙 **Dark/Light Mode** - Theme switching support
-- 🔒 **Local Processing** - Video stream never leaves your device
+- **Supabase Backend** - Secure authentication and database
+- **WebGL Acceleration** - GPU-powered pose detection
+- **Responsive Design** - Works on desktop and tablets
+- **Hot Color Theme** - Vibrant orange/red/amber design
+- **Dark/Light Mode** - Theme switching support
+- **Local Processing** - Video stream never leaves your device
+- **Custom 404 Page** - Themed error page with navigation
 
 ---
 
-## 🎬 Demo
+## Demo
 
 ### Trainer Interface
 
@@ -89,7 +93,7 @@ AI Workout Trainer is a web application that uses **TensorFlow.js** and **MoveNe
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### Prerequisites
 
@@ -142,7 +146,7 @@ npm run preview
 
 ---
 
-## 📖 Usage
+## Usage
 
 ### Getting Started
 
@@ -153,10 +157,11 @@ npm run preview
 ### Using the Trainer
 
 1. **Load Video** - Upload a trainer demonstration video
-2. **Enable Camera** - Allow webcam access
-3. **Start Session** - Click the play button
-4. **Follow Along** - Match the trainer's movements
-5. **Check Feedback** - Watch accuracy meters and feedback panel
+2. **Wait for Analysis** - AI analyzes video for key poses
+3. **Enable Camera** - Allow webcam access
+4. **Start Session** - Click the play button
+5. **Match Poses** - Hold target poses for 1.5 seconds
+6. **Check Feedback** - Watch accuracy meters and feedback panel
 
 ### Tips for Best Results
 
@@ -167,7 +172,7 @@ npm run preview
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 
@@ -181,11 +186,11 @@ npm run preview
 | [React Router](https://reactrouter.com/) | Navigation |
 | [Lucide React](https://lucide.dev/) | Icons |
 
-### Backend & AI
+### Backend and AI
 
 | Technology | Purpose |
 |------------|---------|
-| [Supabase](https://supabase.com/) | Auth & Database |
+| [Supabase](https://supabase.com/) | Auth and Database |
 | [TensorFlow.js](https://www.tensorflow.org/js) | ML Runtime |
 | [MoveNet](https://www.tensorflow.org/hub/tutorials/movenet) | Pose Detection |
 | Web Speech API | Voice Feedback |
@@ -200,34 +205,47 @@ npm run preview
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
 ├── components/         # Reusable UI components
 │   ├── LoadingTransition.tsx
 │   ├── Logo.tsx
+│   ├── ModelLoadingIndicator.tsx
 │   ├── ModelPreloader.tsx
-│   └── Navbar.tsx
+│   ├── Navbar.tsx
+│   ├── VideoPlayer.tsx
+│   └── VideoPlayer.css
 │
 ├── context/            # React Context providers
 │   ├── ThemeContext.tsx
 │   └── UserContext.tsx
 │
 ├── pages/              # Page components
+│   ├── BodyCalibration.tsx
 │   ├── LandingPage.tsx
-│   ├── WorkoutTrainerApp.tsx
+│   ├── NotFound.tsx
 │   ├── Profile.tsx
+│   ├── ProfileSetup.tsx
 │   ├── SignIn.tsx
-│   └── SignUp.tsx
+│   ├── SignUp.tsx
+│   ├── WorkoutTrainer.tsx
+│   ├── WorkoutTrainerApp.tsx
+│   └── WorkoutTrainerApp.css
 │
 ├── services/           # Business logic
+│   ├── authService.ts
+│   ├── gamificationService.ts
+│   ├── supabase.ts
 │   └── voiceFeedbackService.ts
 │
 ├── utils/              # Utility functions
-│   ├── poseUtils.ts    # Angle calculations
-│   ├── modelUtils.ts   # TensorFlow setup
-│   └── navigationUtils.ts
+│   ├── index.ts
+│   ├── modelUtils.ts
+│   ├── navigationUtils.ts
+│   ├── poseUtils.ts
+│   └── segmentAnalyzer.ts
 │
 ├── App.tsx             # Main app component
 ├── main.tsx            # Entry point
@@ -236,28 +254,29 @@ src/
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 | Document | Description |
 |----------|-------------|
 | [USER_MANUAL.md](./USER_MANUAL.md) | End-user guide with features and troubleshooting |
 | [DEVELOPER_MANUAL.md](./DEVELOPER_MANUAL.md) | Developer guide with architecture and API docs |
+| [IMPLEMENTATION_MANUAL.md](./IMPLEMENTATION_MANUAL.md) | Detailed implementation guides for major features |
 
 ---
 
-## 🎨 Color Theme
+## Color Theme
 
 The application uses a **"Hot Colors"** theme:
 
 | Color | Hex | Usage |
 |-------|-----|-------|
-| 🟠 Primary | `#F97316` | Buttons, accents |
-| 🔴 Secondary | `#EF4444` | Gradients, alerts |
-| 🟡 Accent | `#FBBF24` | Highlights |
+| Primary | `#F97316` | Buttons, accents |
+| Secondary | `#EF4444` | Gradients, alerts |
+| Accent | `#FBBF24` | Highlights |
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -285,7 +304,7 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📋 Roadmap
+## Roadmap
 
 - [ ] Mobile app version
 - [ ] More exercise templates
@@ -296,7 +315,7 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## ⚠️ Known Issues
+## Known Issues
 
 | Issue | Workaround |
 |-------|------------|
@@ -306,13 +325,13 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **ISC License** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 **Shourya Singh Khatiyan**
 
@@ -321,19 +340,19 @@ This project is licensed under the **ISC License** - see the [LICENSE](LICENSE) 
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- [TensorFlow.js Team](https://www.tensorflow.org/js) for the amazing ML framework
+- [TensorFlow.js Team](https://www.tensorflow.org/js) for the ML framework
 - [MoveNet](https://blog.tensorflow.org/2021/05/next-generation-pose-detection-with-movenet-and-tensorflowjs.html) for pose detection model
-- [Lucide](https://lucide.dev/) for beautiful icons
+- [Lucide](https://lucide.dev/) for icons
 - [Tailwind CSS](https://tailwindcss.com/) for the styling framework
 
 ---
 
 <p align="center">
-  Made with ❤️ and ☕ by Shourya Singh Khatiyan
+  Made with looooooots of ☕ by Shourya!!
 </p>
 
 <p align="center">
-  <a href="#top">⬆️ Back to Top</a>
+  <a href="#top">Back to Top</a>
 </p>

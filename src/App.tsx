@@ -11,6 +11,7 @@ import WorkoutTrainer from './pages/WorkoutTrainer';
 import NotFound from './pages/NotFound';
 import { UserProvider } from './context/UserContext';
 import { Dumbbell } from 'lucide-react';
+import GoogleAnalytics from './components/GoogleAnalytics';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);

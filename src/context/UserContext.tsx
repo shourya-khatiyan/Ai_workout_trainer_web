@@ -66,6 +66,34 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+const TEST_EMAIL = 'test@gmail.com';
+const TEST_PASSWORD = 'test';
+const TEST_USER_ID = 'test-user-00000000-0000-0000-0000';
+
+const TEST_USER_DATA: UserData = {
+  id: TEST_USER_ID,
+  name: 'Test User',
+  email: TEST_EMAIL,
+  level: 5,
+  experience: 420,
+  badges: ['Beginner', 'First Workout', 'Consistent'],
+  fitnessLevel: 'intermediate',
+  fitnessGoal: 'general_fitness',
+  bio: 'Test account for development',
+  streak: { current: 3, longest: 7 },
+  stats: {
+    totalWorkouts: 12,
+    averageAccuracy: 78,
+    totalTimeHours: 2.5,
+    mostPracticed: 'Squats',
+    mostPracticedSessions: 5,
+  },
+};
+
+function isTestUser(id: string): boolean {
+  return id === TEST_USER_ID;
+}
+
 /**
  * maps a supabase profile row to the frontend UserData shape.
  */
@@ -137,7 +165,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const isLoggedIn = !!session && !!user;
+  const isLoggedIn = (!!session || user?.id === TEST_USER_ID) && !!user;
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -180,6 +208,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
+    if (email === TEST_EMAIL && password === TEST_PASSWORD) {
+      setUser(TEST_USER_DATA);
+      setAuthUser({ id: TEST_USER_ID, email: TEST_EMAIL } as User);
+      return;
+    }
+
     const data = await authSignIn(email, password);
     if (data.user) {
       await fetchProfile(data.user.id);
@@ -210,6 +244,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    if (authUser && isTestUser(authUser.id)) {
+      setSession(null);
+      setAuthUser(null);
+      setUser(null);
+      return;
+    }
+
     await authSignOut();
     setSession(null);
     setAuthUser(null);
@@ -219,8 +260,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const updateUser = async (data: Partial<UserData>) => {
     if (!authUser) throw new Error('Not authenticated');
 
-    const profileUpdate = userDataToProfileUpdate(data);
-    await updateProfileApi(authUser.id, profileUpdate);
+    if (!isTestUser(authUser.id)) {
+      const profileUpdate = userDataToProfileUpdate(data);
+      await updateProfileApi(authUser.id, profileUpdate);
+    }
+
     setUser((prev) => (prev ? { ...prev, ...data } : null));
   };
 
@@ -245,7 +289,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshProfile = async () => {
-    if (authUser) {
+    if (authUser && !isTestUser(authUser.id)) {
       await fetchProfile(authUser.id);
     }
   };
@@ -256,6 +300,24 @@ export function UserProvider({ children }: { children: ReactNode }) {
     exerciseName: string
   ) => {
     if (!authUser) throw new Error('Not authenticated');
+
+    if (isTestUser(authUser.id)) {
+      setUser((prev) => {
+        if (!prev) return null;
+        const newWorkouts = (prev.stats?.totalWorkouts || 0) + 1;
+        return {
+          ...prev,
+          experience: (prev.experience || 0) + 25,
+          stats: {
+            ...prev.stats!,
+            totalWorkouts: newWorkouts,
+            averageAccuracy: Math.round(((prev.stats?.averageAccuracy || 0) * (newWorkouts - 1) + accuracy) / newWorkouts),
+            totalTimeHours: (prev.stats?.totalTimeHours || 0) + durationMinutes / 60,
+          },
+        };
+      });
+      return { newBadges: [], xpGained: 25, leveledUp: false };
+    }
 
     const result = await updateWorkoutStats(
       authUser.id,

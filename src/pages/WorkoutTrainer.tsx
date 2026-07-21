@@ -1,8 +1,6 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import WorkoutTrainerApp from './WorkoutTrainerApp';
-import { useUser } from '../context/UserContext';
 import ModelPreloader from '../components/ModelPreloader';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 
@@ -11,56 +9,33 @@ interface PreloadedAssets {
   detector: poseDetection.PoseDetector | null;
 }
 
-const WorkoutTrainer: React.FC = () => {
-  const { isLoggedIn, isLoading: isAuthLoading } = useUser();
-  const navigate = useNavigate();
+/**
+ * wrapper page that preloads the ai model and camera,
+ * then renders the main workout trainer app.
+ * auth is handled by ProtectedRoute in App.tsx.
+ */
+const WorkoutTrainer = () => {
   const [isModelLoading, setIsModelLoading] = useState(true);
   const [preloadedAssets, setPreloadedAssets] = useState<PreloadedAssets>({
     cameraStream: null,
-    detector: null
+    detector: null,
   });
-
-  // Track if loading is complete (waiting for both auth and models)
-  const [isReadyToShow, setIsReadyToShow] = useState(false);
   const assetsLoadedRef = useRef(false);
 
-  // Redirect to signin if not logged in (checked after auth loading completes)
   useEffect(() => {
-    if (!isAuthLoading && !isLoggedIn) {
-      navigate('/signin');
-    }
     document.title = 'AI Workout Trainer';
-  }, [isLoggedIn, isAuthLoading, navigate]);
+  }, []);
 
-  // When both auth is complete AND models are loaded, show the app
-  useEffect(() => {
-    if (!isAuthLoading && isLoggedIn && assetsLoadedRef.current) {
-      setIsReadyToShow(true);
-      setIsModelLoading(false);
-    }
-  }, [isAuthLoading, isLoggedIn]);
+  const handleModelsLoaded = useCallback(
+    (cameraStream: MediaStream | null, detector: poseDetection.PoseDetector | null) => {
+      setPreloadedAssets({ cameraStream, detector });
+      assetsLoadedRef.current = true;
+      setTimeout(() => setIsModelLoading(false), 400);
+    },
+    []
+  );
 
-  // Called when models and camera finish loading
-  const handleModelsLoaded = useCallback((cameraStream: MediaStream | null, detector: poseDetection.PoseDetector | null) => {
-    setPreloadedAssets({ cameraStream, detector });
-    assetsLoadedRef.current = true;
-
-    // If auth is already complete and user is logged in, show the app
-    if (!isAuthLoading && isLoggedIn) {
-      setTimeout(() => {
-        setIsReadyToShow(true);
-        setIsModelLoading(false);
-      }, 400);
-    }
-  }, [isAuthLoading, isLoggedIn]);
-
-  // If not logged in and auth check is complete, return null (redirect will happen)
-  if (!isAuthLoading && !isLoggedIn) {
-    return null;
-  }
-
-  // Show ModelPreloader immediately - auth runs in parallel
-  if (isModelLoading || !isReadyToShow) {
+  if (isModelLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         <ModelPreloader onComplete={handleModelsLoaded} />
@@ -82,4 +57,3 @@ const WorkoutTrainer: React.FC = () => {
 };
 
 export default WorkoutTrainer;
-

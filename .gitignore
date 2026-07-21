@@ -27,7 +27,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env.example
 schema.sql
 fix_constraints.sql
 SUPABASE_SETUP.md

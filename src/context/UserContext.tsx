@@ -2,12 +2,14 @@ import { createContext, useState, useContext, useEffect, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 import {
+  signUp as authSignUp,
+  signIn as authSignIn,
+  signOut as authSignOut,
   getProfile,
   updateProfile as updateProfileApi,
   updateWorkoutStats,
-  Profile,
-  ProfileUpdate
 } from '../services/authService';
+import type { Profile, ProfileUpdate } from '../types/database.types';
 
 
 interface UserStats {
@@ -64,7 +66,9 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-
+/**
+ * maps a supabase profile row to the frontend UserData shape.
+ */
 function profileToUserData(profile: Profile): UserData {
   return {
     id: profile.id,
@@ -100,7 +104,7 @@ function profileToUserData(profile: Profile): UserData {
 }
 
 /**
- * Convert UserData updates to ProfileUpdate format
+ * converts frontend UserData fields to the db ProfileUpdate shape.
  */
 function userDataToProfileUpdate(data: Partial<UserData>): ProfileUpdate {
   const update: ProfileUpdate = {};
@@ -124,6 +128,9 @@ function userDataToProfileUpdate(data: Partial<UserData>): ProfileUpdate {
   return update;
 }
 
+/**
+ * provides auth state + profile data to the entire app.
+ */
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null);
   const [authUser, setAuthUser] = useState<User | null>(null);
@@ -132,7 +139,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const isLoggedIn = !!session && !!user;
 
-  // Fetch profile from Supabase
   const fetchProfile = async (userId: string) => {
     try {
       const profile = await getProfile(userId);
@@ -144,9 +150,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Initialize auth state
   useEffect(() => {
-    // Get initial session
     const initializeAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
@@ -159,7 +163,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     initializeAuth();
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -176,54 +179,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Login function
   const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-
+    const data = await authSignIn(email, password);
     if (data.user) {
       await fetchProfile(data.user.id);
     }
   };
 
-  // Sign up function
   const signUp = async (email: string, password: string, name: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name },
-      },
-    });
+    const data = await authSignUp(email, password, name);
 
-    if (error) throw error;
-
-    // Create or update profile entry (upsert handles case when trigger already created it)
     if (data.user) {
-      const { error: profileError } = await supabase.from('profiles').upsert({
-        id: data.user.id,
-        email: email,
-        full_name: name,
-        level: 1,
-        experience: 0,
-        badges: ['Beginner'],
-        streak_current: 0,
-        streak_longest: 0,
-        total_workouts: 0,
-        average_accuracy: 0,
-        total_time_hours: 0,
-        most_practiced_sessions: 0,
-      }, { onConflict: 'id' });
-
-      if (profileError) {
-        console.error('Error creating profile:', profileError);
-      }
-
-      // Set initial user data locally
       setUser({
         id: data.user.id,
         name,
@@ -243,28 +209,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Logout function
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    // Clear all auth state immediately
+    await authSignOut();
     setSession(null);
     setAuthUser(null);
     setUser(null);
   };
 
-  // Update user profile
   const updateUser = async (data: Partial<UserData>) => {
     if (!authUser) throw new Error('Not authenticated');
 
     const profileUpdate = userDataToProfileUpdate(data);
     await updateProfileApi(authUser.id, profileUpdate);
-
-    // Update local state
     setUser((prev) => (prev ? { ...prev, ...data } : null));
   };
 
-  // Update stats (local + will sync on next refresh)
   const updateStats = (newStats: Partial<UserStats>) => {
     setUser((prev) => {
       if (!prev) return null;
@@ -275,7 +234,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // Update streak (local + will sync on next refresh)
   const updateStreak = (newStreak: Partial<UserStreak>) => {
     setUser((prev) => {
       if (!prev) return null;
@@ -286,14 +244,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // Refresh profile from database
   const refreshProfile = async () => {
     if (authUser) {
       await fetchProfile(authUser.id);
     }
   };
 
-  // Complete a workout session and sync to database
   const completeWorkout = async (
     accuracy: number,
     durationMinutes: number,
@@ -308,7 +264,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       exerciseName
     );
 
-    // Refresh the local profile to get updated data
     await fetchProfile(authUser.id);
 
     return {
@@ -341,6 +296,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * hook to access user context. must be used within UserProvider.
+ */
 export function useUser() {
   const context = useContext(UserContext);
   if (context === undefined) {

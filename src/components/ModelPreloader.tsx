@@ -1,36 +1,32 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import * as tf from '@tensorflow/tfjs';
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import { Dumbbell } from 'lucide-react';
+import { initializeDetector } from '../utils/modelUtils';
 
 interface ModelPreloaderProps {
   onComplete: (cameraStream: MediaStream | null, detector: poseDetection.PoseDetector | null) => void;
 }
 
+/**
+ * preloads the tensorflow model and camera stream before the
+ * trainer app renders. shows an animated skeleton loading ui.
+ */
 export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
   const [loadingText, setLoadingText] = useState('Initializing...');
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     let cameraStream: MediaStream | null = null;
-    let detector: poseDetection.PoseDetector | null = null;
 
     const loadModels = async () => {
       try {
         setLoadingText('Setting up TensorFlow...');
         setProgress(15);
-        await tf.setBackend('webgl');
-        await tf.ready();
 
         setLoadingText('Loading Pose Detection Model...');
         setProgress(35);
-        const model = poseDetection.SupportedModels.MoveNet;
-        const detectorConfig = {
-          modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
-        };
-
-        detector = await poseDetection.createDetector(model, detectorConfig);
+        const detector = await initializeDetector();
 
         setLoadingText('Requesting Camera Access...');
         setProgress(60);
@@ -40,8 +36,8 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
             video: {
               width: { ideal: 640 },
               height: { ideal: 480 },
-              facingMode: 'user'
-            }
+              facingMode: 'user',
+            },
           });
           setLoadingText('Camera Connected!');
           setProgress(85);
@@ -54,11 +50,11 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
 
         setLoadingText('Preparing AI Engine...');
         setProgress(95);
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise((resolve) => setTimeout(resolve, 300));
 
         setLoadingText('Ready!');
         setProgress(100);
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await new Promise((resolve) => setTimeout(resolve, 400));
 
         onComplete(cameraStream, detector);
       } catch (error) {
@@ -69,16 +65,13 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
 
     loadModels();
 
-    // Cleanup function to stop camera if component unmounts before completion
     return () => {
       if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream.getTracks().forEach((track) => track.stop());
       }
-      // Don't dispose detector here as it's passed to WorkoutTrainerApp
     };
   }, [onComplete]);
 
-  // Animated skeleton keypoints
   const skeletonPoints = [
     { id: 'head', cx: 200, cy: 60, r: 18 },
     { id: 'neck', cx: 200, cy: 95, r: 8 },
@@ -115,13 +108,11 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
     { from: 'rKnee', to: 'rAnkle' },
   ];
 
-  const getPoint = (id: string) => skeletonPoints.find(p => p.id === id)!;
+  const getPoint = (id: string) => skeletonPoints.find((p) => p.id === id)!;
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden">
-      {/* Light gradient background matching website theme */}
       <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
-        {/* Background image with blur */}
         <div className="absolute inset-0">
           <img
             src="/assets/hero.png"
@@ -129,21 +120,18 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
             className="w-full h-full object-cover"
             style={{ filter: 'blur(12px)', transform: 'scale(1.1)' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-900/40 via-red-900/30 to-amber-900/40"></div>
-          <div className="absolute inset-0 bg-white/60"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-900/40 via-red-900/30 to-amber-900/40" />
+          <div className="absolute inset-0 bg-white/60" />
         </div>
 
-        {/* Floating blobs like landing page */}
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-200 to-amber-200 rounded-full mix-blend-multiply filter blur-3xl animate-float"></div>
-          <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-red-200 to-orange-200 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed"></div>
-          <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-amber-200 to-yellow-200 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+          <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-orange-200 to-amber-200 rounded-full mix-blend-multiply filter blur-3xl animate-float" />
+          <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-gradient-to-br from-red-200 to-orange-200 rounded-full mix-blend-multiply filter blur-3xl animate-float-delayed" />
+          <div className="absolute bottom-0 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-amber-200 to-yellow-200 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow" />
         </div>
       </div>
 
-      {/* Main content */}
       <div className="relative z-10 text-center px-6 max-w-lg w-full">
-        {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -158,7 +146,6 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
           </span>
         </motion.div>
 
-        {/* Animated skeleton figure */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -167,7 +154,6 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
         >
           <div className="bg-white/60 backdrop-blur-lg rounded-3xl p-6 border border-orange-100 shadow-2xl">
             <svg width="320" height="300" viewBox="0 0 400 380" className="drop-shadow-lg">
-              {/* Glow filter */}
               <defs>
                 <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
                   <feGaussianBlur stdDeviation="3" result="coloredBlur" />
@@ -186,7 +172,6 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
                 </linearGradient>
               </defs>
 
-              {/* Skeleton lines */}
               {skeletonLines.map((line, idx) => {
                 const from = getPoint(line.from);
                 const to = getPoint(line.to);
@@ -208,7 +193,6 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
                 );
               })}
 
-              {/* Skeleton points */}
               {skeletonPoints.map((point, idx) => (
                 <motion.circle
                   key={point.id}
@@ -218,18 +202,14 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
                   fill="url(#skeletonGradient)"
                   filter="url(#glow)"
                   initial={{ scale: 0, opacity: 0 }}
-                  animate={{
-                    scale: [1, 1.15, 1],
-                    opacity: 1
-                  }}
+                  animate={{ scale: [1, 1.15, 1], opacity: 1 }}
                   transition={{
                     scale: { duration: 2, repeat: Infinity, delay: idx * 0.1 },
-                    opacity: { duration: 0.3, delay: idx * 0.03 }
+                    opacity: { duration: 0.3, delay: idx * 0.03 },
                   }}
                 />
               ))}
 
-              {/* Scanning effect */}
               <motion.rect
                 x="100"
                 y="0"
@@ -239,20 +219,18 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
                 opacity="0.4"
                 rx="3"
                 animate={{ y: [0, 380, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
               />
             </svg>
           </div>
         </motion.div>
 
-        {/* Progress section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
           className="bg-white/80 backdrop-blur-lg rounded-2xl p-6 border border-orange-100 shadow-xl"
         >
-          {/* Loading text */}
           <motion.p
             key={loadingText}
             initial={{ opacity: 0, y: 5 }}
@@ -262,7 +240,6 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
             {loadingText}
           </motion.p>
 
-          {/* Progress bar */}
           <div className="relative mb-3">
             <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
               <motion.div
@@ -270,10 +247,7 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.5 }}
-                style={{
-                  backgroundSize: '200% 100%',
-                  animation: 'shimmer 2s linear infinite'
-                }}
+                style={{ backgroundSize: '200% 100%', animation: 'shimmer 2s linear infinite' }}
               />
             </div>
             <div className="flex justify-between mt-2">
@@ -282,27 +256,18 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
             </div>
           </div>
 
-          {/* Pulsing dots */}
           <div className="flex justify-center gap-2 mt-4">
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
                 className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-orange-500 to-red-500"
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.4, 1, 0.4],
-                }}
-                transition={{
-                  duration: 1.2,
-                  repeat: Infinity,
-                  delay: i * 0.15,
-                }}
+                animate={{ scale: [1, 1.5, 1], opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15 }}
               />
             ))}
           </div>
         </motion.div>
 
-        {/* Powered by text */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -313,7 +278,6 @@ export default function ModelPreloader({ onComplete }: ModelPreloaderProps) {
         </motion.p>
       </div>
 
-      {/* CSS animations */}
       <style>{`
         @keyframes shimmer {
           0% { background-position: 200% 0; }

@@ -1,7 +1,5 @@
 import { useEffect } from 'react';
 
-const GA_MEASUREMENT_ID = 'G-YR0SG31L3J';
-
 declare global {
     interface Window {
         dataLayer: unknown[];
@@ -9,27 +7,32 @@ declare global {
     }
 }
 
+/**
+ * injects the google analytics gtag script and initializes tracking.
+ * reads measurement id from VITE_GA_MEASUREMENT_ID env var.
+ */
 const GoogleAnalytics = () => {
+    const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+
     useEffect(() => {
-        // Load the Google Analytics script
+        if (!measurementId) return;
+
         const script = document.createElement('script');
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+        script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
         script.async = true;
         document.head.appendChild(script);
 
-        // Initialize gtag
         window.dataLayer = window.dataLayer || [];
         window.gtag = function gtag(...args: unknown[]) {
             window.dataLayer.push(args);
         };
         window.gtag('js', new Date());
-        window.gtag('config', GA_MEASUREMENT_ID);
+        window.gtag('config', measurementId);
 
         return () => {
-            // Cleanup script on unmount
             document.head.removeChild(script);
         };
-    }, []);
+    }, [measurementId]);
 
     return null;
 };

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import Navbar from '../components/Navbar';
 import {
@@ -204,21 +203,18 @@ const ActivityGrid: React.FC<{ userId: string | undefined }> = ({ userId }) => {
 };
 
 const Profile: React.FC = () => {
-  const { user, isLoggedIn, isLoading: isAuthLoading, updateUser, authUser } = useUser();
-  const navigate = useNavigate();
+  const { user, updateUser, authUser } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Edit form state
   const [editForm, setEditForm] = useState({
     name: '',
     bio: '',
     fitnessLevel: '',
     fitnessGoal: '',
-    profileImage: ''
+    profileImage: '',
   });
 
-  // Initialize form when user data loads or modal opens
   useEffect(() => {
     if (user && isEditing) {
       setEditForm({
@@ -226,34 +222,10 @@ const Profile: React.FC = () => {
         bio: user.bio || '',
         fitnessLevel: user.fitnessLevel || '',
         fitnessGoal: user.fitnessGoal || '',
-        profileImage: user.profileImage || ''
+        profileImage: user.profileImage || '',
       });
     }
   }, [user, isEditing]);
-
-  // Redirect to signin if not logged in (only after auth check is complete)
-  useEffect(() => {
-    if (!isAuthLoading && !isLoggedIn) {
-      navigate('/signin');
-    }
-  }, [isLoggedIn, isAuthLoading, navigate]);
-
-  // Show loading while checking auth
-  if (isAuthLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If not logged in, don't render anything (redirect will happen)
-  if (!isLoggedIn) {
-    return null;
-  }
 
   // Calculate xp progress
   const level = user?.level || 1;
@@ -261,16 +233,22 @@ const Profile: React.FC = () => {
   const xpToNext = 100 - (experience % 100);
   const xpProgress = ((100 - xpToNext) / 100) * 100;
 
-  // Handle image upload
+  const MAX_AVATAR_SIZE_KB = 500;
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditForm(prev => ({ ...prev, profileImage: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (file.size > MAX_AVATAR_SIZE_KB * 1024) {
+      alert(`Image must be under ${MAX_AVATAR_SIZE_KB}KB. Please choose a smaller image.`);
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setEditForm((prev) => ({ ...prev, profileImage: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
   };
 
   // Save profile changes

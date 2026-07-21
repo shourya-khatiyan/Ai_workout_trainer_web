@@ -1,107 +1,23 @@
 import { supabase } from './supabase';
+import { processWorkoutCompletion } from './gamificationService';
+import type { Profile, ProfileInsert, ProfileUpdate } from '../types/database.types';
 
-export interface Profile {
-    id: string;
-    created_at: string;
-    updated_at: string | null;
-    email: string;
-    full_name: string | null;
-    avatar_url: string | null;
-    age: number | null;
-    gender: string | null;
-    height: number | null;
-    weight: number | null;
-    hip_size: number | null;
-    chest_size: number | null;
-    neck_size: number | null;
-    fitness_level: string | null;
-    fitness_goal: string | null;
-    bio: string | null;
-    level: number;
-    experience: number;
-    badges: string[];
-    streak_current: number;
-    streak_longest: number;
-    last_workout_date: string | null;
-    total_workouts: number;
-    average_accuracy: number;
-    total_time_hours: number;
-    most_practiced: string | null;
-    most_practiced_sessions: number;
-}
+export type { Profile, ProfileInsert, ProfileUpdate };
 
-export interface ProfileInsert {
-    id: string;
-    email: string;
-    full_name?: string | null;
-    avatar_url?: string | null;
-    age?: number | null;
-    gender?: string | null;
-    height?: number | null;
-    weight?: number | null;
-    hip_size?: number | null;
-    chest_size?: number | null;
-    neck_size?: number | null;
-    fitness_level?: string | null;
-    fitness_goal?: string | null;
-    bio?: string | null;
-    level?: number;
-    experience?: number;
-    badges?: string[];
-    streak_current?: number;
-    streak_longest?: number;
-    last_workout_date?: string | null;
-    total_workouts?: number;
-    average_accuracy?: number;
-    total_time_hours?: number;
-    most_practiced?: string | null;
-    most_practiced_sessions?: number;
-}
-
-export interface ProfileUpdate {
-    full_name?: string | null;
-    avatar_url?: string | null;
-    age?: number | null;
-    gender?: string | null;
-    height?: number | null;
-    weight?: number | null;
-    hip_size?: number | null;
-    chest_size?: number | null;
-    neck_size?: number | null;
-    fitness_level?: string | null;
-    fitness_goal?: string | null;
-    bio?: string | null;
-    level?: number;
-    experience?: number;
-    badges?: string[];
-    streak_current?: number;
-    streak_longest?: number;
-    last_workout_date?: string | null;
-    total_workouts?: number;
-    average_accuracy?: number;
-    total_time_hours?: number;
-    most_practiced?: string | null;
-    most_practiced_sessions?: number;
-    updated_at?: string;
-}
-
-
-//Sign up a new user with email and password
-
+/**
+ * signs up a new user with email/password and creates their profile.
+ */
 export async function signUp(email: string, password: string, fullName: string) {
     const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-            data: {
-                full_name: fullName,
-            },
+            data: { full_name: fullName },
         },
     });
 
     if (error) throw error;
 
-    // Create or update profile entry (upsert handles case when trigger already created it)
     if (data.user) {
         const profileData: ProfileInsert = {
             id: data.user.id,
@@ -124,14 +40,15 @@ export async function signUp(email: string, password: string, fullName: string) 
 
         if (profileError) {
             console.error('Error creating profile:', profileError);
-            // Don't throw - user is still created, profile can be created later
         }
     }
 
     return data;
 }
 
-//Sign in with email and password
+/**
+ * signs in a user with email and password.
+ */
 export async function signIn(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -142,27 +59,35 @@ export async function signIn(email: string, password: string) {
     return data;
 }
 
-//Sign out the current user
+/**
+ * signs out the current user.
+ */
 export async function signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
 }
 
-//Get the current session
+/**
+ * returns the current user session or null.
+ */
 export async function getSession() {
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
     return data.session;
 }
 
-//Get the current user
+/**
+ * returns the current authenticated user.
+ */
 export async function getCurrentUser() {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error) throw error;
     return user;
 }
 
-//Send password reset email
+/**
+ * sends a password reset email with a redirect url.
+ */
 export async function resetPassword(email: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
@@ -170,7 +95,9 @@ export async function resetPassword(email: string) {
     if (error) throw error;
 }
 
-//Update password (after reset)
+/**
+ * updates the user's password after a reset flow.
+ */
 export async function updatePassword(newPassword: string) {
     const { error } = await supabase.auth.updateUser({
         password: newPassword,
@@ -178,9 +105,9 @@ export async function updatePassword(newPassword: string) {
     if (error) throw error;
 }
 
-//Profile Functions
-
-//Get user profile by user ID
+/**
+ * fetches a user profile by id, returns null if not found.
+ */
 export async function getProfile(userId: string): Promise<Profile | null> {
     const { data, error } = await supabase
         .from('profiles')
@@ -190,7 +117,6 @@ export async function getProfile(userId: string): Promise<Profile | null> {
 
     if (error) {
         if (error.code === 'PGRST116') {
-            // No profile found
             return null;
         }
         throw error;
@@ -199,7 +125,9 @@ export async function getProfile(userId: string): Promise<Profile | null> {
     return data as Profile;
 }
 
-//Update user profile
+/**
+ * updates a user profile and returns the updated row.
+ */
 export async function updateProfile(userId: string, updates: ProfileUpdate): Promise<Profile> {
     const updateData: ProfileUpdate = {
         ...updates,
@@ -217,21 +145,19 @@ export async function updateProfile(userId: string, updates: ProfileUpdate): Pro
     return data as Profile;
 }
 
-//Update user stats after a workout
+/**
+ * processes a completed workout: calculates gamification rewards,
+ * updates the profile stats, and logs the session.
+ */
 export async function updateWorkoutStats(
     userId: string,
     workoutAccuracy: number,
     durationMinutes: number,
     exerciseName: string
 ) {
-    // Import gamification service dynamically to avoid circular deps
-    const { processWorkoutCompletion } = await import('./gamificationService');
-
-    // First, get current profile
     const profile = await getProfile(userId);
     if (!profile) throw new Error('Profile not found');
 
-    // Process the workout using gamification service
     const result = processWorkoutCompletion(
         {
             totalWorkouts: profile.total_workouts,
@@ -250,7 +176,6 @@ export async function updateWorkoutStats(
         }
     );
 
-    // Track most practiced exercise
     let mostPracticed = profile.most_practiced;
     let mostPracticedSessions = profile.most_practiced_sessions;
 
@@ -261,10 +186,8 @@ export async function updateWorkoutStats(
         mostPracticedSessions = 1;
     }
 
-    // Get today's date for last_workout_date
     const today = new Date().toISOString().split('T')[0];
 
-    // Update profile with all new stats
     const updatedProfile = await updateProfile(userId, {
         total_workouts: result.newTotalWorkouts,
         total_time_hours: result.newTotalTimeHours,
@@ -279,7 +202,6 @@ export async function updateWorkoutStats(
         badges: result.allBadges,
     });
 
-    // Log workout session
     await supabase.from('workout_sessions').insert({
         user_id: userId,
         exercise_name: exerciseName,
@@ -287,7 +209,6 @@ export async function updateWorkoutStats(
         accuracy: workoutAccuracy,
     });
 
-    // Return updated profile along with newly earned badges
     return {
         profile: updatedProfile,
         newBadges: result.newBadges,
@@ -296,7 +217,9 @@ export async function updateWorkoutStats(
     };
 }
 
-//Get workout history for a user
+/**
+ * fetches the most recent workout sessions for a user.
+ */
 export async function getWorkoutHistory(userId: string, limit = 10) {
     const { data, error } = await supabase
         .from('workout_sessions')
